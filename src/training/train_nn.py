@@ -31,9 +31,35 @@ def _to_dense(X):
     return np.asarray(X)
 
 
-def train_from_config(cfg_path: str | Path):
+def _deep_merge(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
+    out = dict(base)
+    for k, v in (override or {}).items():
+        if isinstance(v, dict) and isinstance(out.get(k), dict):
+            out[k] = _deep_merge(out[k], v)
+        else:
+            out[k] = v
+    return out
+
+
+def _load_config_with_extends(cfg_path: Path) -> Dict[str, Any]:
     with open(cfg_path, "r", encoding="utf-8") as f:
-        cfg = yaml.safe_load(f)
+        cfg = yaml.safe_load(f) or {}
+
+    extends = cfg.get("extends")
+    if extends:
+        # Resolve base path relative to this config file
+        base_candidate = cfg_path.parent / f"{extends}.yaml"
+        base_path = base_candidate if base_candidate.exists() else Path(extends)
+        base_cfg = _load_config_with_extends(base_path)
+        # Child overrides base
+        merged = _deep_merge(base_cfg, {k: v for k, v in cfg.items() if k != "extends"})
+        return merged
+    return cfg
+
+
+def train_from_config(cfg_path: str | Path):
+    cfg_path = Path(cfg_path)
+    cfg = _load_config_with_extends(cfg_path)
 
     data_cfg = cfg["data"]
     split_cfg = cfg["split"]
@@ -64,9 +90,10 @@ def train_from_config(cfg_path: str | Path):
     features = list(data_cfg.get("features", []))
     time_cols = set(data_cfg.get("parse_dates", []))
 
-    # Always add engineered 'credit_history_length' if present
-    if "credit_history_length" in df.columns and "credit_history_length" not in features:
-        features.append("credit_history_length")
+    # Always add engineered features if present
+    for eng in ["credit_history_length", "income_to_loan_ratio", "fico_avg", "fico_spread"]:
+        if eng in df.columns and eng not in features:
+            features.append(eng)
 
     # Remove target and time columns from feature inputs
     feature_inputs = [

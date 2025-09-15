@@ -69,11 +69,20 @@ def load_and_prepare(cfg: LoadConfig) -> pd.DataFrame:
         if col in df.columns:
             df[col] = _parse_date_series(df[col])
 
-    # Engineer credit_history_length (months) if both dates exist
+    # Engineer features when possible
+    # credit_history_length (months)
     if "issue_d" in df.columns and "earliest_cr_line" in df.columns:
         df["credit_history_length"] = compute_credit_history_length_months(
             df["issue_d"], df["earliest_cr_line"]
         )
+    # income_to_loan_ratio
+    if "annual_inc" in df.columns and "loan_amnt" in df.columns:
+        with np.errstate(divide="ignore", invalid="ignore"):
+            df["income_to_loan_ratio"] = (df["annual_inc"] / df["loan_amnt"]).replace([np.inf, -np.inf], np.nan)
+    # fico_avg and fico_spread
+    if "fico_range_low" in df.columns and "fico_range_high" in df.columns:
+        df["fico_avg"] = (pd.to_numeric(df["fico_range_low"], errors="coerce") + pd.to_numeric(df["fico_range_high"], errors="coerce")) / 2.0
+        df["fico_spread"] = pd.to_numeric(df["fico_range_high"], errors="coerce") - pd.to_numeric(df["fico_range_low"], errors="coerce")
 
     # Drop leakage columns if configured and present
     if cfg.drop_leakage:
@@ -82,4 +91,3 @@ def load_and_prepare(cfg: LoadConfig) -> pd.DataFrame:
             df = df.drop(columns=drops)
 
     return df.reset_index(drop=True)
-
