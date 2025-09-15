@@ -4,9 +4,7 @@ data:
   target_mapping:
     'Charged Off': 0
     'Fully Paid': 1
-  # Columns to parse as dates
   parse_dates: [issue_d, earliest_cr_line]
-  # Drop post-origination/leaky columns if present
   drop_leakage: true
   leakage_cols:
     - out_prncp
@@ -40,8 +38,7 @@ data:
     - settlement_amount
     - settlement_percentage
     - settlement_term
-  # Provider-agnostic feature set (no int_rate/grade/sub_grade/installment/funded_amnt)
-  # Engineered features (income_to_loan_ratio, credit_history_length, fico_avg) will be computed if inputs present
+  # Provider-aware: include lender-derived pricing/scoring fields
   features:
     # Loan/application
     - loan_amnt
@@ -52,6 +49,12 @@ data:
     - verification_status
     - home_ownership
     - addr_state
+
+    # Lender pricing/scoring
+    - int_rate
+    - grade
+    - sub_grade
+    - installment
 
     # Credit profile
     - dti
@@ -92,25 +95,19 @@ data:
     - earliest_cr_line
 
 split:
-  method: time           # time | random
+  method: time
   time_col: issue_d
   test_size: 0.2
   random_state: 42
 
 oversampling:
-  enabled: true          # applies to training split only
-  method: random_over_sampler
+  enabled: true
 
 model:
   layers: [256, 128, 64, 32]
   dropout: [0.4, 0.3, 0.2, 0.2]
   batchnorm: true
-  loss: binary_crossentropy   # options: binary_crossentropy | focal
-  focal:
-    enabled: false
-    alpha: 0.25
-    gamma: 2.0
-  optimizer: adam
+  loss: binary_crossentropy
   epochs: 30
   batch_size: 128
   val_split: 0.2

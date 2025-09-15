@@ -1,0 +1,24 @@
+extends: default
+
+# This file reuses the default provider-agnostic features.
+# You can override only what differs from default.
+
+data:
+  csv_path: ./first_10k_rows.csv
+
+split:
+  method: time
+  time_col: issue_d
+  test_size: 0.2
+  random_state: 42
+
+model:
+  layers: [256, 128, 64, 32]
+  dropout: [0.4, 0.3, 0.2, 0.2]
+  batchnorm: true
+  loss: binary_crossentropy
+  epochs: 30
+  batch_size: 128
+  val_split: 0.2
+  early_stopping_patience: 3
+
