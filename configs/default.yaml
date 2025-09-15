@@ -1,0 +1,101 @@
+data:
+  csv_path: ./first_10k_rows.csv
+  target_col: loan_status
+  target_mapping:
+    'Charged Off': 0
+    'Fully Paid': 1
+  # Columns to parse as dates
+  parse_dates: [issue_d, earliest_cr_line]
+  # Drop post-origination/leaky columns if present
+  drop_leakage: true
+  leakage_cols:
+    - out_prncp
+    - out_prncp_inv
+    - total_pymnt
+    - total_pymnt_inv
+    - last_pymnt_d
+    - last_pymnt_amnt
+    - next_pymnt_d
+    - last_credit_pull_d
+    - collection_recovery_fee
+    - recoveries
+    - hardship_flag
+    - hardship_type
+    - hardship_reason
+    - hardship_status
+    - hardship_amount
+    - hardship_start_date
+    - hardship_end_date
+    - payment_plan_start_date
+    - hardship_length
+    - hardship_dpd
+    - hardship_loan_status
+    - orig_projected_additional_accrued_interest
+    - hardship_payoff_balance_amount
+    - hardship_last_payment_amount
+    - debt_settlement_flag
+    - debt_settlement_flag_date
+    - settlement_status
+    - settlement_date
+    - settlement_amount
+    - settlement_percentage
+    - settlement_term
+  # Select features; additional engineered features are added automatically
+  features:
+    - loan_amnt
+    - funded_amnt
+    - term
+    - int_rate
+    - installment
+    - grade
+    - sub_grade
+    - annual_inc
+    - emp_length
+    - verification_status
+    - purpose
+    - home_ownership
+    - addr_state
+    - revol_bal
+    - revol_util
+    - total_acc
+    - pub_rec
+    - delinq_2yrs
+    - dti
+    - fico_range_low
+    - fico_range_high
+    - inq_last_6mths
+    - open_acc
+    # Note: issue_d and earliest_cr_line are loaded for engineering/time split; not used as model inputs
+    - issue_d
+    - earliest_cr_line
+
+split:
+  method: time           # time | random
+  time_col: issue_d
+  test_size: 0.2
+  random_state: 42
+
+oversampling:
+  enabled: true          # applies to training split only
+  method: random_over_sampler
+
+model:
+  layers: [256, 128, 64, 32]
+  dropout: [0.4, 0.3, 0.2, 0.2]
+  batchnorm: true
+  loss: binary_crossentropy   # options: binary_crossentropy | focal
+  focal:
+    enabled: false
+    alpha: 0.25
+    gamma: 2.0
+  optimizer: adam
+  epochs: 30
+  batch_size: 128
+  val_split: 0.2
+  early_stopping_patience: 3
+
+output:
+  models_dir: models
+  model_filename: loan_default_model.h5
+  reports_dir: reports
+  figures_dir: reports/figures
