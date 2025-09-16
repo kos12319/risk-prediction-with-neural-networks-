@@ -1,0 +1,125 @@
+data:
+  csv_path: ./first_10k_rows.csv
+  target_col: loan_status
+  target_mapping:
+    Charged Off: 0
+    Fully Paid: 1
+  parse_dates:
+  - issue_d
+  - earliest_cr_line
+  drop_leakage: true
+  leakage_cols:
+  - out_prncp
+  - out_prncp_inv
+  - total_pymnt
+  - total_pymnt_inv
+  - last_pymnt_d
+  - last_pymnt_amnt
+  - next_pymnt_d
+  - last_credit_pull_d
+  - collection_recovery_fee
+  - recoveries
+  - hardship_flag
+  - hardship_type
+  - hardship_reason
+  - hardship_status
+  - hardship_amount
+  - hardship_start_date
+  - hardship_end_date
+  - payment_plan_start_date
+  - hardship_length
+  - hardship_dpd
+  - hardship_loan_status
+  - orig_projected_additional_accrued_interest
+  - hardship_payoff_balance_amount
+  - hardship_last_payment_amount
+  - debt_settlement_flag
+  - debt_settlement_flag_date
+  - settlement_status
+  - settlement_date
+  - settlement_amount
+  - settlement_percentage
+  - settlement_term
+  features:
+  - loan_amnt
+  - term
+  - purpose
+  - emp_length
+  - annual_inc
+  - verification_status
+  - home_ownership
+  - addr_state
+  - dti
+  - delinq_2yrs
+  - pub_rec
+  - inq_last_6mths
+  - open_acc
+  - total_acc
+  - revol_bal
+  - revol_util
+  - fico_range_low
+  - fico_range_high
+  - mort_acc
+  - total_rev_hi_lim
+  - bc_open_to_buy
+  - bc_util
+  - percent_bc_gt_75
+  - tot_cur_bal
+  - tot_hi_cred_lim
+  - total_bal_ex_mort
+  - total_bc_limit
+  - total_il_high_credit_limit
+  - num_rev_accts
+  - num_rev_tl_bal_gt_0
+  - num_il_tl
+  - num_bc_tl
+  - num_bc_sats
+  - num_actv_rev_tl
+  - num_tl_90g_dpd_24m
+  - pub_rec_bankruptcies
+  - tax_liens
+  - issue_d
+  - earliest_cr_line
+split:
+  method: time
+  time_col: issue_d
+  test_size: 0.2
+  random_state: 42
+oversampling:
+  enabled: false
+  method: random_over_sampler
+model:
+  backend: pytorch
+  layers:
+  - 256
+  - 128
+  - 64
+  - 32
+  dropout:
+  - 0.4
+  - 0.3
+  - 0.2
+  - 0.2
+  batchnorm: true
+  loss: binary_crossentropy
+  focal:
+    enabled: false
+    alpha: 0.25
+    gamma: 2.0
+  optimizer: adam
+  epochs: 30
+  batch_size: 128
+  val_split: 0.2
+  early_stopping_patience: 3
+output:
+  models_dir: models
+  model_filename: loan_default_model.pt
+  reports_dir: reports
+  figures_dir: reports/figures
+eval:
+  pos_label: 0
+  threshold:
+    strategy: youden_j
+    value: 0.5
+training:
+  class_weight: auto

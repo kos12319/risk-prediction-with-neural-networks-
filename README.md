@@ -34,12 +34,13 @@ Quickstart
    Update data.csv_path to your CSV (e.g., ./first_10k_rows.csv or the full dataset path).
 
 3) Train the model:
+   # Default backend is PyTorch (no TensorFlow required)
    python -m src.cli.train --config configs/default.yaml
-   # or
-   python -m src.cli.train --config configs/provider_aware.yaml
+   # Switch to TensorFlow by setting model.backend: tensorflow in the config
+   # python -m src.cli.train --config configs/provider_aware.yaml
 
 Artifacts
-- Model: models/loan_default_model.h5
+- Model: models/loan_default_model.pt (PyTorch) or .h5 (TensorFlow)
 - Metrics: reports/metrics.json
 - Learning curves: reports/figures/learning_curves.png
 

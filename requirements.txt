@@ -4,4 +4,4 @@ scikit-learn
 imbalanced-learn
 PyYAML
 matplotlib
-tensorflow
+torch
