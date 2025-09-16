@@ -1,5 +1,5 @@
 data:
-  csv_path: ./first_10k_rows.csv
+  csv_path: data/raw/samples/first_10k_rows.csv
   target_col: loan_status
   target_mapping:
     'Charged Off': 0
@@ -102,7 +102,6 @@ oversampling:
   method: random_over_sampler
 
 model:
-  backend: pytorch          # options: pytorch | tensorflow
   layers: [256, 128, 64, 32]
   dropout: [0.4, 0.3, 0.2, 0.2]
   batchnorm: true
@@ -119,7 +118,6 @@ model:
 
 output:
   models_dir: models
-  # Use .pt when backend=pytorch, .h5 for tensorflow
   model_filename: loan_default_model.pt
   reports_dir: reports
   figures_dir: reports/figures

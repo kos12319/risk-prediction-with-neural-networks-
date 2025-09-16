@@ -4,7 +4,7 @@ extends: default
 # You can override only what differs from default.
 
 data:
-  csv_path: ./first_10k_rows.csv
+  csv_path: data/raw/samples/first_10k_rows.csv
 
 split:
   method: time
@@ -21,4 +21,3 @@ model:
   batch_size: 128
   val_split: 0.2
   early_stopping_patience: 3
-

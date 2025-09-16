@@ -1,5 +1,5 @@
 data:
-  csv_path: ./first_10k_rows.csv
+  csv_path: data/raw/samples/first_10k_rows.csv
   target_col: loan_status
   target_mapping:
     'Charged Off': 0
@@ -115,6 +115,6 @@ model:
 
 output:
   models_dir: models
-  model_filename: loan_default_model.h5
+  model_filename: loan_default_model.pt
   reports_dir: reports
   figures_dir: reports/figures

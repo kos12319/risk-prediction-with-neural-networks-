@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 import shutil
 import json as _json
+import hashlib
+import os
 
 import numpy as np
 import pandas as pd
@@ -28,11 +30,6 @@ from src.eval.metrics import (
     confusion_metrics_at_threshold,
 )
 from src.features.preprocess import build_preprocessor, identify_feature_types
-"""
-Note: TensorFlow is optional. Avoid importing it at module import time
-to allow running with the PyTorch backend without having TF installed.
-We import the Keras builder lazily only when backend=="tensorflow".
-"""
 
 
 def _ensure_dirs(paths: List[Path]):
@@ -56,6 +53,17 @@ def _deep_merge(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any
     return out
 
 
+def _file_sha256(path: Path, chunk_size: int = 1024 * 1024) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        while True:
+            chunk = f.read(chunk_size)
+            if not chunk:
+                break
+            h.update(chunk)
+    return h.hexdigest()
+
+
 def _load_config_with_extends(cfg_path: Path) -> Dict[str, Any]:
     with open(cfg_path, "r", encoding="utf-8") as f:
         cfg = yaml.safe_load(f) or {}
@@ -73,7 +81,7 @@ def _load_config_with_extends(cfg_path: Path) -> Dict[str, Any]:
 
 
 class _SimpleHistory:
-    """Adapter to mimic Keras History for plotting curves."""
+    """Lightweight history container for plotting curves."""
 
     def __init__(self, loss: List[float], val_loss: List[float]):
         self.history = {"loss": loss, "val_loss": val_loss}
@@ -292,6 +300,8 @@ def train_from_config(cfg_path: str | Path):
             random_state=split_cfg.get("random_state", 42),
             stratify=True,
         )
+        train_df = None
+        test_df = None
 
     # Build and fit preprocessor on training data only
     num_cols, cat_cols = identify_feature_types(X_train)
@@ -305,21 +315,19 @@ def train_from_config(cfg_path: str | Path):
         ros = RandomOverSampler(random_state=split_cfg.get("random_state", 42))
         X_train_proc, y_train = ros.fit_resample(X_train_proc, y_train)
 
-    # Convert to dense for Keras
+    # Convert to dense for downstream model training
     X_train_np = _to_dense(X_train_proc)
     X_test_np = _to_dense(X_test_proc)
     y_train_np = np.asarray(y_train)
     y_test_np = np.asarray(y_test)
 
-    # Backend selection
-    backend = str(model_cfg.get("backend", "pytorch")).lower()
+    # Backend: PyTorch only
+    backend = "pytorch"
 
-    # Prepare output model filename/extension based on backend
-    model_filename = out_cfg.get("model_filename", "loan_default_model.h5")
-    if backend == "pytorch" and model_filename.endswith(".h5"):
-        model_filename = model_filename.rsplit(".", 1)[0] + ".pt"
-    elif backend == "tensorflow" and model_filename.endswith(".pt"):
-        model_filename = model_filename.rsplit(".", 1)[0] + ".h5"
+    # Prepare output model filename/extension for PyTorch
+    model_filename = out_cfg.get("model_filename", "loan_default_model.pt")
+    if not str(model_filename).endswith(".pt"):
+        model_filename = str(model_filename).rsplit(".", 1)[0] + ".pt"
     model_path = models_dir / model_filename
 
     # Optional class weights for BCE
@@ -345,55 +353,10 @@ def train_from_config(cfg_path: str | Path):
             model_cfg = dict(model_cfg)
             model_cfg["_class_weight"] = cw_resolved
 
-    if backend == "tensorflow":
-        try:
-            import tensorflow as tf  # type: ignore
-            from src.models.nn import build_mlp as build_mlp_tf  # lazy import
-        except Exception as e:  # pragma: no cover
-            raise RuntimeError("TensorFlow backend requested but not installed.") from e
-
-        model = build_mlp_tf(
-            input_dim=X_train_np.shape[1],
-            layers=model_cfg.get("layers", [256, 128, 64, 32]),
-            dropout=model_cfg.get("dropout", [0.4, 0.3, 0.2, 0.2]),
-            batchnorm=model_cfg.get("batchnorm", True),
-            loss=(
-                "focal"
-                if model_cfg.get("focal", {}).get("enabled", False)
-                else model_cfg.get("loss", "binary_crossentropy")
-            ),
-            optimizer=model_cfg.get("optimizer", "adam"),
-            focal_alpha=model_cfg.get("focal", {}).get("alpha", 0.25),
-            focal_gamma=model_cfg.get("focal", {}).get("gamma", 2.0),
-        )
-
-        early_patience = model_cfg.get("early_stopping_patience", 3)
-        callbacks = []
-        if early_patience and early_patience > 0:
-            callbacks.append(
-                tf.keras.callbacks.EarlyStopping(
-                    monitor="val_loss", patience=early_patience, restore_best_weights=True
-                )
-            )
-
-        history = model.fit(
-            X_train_np,
-            y_train_np,
-            validation_split=model_cfg.get("val_split", 0.2),
-            epochs=model_cfg.get("epochs", 30),
-            batch_size=model_cfg.get("batch_size", 128),
-            verbose=1,
-            callbacks=callbacks,
-        )
-
-        y_prob = model.predict(X_test_np, verbose=0).flatten()
-        model.save(model_path.as_posix())
-        history_obj = history
-    else:
-        result, history_obj = _train_with_pytorch(
-            X_train_np, y_train_np, X_test_np, y_test_np, model_cfg, model_path
-        )
-        y_prob = result["y_prob"]
+    result, history_obj = _train_with_pytorch(
+        X_train_np, y_train_np, X_test_np, y_test_np, model_cfg, model_path
+    )
+    y_prob = result["y_prob"]
 
     # Evaluation controls
     pos_label_cfg = eval_cfg.get("pos_label", 1)
@@ -487,6 +450,71 @@ def train_from_config(cfg_path: str | Path):
     try:
         with open(resolved_cfg_path, "w", encoding="utf-8") as f:
             yaml.safe_dump(cfg, f, sort_keys=False)
+    except Exception:
+        pass
+
+    # Save data manifest with provenance and date ranges
+    try:
+        csv_path_raw = str(data_cfg.get("csv_path", ""))
+        csv_path = Path(csv_path_raw)
+        csv_abs = csv_path.resolve()
+        manifest: Dict[str, Any] = {
+            "csv_path": csv_path_raw,
+            "csv_path_abs": csv_abs.as_posix(),
+        }
+        try:
+            st = csv_abs.stat()
+            manifest.update(
+                {
+                    "filesize_bytes": int(st.st_size),
+                    "mtime": int(st.st_mtime),
+                    "sha256": _file_sha256(csv_abs),
+                }
+            )
+        except Exception:
+            pass
+
+        # Dataset-level stats
+        try:
+            y_series = df[data_cfg["target_col"]]
+            counts = y_series.value_counts().to_dict()
+            manifest["n_rows"] = int(df.shape[0])
+            manifest["n_cols"] = int(df.shape[1])
+            manifest["class_counts"] = {int(k): int(v) for k, v in counts.items()}
+        except Exception:
+            pass
+
+        # Date ranges
+        try:
+            time_col = split_cfg.get("time_col", "issue_d")
+            if time_col in df.columns:
+                def _fmt_range(s):
+                    s = s.dropna()
+                    if s.empty:
+                        return {"min": None, "max": None}
+                    return {"min": str(s.min().date()), "max": str(s.max().date())}
+
+                manifest["date_ranges"] = {"dataset": _fmt_range(df[time_col])}
+                if train_df is not None and time_col in train_df.columns:
+                    manifest["date_ranges"]["train"] = _fmt_range(train_df[time_col])
+                if test_df is not None and time_col in test_df.columns:
+                    manifest["date_ranges"]["test"] = _fmt_range(test_df[time_col])
+        except Exception:
+            pass
+
+        # Train/test class counts
+        try:
+            import numpy as _np
+            def _counts(arr):
+                unique, cnts = _np.unique(arr.astype(int), return_counts=True)
+                return {int(k): int(v) for k, v in zip(unique, cnts)}
+            manifest["train_class_counts"] = _counts(y_train_np)
+            manifest["test_class_counts"] = _counts(y_test_np)
+        except Exception:
+            pass
+
+        with open(run_dir / "data_manifest.json", "w", encoding="utf-8") as f:
+            _json.dump(manifest, f, indent=2)
     except Exception:
         pass
 

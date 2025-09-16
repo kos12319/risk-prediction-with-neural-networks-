@@ -19,3 +19,10 @@ Thumbs.db
 .python-version
 .env
 
+# Matplotlib cache
+.mplconfig/
+
+# Data directories
+# Ignore generated/intermediate data and unzipped full datasets
+data/processed/**
+data/raw/full/**

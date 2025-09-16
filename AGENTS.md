@@ -4,7 +4,7 @@
 - `src/` Python package:
   - `data/` load, target mapping, time/random split
   - `features/` preprocessing (impute/scale/one‑hot)
-  - `models/` neural network builder (Keras)
+  - `models/` neural network builder (PyTorch)
   - `training/` end‑to‑end train orchestration
   - `eval/` metrics and plots
   - `cli/` runnable entry points
@@ -46,7 +46,7 @@
 - Maintain leakage controls and time‑aware validation unless a task explicitly requests otherwise.
 
 ### Run Logging & History (for thesis reproducibility)
-- Every training invocation must write a run‑scoped history folder under `reports/runs/run_YYYYMMDD_HHMMSS/` that includes:
+- Every training invocation must write a run-scoped history folder under `reports/runs/run_YYYYMMDD_HHMMSS/` that includes:
   - `README.md`: human‑readable summary with config used, backend, positive class, threshold strategy, chosen threshold, key metrics (ROC AUC, AP), confusion stats (TP/FP/TN/FN, precision/recall/specificity), dataset info, and model settings.
   - `metrics.json`: metrics dictionary (incl. ROC AUC, Average Precision, threshold, classification report at the chosen threshold).
   - `confusion.json`: confusion metrics at the chosen threshold.
@@ -56,6 +56,7 @@
   - `history.csv`: epochs with `loss` and `val_loss` for plotting outside Python.
   - `roc_points.csv`: threshold sweep for ROC (columns: `threshold,fpr,tpr`).
   - `pr_points.csv`: threshold sweep for PR (columns: `threshold,precision,recall`).
-  - Model artifact copied into the run folder (e.g., `loan_default_model.pt` or `.h5`).
+  - `data_manifest.json`: dataset provenance (path, size, mtime, sha256), class counts, and date ranges for dataset/train/test when available.
+  - Model artifact copied into the run folder (e.g., `loan_default_model.pt`).
 - The latest artifacts are still saved at the top‑level `reports/` and `reports/figures/` for convenience, but run folders retain the full historical record.
 - Evaluate with a configurable positive class (`eval.pos_label`) and threshold strategy (`eval.threshold.strategy`: `fixed|youden_j|f1`), and annotate the chosen operating point on ROC/PR curves.

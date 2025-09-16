@@ -8,7 +8,7 @@ Repository Layout
 - data/
   - raw/: place original CSV(s)
   - processed/: optional cached splits
-- models/: saved models (e.g., loan_default_model.h5)
+- models/: saved models (e.g., loan_default_model.pt)
 - reports/
   - figures/: learning curves and plots
 - configs/
@@ -22,27 +22,44 @@ Repository Layout
   - cli/: command-line entry point
 - notebooks/: keep exploratory notebooks (optional)
 
+Docs
+- ADRs: see `docs/adr/` for architecture decision records.
+- Pain Points: see `docs/PAIN_POINTS.md` for current issues and recommendations.
+- Data dictionary: see `docs/data/COLUMN_DICTIONARY.md` for per-column types, leakage flags, and descriptions based on the sample CSV.
+- Regenerate column dictionary:
+   - Via Makefile: `make venv && . .venv/bin/activate && python -m src.cli.gen_column_dict --config configs/default.yaml` (or use `--csv` to override).
+
+Dry Run (no artifacts stored)
+- Use this to check an experiment end-to-end without persisting any files:
+  - Via Makefile: `make dryrun CONFIG=configs/default.yaml`
+  - Direct: `. .venv/bin/activate && python -m src.cli.dryrun --config configs/default.yaml`
+- All model and report paths are redirected to a temporary directory that is deleted after the run. The CLI prints a JSON summary to stdout.
+
 Quickstart
-1) Ensure Python 3.10+ and install dependencies:
-   pip install -r requirements.txt
+1) Ensure Python 3.12 is available (preferred for PyTorch wheels). Then create a venv and install deps:
+   # via Makefile (recommended)
+   make venv
+   # or manually
+   python3.12 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt
 
 2) Choose a config (project target = NN + feature subset selection):
    - Provider-agnostic (default): configs/default.yaml or configs/provider_agnostic.yaml
      Excludes lender pricing/scoring fields (int_rate, grade, sub_grade, installment) and funded_amnt.
    - Provider-aware: configs/provider_aware.yaml
      Includes int_rate, grade, sub_grade, installment.
-   Update data.csv_path to your CSV (e.g., ./first_10k_rows.csv or the full dataset path).
+   Update data.csv_path to your CSV (e.g., `data/raw/samples/first_10k_rows.csv` for quick runs, or your local full file under `data/raw/full/loans_full.csv`).
 
 3) Train the model:
-   # Default backend is PyTorch (no TensorFlow required)
+   # via Makefile
+   make train CONFIG=configs/default.yaml
+   # or directly
    python -m src.cli.train --config configs/default.yaml
-   # Switch to TensorFlow by setting model.backend: tensorflow in the config
-   # python -m src.cli.train --config configs/provider_aware.yaml
 
 Artifacts
-- Model: models/loan_default_model.pt (PyTorch) or .h5 (TensorFlow)
+- Model: models/loan_default_model.pt
 - Metrics: reports/metrics.json
 - Learning curves: reports/figures/learning_curves.png
+ - Per-run history: see `reports/runs/run_*/` (details in `docs/RUN_ARTIFACTS.md`), including `data_manifest.json` with dataset provenance and date ranges.
 
 Feature Selection
 - Mutual Information or L1-logistic selection with incremental AUC evaluation:

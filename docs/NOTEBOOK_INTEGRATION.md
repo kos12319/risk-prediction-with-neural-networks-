@@ -11,7 +11,7 @@ This document explains how the work done in `main.ipynb` has been incorporated i
 - ColumnTransformer mirrors the notebook:
   - Numeric: median imputation → StandardScaler.
   - Categorical: most‑frequent imputation → OneHotEncoder(`handle_unknown='ignore'`, sparse).
-- Keeps matrices sparse through preprocessing; converts to dense before feeding Keras.
+- Keeps matrices sparse through preprocessing; converts to dense before feeding the model.
 
 ## Balancing
 - Same RandomOverSampler approach, but applied only to the training split to avoid leakage (the notebook oversampled before splitting).
@@ -22,7 +22,7 @@ This document explains how the work done in `main.ipynb` has been incorporated i
 - `fico_avg` and `fico_spread` from `fico_range_low/high`.
 
 ## Model
-- Keras MLP similar to the stronger notebook variant: 256 → 128 → 64 → 32 with BatchNorm and Dropout; sigmoid output.
+- MLP (PyTorch) similar to the stronger notebook variant: 256 → 128 → 64 → 32 with BatchNorm and Dropout; sigmoid output.
 - Loss: `binary_crossentropy` by default; optional focal loss is available via config.
 - EarlyStopping on `val_loss`; learning curves plotted and saved.
 
@@ -50,4 +50,3 @@ This document explains how the work done in `main.ipynb` has been incorporated i
 - `credit_history_length` computed relative to `issue_d`.
 - Explicit leakage column dropping.
 - Engineered features added as first‑class options in the loader.
-
