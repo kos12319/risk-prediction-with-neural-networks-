@@ -1,0 +1,12 @@
+extends: default
+
+oversampling:
+  enabled: false
+
+training:
+  class_weight: auto
+
+eval:
+  pos_label: 0
+  threshold:
+    strategy: youden_j
