@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Callable
+import sys
 import shutil
 import json as _json
 import hashlib
@@ -30,6 +32,157 @@ from src.eval.metrics import (
     confusion_metrics_at_threshold,
 )
 from src.features.preprocess import build_preprocessor, identify_feature_types
+import platform
+
+
+def _collect_system_info() -> Dict[str, Any]:
+    info: Dict[str, Any] = {}
+    try:
+        info["machine"] = platform.machine()
+        info["processor"] = platform.processor()
+        info["platform"] = platform.platform()
+        info["cpu_count"] = os.cpu_count()
+    except Exception:
+        pass
+    # RAM (best-effort)
+    try:
+        import psutil  # type: ignore
+        info["ram_bytes"] = int(psutil.virtual_memory().total)
+    except Exception:
+        pass
+    # Torch device info
+    try:
+        import torch as _torch
+        info["has_cuda"] = bool(_torch.cuda.is_available())
+        info["cuda_version"] = getattr(_torch.version, "cuda", None)
+        if _torch.cuda.is_available():
+            try:
+                info["gpu_name"] = _torch.cuda.get_device_name(0)
+            except Exception:
+                pass
+        try:
+            info["has_mps"] = bool(getattr(_torch.backends, "mps", None) and _torch.backends.mps.is_available())
+        except Exception:
+            pass
+    except Exception:
+        pass
+    # Threads
+    for envk in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "NUMEXPR_NUM_THREADS"):
+        v = os.environ.get(envk)
+        if v is not None:
+            info[envk.lower()] = v
+    return info
+
+
+def _collect_env_metadata() -> Dict[str, Any]:
+    """Collect lightweight environment and git metadata for logging."""
+    info: Dict[str, Any] = {"env": {}, "git": {}}
+    # Python
+    try:
+        import sys
+        info["env"]["python"] = sys.version.split(" ")[0]
+    except Exception:
+        pass
+    # Library versions
+    try:
+        import numpy as _np
+        info["env"]["numpy"] = _np.__version__
+    except Exception:
+        pass
+    try:
+        import pandas as _pd
+        info["env"]["pandas"] = _pd.__version__
+    except Exception:
+        pass
+    try:
+        import sklearn as _sk
+        info["env"]["scikit_learn"] = _sk.__version__
+    except Exception:
+        pass
+    try:
+        import imblearn as _im
+        info["env"]["imbalanced_learn"] = _im.__version__
+    except Exception:
+        pass
+    try:
+        import matplotlib as _mpl
+        info["env"]["matplotlib"] = _mpl.__version__
+    except Exception:
+        pass
+    try:
+        import torch as _torch
+        info["env"]["torch"] = _torch.__version__
+    except Exception:
+        pass
+    try:
+        import yaml as _yaml
+        ver = getattr(_yaml, "__version__", None)
+        if ver:
+            info["env"]["PyYAML"] = ver
+    except Exception:
+        pass
+    try:
+        import wandb as _wandb
+        info["env"]["wandb"] = _wandb.__version__
+    except Exception:
+        pass
+
+    # Git metadata (best-effort)
+    try:
+        import subprocess
+        # commit hash (short)
+        sha = subprocess.check_output(["git", "rev-parse", "--short=12", "HEAD"], stderr=subprocess.DEVNULL).decode().strip()
+        info["git"]["commit"] = sha
+        # dirty flag
+        dirty = True
+        try:
+            subprocess.check_call(["git", "diff", "--quiet"], stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+            subprocess.check_call(["git", "diff", "--quiet", "--cached"], stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+            dirty = False
+        except Exception:
+            dirty = True
+        info["git"]["dirty"] = dirty
+        # branch (optional)
+        try:
+            br = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], stderr=subprocess.DEVNULL).decode().strip()
+            info["git"]["branch"] = br
+        except Exception:
+            pass
+        # remote URL (origin)
+        try:
+            remote = subprocess.check_output(["git", "remote", "get-url", "origin"], stderr=subprocess.DEVNULL).decode().strip()
+            info["git"]["remote"] = remote
+            # Normalize a clickable commit URL for GitHub-style remotes
+            try:
+                commit_url: Optional[str] = None
+                if remote.startswith("git@github.com:"):
+                    path = remote.split(":", 1)[1]
+                    if path.endswith(".git"):
+                        path = path[:-4]
+                    commit_url = f"https://github.com/{path}/commit/{sha}"
+                elif remote.startswith("https://github.com/"):
+                    path = remote.split("https://github.com/", 1)[1]
+                    if path.endswith(".git"):
+                        path = path[:-4]
+                    commit_url = f"https://github.com/{path}/commit/{sha}"
+                if commit_url:
+                    info["git"]["commit_url"] = commit_url
+                # Also a normalized HTTPS repo URL if GitHub
+                if remote.startswith("git@github.com:"):
+                    path = remote.split(":", 1)[1]
+                    if path.endswith(".git"):
+                        path = path[:-4]
+                    info["git"]["repo_url"] = f"https://github.com/{path}"
+                elif remote.startswith("https://github.com/"):
+                    repo_https = remote[:-4] if remote.endswith(".git") else remote
+                    info["git"]["repo_url"] = repo_https
+            except Exception:
+                pass
+        except Exception:
+            pass
+    except Exception:
+        pass
+    return info
 
 
 def _ensure_dirs(paths: List[Path]):
@@ -98,8 +251,23 @@ def _train_with_pytorch(
     import torch
     from torch.utils.data import DataLoader, TensorDataset, random_split as torch_random_split
     from src.models.torch_nn import MLP as TorchMLP, focal_binary_loss as torch_focal_loss
-
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # Device selection with optional CPU override (FORCE_CPU=1)
+    force_cpu = str(os.environ.get("FORCE_CPU", "")).lower() in {"1", "true", "yes"}
+    if force_cpu:
+        device = torch.device("cpu")
+        try:
+            # Keep threading modest for stability in constrained envs
+            torch.set_num_threads(int(os.environ.get("OMP_NUM_THREADS", "1")))
+            if hasattr(torch, "set_num_interop_threads"):
+                torch.set_num_interop_threads(1)
+        except Exception:
+            pass
+    else:
+        device = torch.device(
+            "cuda"
+            if torch.cuda.is_available()
+            else ("mps" if hasattr(torch.backends, "mps") and torch.backends.mps.is_available() else "cpu")
+        )
 
     # Build model
     model = TorchMLP(
@@ -108,6 +276,20 @@ def _train_with_pytorch(
         dropout=model_cfg.get("dropout", [0.4, 0.3, 0.2, 0.2]),
         batchnorm=model_cfg.get("batchnorm", True),
     ).to(device)
+    # Optional: allow external watchers (e.g., wandb.watch)
+    try:
+        on_watch = _train_with_pytorch.on_watch_model  # type: ignore[attr-defined]
+    except Exception:
+        on_watch = None
+    if on_watch is not None:
+        try:
+            on_watch(model)
+        except Exception:
+            pass
+    try:
+        n_params = int(sum(p.numel() for p in model.parameters()))
+    except Exception:
+        n_params = None  # type: ignore[assignment]
 
     loss_name = "focal" if model_cfg.get("focal", {}).get("enabled", False) else model_cfg.get("loss", "binary_crossentropy")
     if loss_name == "focal":
@@ -152,6 +334,7 @@ def _train_with_pytorch(
     wait = 0
     tr_losses: List[float] = []
     va_losses: List[float] = []
+    epoch_stats: List[Dict[str, Any]] = []
 
     # Optional: class weights (for BCE path). Compute auto if requested via model_cfg["_class_weight"] injected by caller.
     class_weight_cfg = model_cfg.get("_class_weight")
@@ -162,6 +345,7 @@ def _train_with_pytorch(
         w1 = float(class_weight_cfg.get(1, 1.0))
 
     for epoch in range(epochs):
+        _ep_start = time.time()
         model.train()
         epoch_loss = 0.0
         for xb, yb in train_loader:
@@ -176,7 +360,8 @@ def _train_with_pytorch(
                 sw = yb * w1 + (1.0 - yb) * w0
                 loss = (loss_per * sw).mean()
             else:
-                loss = criterion(logits, yb)
+                # criterion returns per-sample loss; reduce to scalar
+                loss = criterion(logits, yb).mean()
             loss.backward()
             optimizer.step()
             epoch_loss += loss.item() * xb.size(0)
@@ -184,9 +369,12 @@ def _train_with_pytorch(
         tr_losses.append(epoch_loss)
 
         # Validation
+        val_auc = None
         if val_loader is not None:
             model.eval()
             val_loss = 0.0
+            val_targets = []
+            val_logits_all = []
             with torch.no_grad():
                 for xb, yb in val_loader:
                     xb = xb.to(device)
@@ -198,10 +386,23 @@ def _train_with_pytorch(
                         sw = yb * w1 + (1.0 - yb) * w0
                         loss = (loss_per * sw).mean()
                     else:
-                        loss = criterion(logits, yb)
+                        loss = criterion(logits, yb).mean()
                     val_loss += loss.item() * xb.size(0)
+                    # Collect for AUC
+                    val_targets.append(yb.detach().cpu())
+                    val_logits_all.append(logits.detach().cpu())
             val_loss /= len(val_loader.dataset)
             va_losses.append(val_loss)
+            # Compute val AUC (positive class=label 1 prob)
+            try:
+                import numpy as _np
+                from sklearn.metrics import roc_auc_score as _roc_auc_score
+                vl = torch.cat(val_logits_all, dim=0).numpy().reshape(-1)
+                vt = torch.cat(val_targets, dim=0).numpy().reshape(-1)
+                vprob = 1.0 / (1.0 + _np.exp(-vl))
+                val_auc = float(_roc_auc_score(vt.astype(int), vprob))
+            except Exception:
+                val_auc = None
 
             # Early stopping
             if val_loss < best_val - 1e-6:
@@ -214,6 +415,42 @@ def _train_with_pytorch(
                     break
         else:
             va_losses.append(float("nan"))
+
+        # Optional per-epoch callback (e.g., for W&B logging)
+        try:
+            from typing import cast as _cast
+            on_epoch = _train_with_pytorch.on_epoch  # type: ignore[attr-defined]
+        except Exception:
+            on_epoch = None
+        # Learning rate (first group)
+        try:
+            lr_val = float(optimizer.param_groups[0].get("lr", 0.0))
+        except Exception:
+            lr_val = None
+        # Epoch duration
+        _ep_time = time.time() - _ep_start
+        # Accumulate stats
+        epoch_stats.append({
+            "epoch": int(epoch + 1),
+            "loss": float(epoch_loss),
+            "val_loss": float(va_losses[-1] if len(va_losses) else float("nan")),
+            "val_auc": None if val_auc is None else float(val_auc),
+            "lr": lr_val,
+            "time_sec": float(_ep_time),
+        })
+        # Console line (captured by W&B Logs)
+        try:
+            if val_auc is None:
+                print(f"epoch {epoch+1}/{epochs} loss={epoch_loss:.4f} val_loss={va_losses[-1]:.4f} lr={lr_val} time={_ep_time:.2f}s")
+            else:
+                print(f"epoch {epoch+1}/{epochs} loss={epoch_loss:.4f} val_loss={va_losses[-1]:.4f} val_auc={val_auc:.3f} lr={lr_val} time={_ep_time:.2f}s")
+        except Exception:
+            pass
+        if on_epoch is not None:
+            try:
+                on_epoch(epoch=epoch + 1, loss=epoch_loss, val_loss=(va_losses[-1] if len(va_losses) else None), val_auc=val_auc, lr=lr_val, epoch_time_sec=_ep_time)
+            except Exception:
+                pass
 
     # Restore best weights if available
     if best_state is not None:
@@ -231,10 +468,16 @@ def _train_with_pytorch(
     _torch.save(model.state_dict(), out_model_path.as_posix())
 
     history = _SimpleHistory(tr_losses, va_losses)
-    return {"y_prob": y_prob}, history
+    return {
+        "y_prob": y_prob,
+        "param_count": n_params,
+        "device": str(device),
+        "epochs_ran": len(tr_losses),
+        "epoch_stats": epoch_stats,
+    }, history
 
 
-def train_from_config(cfg_path: str | Path):
+def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
     cfg_path = Path(cfg_path)
     cfg = _load_config_with_extends(cfg_path)
 
@@ -245,11 +488,23 @@ def train_from_config(cfg_path: str | Path):
     out_cfg = cfg["output"]
     eval_cfg = cfg.get("eval", {})
     training_cfg = cfg.get("training", {})
+    tracking_cfg = cfg.get("tracking", {})
 
-    models_dir = Path(out_cfg["models_dir"]).resolve()
-    reports_dir = Path(out_cfg["reports_dir"]).resolve()
-    figures_dir = Path(out_cfg["figures_dir"]).resolve()
-    _ensure_dirs([models_dir, reports_dir, figures_dir])
+    # Determine single-run output directory strategy
+    run_id = time.strftime("run_%Y%m%d_%H%M%S")
+    single_run_dir_mode = bool(out_cfg.get("runs_root"))
+    if single_run_dir_mode:
+        # Consolidate all artifacts for this run into one gitignored folder
+        run_dir = Path(out_cfg["runs_root"]).resolve() / run_id
+        models_dir = run_dir
+        reports_dir = run_dir
+        figures_dir = run_dir / "figures"
+        _ensure_dirs([run_dir, figures_dir])
+    else:
+        models_dir = Path(out_cfg["models_dir"]).resolve()
+        reports_dir = Path(out_cfg["reports_dir"]).resolve()
+        figures_dir = Path(out_cfg["figures_dir"]).resolve()
+        _ensure_dirs([models_dir, reports_dir, figures_dir])
 
     # Load
     load_config = LoadConfig(
@@ -263,7 +518,9 @@ def train_from_config(cfg_path: str | Path):
     )
 
     t0 = time.time()
+    t_load_start = t0
     df = load_and_prepare(load_config)
+    t_load_end = time.time()
 
     # Select features for modeling; keep time cols only for time-split, not as predictors
     features = list(data_cfg.get("features", []))
@@ -282,6 +539,7 @@ def train_from_config(cfg_path: str | Path):
     ]
 
     # Split
+    t_split_start = time.time()
     method = split_cfg.get("method", "random")
     if method == "time":
         time_col = split_cfg.get("time_col", "issue_d")
@@ -302,6 +560,7 @@ def train_from_config(cfg_path: str | Path):
         )
         train_df = None
         test_df = None
+    t_split_end = time.time()
 
     # Build and fit preprocessor on training data only
     num_cols, cat_cols = identify_feature_types(X_train)
@@ -320,9 +579,10 @@ def train_from_config(cfg_path: str | Path):
     X_test_np = _to_dense(X_test_proc)
     y_train_np = np.asarray(y_train)
     y_test_np = np.asarray(y_test)
+    t_preproc_end = time.time()
 
     # Backend: PyTorch only
-    backend = "pytorch"
+    model_backend = "pytorch"
 
     # Prepare output model filename/extension for PyTorch
     model_filename = out_cfg.get("model_filename", "loan_default_model.pt")
@@ -353,10 +613,140 @@ def train_from_config(cfg_path: str | Path):
             model_cfg = dict(model_cfg)
             model_cfg["_class_weight"] = cw_resolved
 
+    # Optional: W&B initialization
+    wandb_run = None
+    wandb_enabled = False
+    try:
+        tracking_backend = str(tracking_cfg.get("backend", "none")).lower()
+        if tracking_backend == "wandb" or (tracking_cfg.get("wandb", {}).get("enabled")):
+            wandb_enabled = True
+            import wandb  # type: ignore
+            wb_cfg = tracking_cfg.get("wandb", {})
+            mode = str(wb_cfg.get("mode", "online"))
+            # Optional login via env var (preferred in headless/CI)
+            try:
+                api_key = os.environ.get("WANDB_API_KEY") or os.environ.get("WB_API_KEY")
+                if api_key:
+                    try:
+                        wandb.login(key=api_key)
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+            if wb_cfg.get("ignore_globs"):
+                # Space-separated patterns per W&B convention
+                os.environ["WANDB_IGNORE_GLOBS"] = " ".join(wb_cfg.get("ignore_globs", []))
+            # Derive default group/job_type for organization
+            csv_base_init = Path(str(data_cfg.get("csv_path", ""))).stem
+            split_method_init = split_cfg.get("method", "time")
+            pos_label_init = eval_cfg.get("pos_label", 1)
+            if isinstance(pos_label_init, str):
+                pos_label_init = 0 if str(pos_label_init).lower() in {"default", "charged off", "charged_off"} else 1
+            pos_tok_init = "co" if int(pos_label_init) == 0 else "fp"
+            default_group = f"{csv_base_init}|{split_method_init}|{pos_tok_init}"
+            # Template context available pre-training
+            try:
+                sha_init = _collect_env_metadata().get("git", {}).get("commit")
+            except Exception:
+                sha_init = None
+            ctx_init = {
+                "dataset": csv_base_init,
+                "split": split_method_init,
+                "pos": pos_tok_init,
+                "sha": sha_init or "",
+            }
+            # Render group/job_type from templates if provided
+            group_val = wb_cfg.get("group")
+            if not group_val:
+                tmpl = wb_cfg.get("group_template")
+                if tmpl:
+                    try:
+                        group_val = str(tmpl).format(**ctx_init)
+                    except Exception:
+                        group_val = default_group
+                else:
+                    group_val = default_group
+            job_type_val = wb_cfg.get("job_type")
+            if not job_type_val:
+                tmpl = wb_cfg.get("job_type_template")
+                if tmpl:
+                    try:
+                        job_type_val = str(tmpl).format(**ctx_init)
+                    except Exception:
+                        job_type_val = "train"
+                else:
+                    job_type_val = "train"
+            # Allow project/entity from env when not provided in config
+            _entity_env = os.environ.get("WANDB_ENTITY") or os.environ.get("WB_ENTITY")
+            _project_env = os.environ.get("WANDB_PROJECT")
+            wandb_run = wandb.init(
+                project=wb_cfg.get("project") or _project_env or "loan-risk-mlp",
+                entity=wb_cfg.get("entity") or _entity_env or None,
+                config=cfg,
+                mode=mode,
+                group=group_val,
+                job_type=job_type_val,
+                settings=wandb.Settings(code_dir=None),
+            )
+            # Define epoch as step and map metrics to it for clean charts
+            try:
+                wandb.define_metric("epoch")
+                for _m in ["loss", "val_loss", "val_auc", "lr", "epoch_time_sec"]:
+                    wandb.define_metric(_m, step_metric="epoch")
+            except Exception:
+                pass
+            # Expose basic identifiers for downstream consumers (results/auto-pull)
+            try:
+                _wb = wandb.run
+                wb_id = getattr(_wb, "id", None)
+                wb_path = "/".join([p for p in (getattr(_wb, "entity", None), getattr(_wb, "project", None), getattr(_wb, "id", None)) if p])
+                wb_url = getattr(_wb, "url", None)
+            except Exception:
+                wb_id = None
+                wb_path = None
+                wb_url = None
+    except Exception:
+        wandb_enabled = False
+        wandb_run = None
+
+    # Hook per-epoch logging if W&B is active
+    if wandb_enabled and wandb_run is not None:
+        try:
+            import wandb  # type: ignore
+            def _wb_on_epoch(epoch: int, loss: float, val_loss: Optional[float] = None, **kwargs: Any) -> None:
+                data: Dict[str, Any] = {"epoch": int(epoch), "loss": float(loss)}
+                if val_loss is not None and not (isinstance(val_loss, float) and np.isnan(val_loss)):
+                    data["val_loss"] = float(val_loss)
+                for k, v in (kwargs or {}).items():
+                    if v is None:
+                        continue
+                    try:
+                        data[k] = float(v) if isinstance(v, (int, float)) else v
+                    except Exception:
+                        pass
+                wandb.log(data, step=int(epoch))
+
+            # attach as attribute to avoid changing function signature broadly
+            _train_with_pytorch.on_epoch = _wb_on_epoch  # type: ignore[attr-defined]
+            # Optional: watch model gradients lightly
+            def _wb_watch_model(m: Any) -> None:
+                try:
+                    wandb.watch(m, log="gradients", log_freq=max(1, int(model_cfg.get("epochs", 30)) // 10))
+                except Exception:
+                    pass
+            _train_with_pytorch.on_watch_model = _wb_watch_model  # type: ignore[attr-defined]
+        except Exception:
+            pass
+
+    t_train_start = time.time()
     result, history_obj = _train_with_pytorch(
         X_train_np, y_train_np, X_test_np, y_test_np, model_cfg, model_path
     )
     y_prob = result["y_prob"]
+    param_count = result.get("param_count") if isinstance(result, dict) else None
+    device_used = result.get("device") if isinstance(result, dict) else None
+    epochs_ran = result.get("epochs_ran") if isinstance(result, dict) else None
+    t_train_end = time.time()
 
     # Evaluation controls
     pos_label_cfg = eval_cfg.get("pos_label", 1)
@@ -397,31 +787,55 @@ def train_from_config(cfg_path: str | Path):
     cm_path = reports_dir / "confusion.json"
     with open(cm_path, "w", encoding="utf-8") as f:
         _json.dump(cm, f, indent=2)
+    # W&B: log an interactive confusion matrix visualization
+    if wandb_enabled and wandb_run is not None:
+        try:
+            import wandb  # type: ignore
+            import numpy as _np  # local alias to avoid shadowing
+            y_pred_pos = (_np.asarray(y_prob_pos) >= float(threshold)).astype(int)
+            # Class names reflecting the configured positive class
+            if int(pos_label_cfg) == 0:
+                # 0 => Charged Off is the positive class in our mapping above
+                class_names = ["fully_paid", "charged_off"]  # index 0,1 align to y_true_pos
+            else:
+                class_names = ["charged_off", "fully_paid"]
+            cm_plot = wandb.plot.confusion_matrix(
+                y_true=_np.asarray(y_true_pos).astype(int),
+                preds=y_pred_pos.astype(int),
+                class_names=class_names,
+            )
+            wandb.log({"confusion_matrix": cm_plot})
+        except Exception:
+            pass
 
     # Compute and save ROC/PR point sweeps as CSV in run folder later
 
-    # Per-run summary file (timestamped)
-    run_id = time.strftime("run_%Y%m%d_%H%M%S")
-    run_dir = (reports_dir / "runs" / run_id)
-    run_dir.mkdir(parents=True, exist_ok=True)
-    run_fig_dir = run_dir / "figures"
-    run_fig_dir.mkdir(parents=True, exist_ok=True)
+    # Per-run summary folder
+    if single_run_dir_mode:
+        # Already created above
+        run_fig_dir = figures_dir
+    else:
+        run_dir = (reports_dir / "runs" / run_id)
+        run_dir.mkdir(parents=True, exist_ok=True)
+        run_fig_dir = run_dir / "figures"
+        run_fig_dir.mkdir(parents=True, exist_ok=True)
 
-    # Duplicate latest artifacts into run-specific history folder
-    try:
-        # Figures
-        for fname in ["learning_curves.png", "roc_curve.png", "pr_curve.png"]:
-            src = figures_dir / fname
-            if src.exists():
-                shutil.copy2(src, run_fig_dir / fname)
-        # Metrics + confusion
-        shutil.copy2(reports_dir / "metrics.json", run_dir / "metrics.json")
-        shutil.copy2(cm_path, run_dir / "confusion.json")
-        # Model
-        if model_path.exists():
-            shutil.copy2(model_path, run_dir / model_path.name)
-    except Exception:
-        pass
+    # Duplicate from latest folders only when not using single-run directory layout
+    if not single_run_dir_mode:
+        try:
+            # Figures
+            for fname in ["learning_curves.png", "roc_curve.png", "pr_curve.png"]:
+                src = figures_dir / fname
+                if src.exists():
+                    shutil.copy2(src, run_fig_dir / fname)
+            # Metrics + confusion
+            shutil.copy2(reports_dir / "metrics.json", run_dir / "metrics.json")
+            shutil.copy2(cm_path, run_dir / "confusion.json")
+            # Model
+            if model_path.exists():
+                shutil.copy2(model_path, run_dir / model_path.name)
+        except Exception:
+            pass
 
     # Save per-threshold sweeps for ROC and PR
     try:
@@ -453,7 +867,16 @@ def train_from_config(cfg_path: str | Path):
     except Exception:
         pass
 
+    # Snapshot current Python environment (pip freeze)
+    try:
+        import subprocess
+        freeze_txt = subprocess.check_output([sys.executable, "-m", "pip", "freeze"], stderr=subprocess.DEVNULL).decode()
+        (run_dir / "requirements.freeze.txt").write_text(freeze_txt, encoding="utf-8")
+    except Exception:
+        pass
+
     # Save data manifest with provenance and date ranges
+    dataset_info: Dict[str, Any] | None = None
     try:
         csv_path_raw = str(data_cfg.get("csv_path", ""))
         csv_path = Path(csv_path_raw)
@@ -515,6 +938,7 @@ def train_from_config(cfg_path: str | Path):
 
         with open(run_dir / "data_manifest.json", "w", encoding="utf-8") as f:
             _json.dump(manifest, f, indent=2)
+        dataset_info = manifest
     except Exception:
         pass
 
@@ -545,14 +969,60 @@ def train_from_config(cfg_path: str | Path):
                 writer.writerow([i + 1, l, vl])
     except Exception:
         pass
+    # Save verbose training log (per-epoch)
+    try:
+        ep_stats = result.get("epoch_stats") if isinstance(result, dict) else None
+        if ep_stats:
+            log_path = run_dir / "training.log"
+            with open(log_path, "w", encoding="utf-8") as lf:
+                lf.write("epoch,loss,val_loss,val_auc,lr,time_sec\n")
+                for s in ep_stats:
+                    lf.write(
+                        f"{s.get('epoch')},{s.get('loss')},{s.get('val_loss')},{s.get('val_auc')},{s.get('lr')},{s.get('time_sec')}\n"
+                    )
+    except Exception:
+        pass
+    # Compute model size for summary table
+    try:
+        _model_size = int((run_dir / model_path.name).stat().st_size)
+    except Exception:
+        _model_size = None
+
+    # Human-readable start/end timestamps (UTC)
+    t_eval_end = time.time()
+    _start_iso = datetime.fromtimestamp(t0, tz=timezone.utc).isoformat(timespec="seconds")
+    _end_iso = datetime.fromtimestamp(t_eval_end, tz=timezone.utc).isoformat(timespec="seconds")
+
+    # Compose README content (rich template)
+    notes_text = (notes or "").strip()
     summary_lines = [
         f"# Training Summary — {run_id}",
         "",
         f"Config: `{cfg_path}`",
-        f"Backend: {backend}",
+        f"Backend: {model_backend}",
         f"Positive class: {pos_label_name}",
         f"Threshold strategy: {strategy}",
         f"Chosen threshold: {threshold:.6f}",
+        "",
+        "## Run Summary",
+        "",
+        "| Key | Value |",
+        "| --- | --- |",
+        f"| Device | {device_used or 'n/a'} |",
+        f"| Epochs (ran) | {int(epochs_ran) if epochs_ran is not None else 'n/a'} |",
+        f"| Param count | {int(param_count) if param_count is not None else 'n/a'} |",
+        f"| Model size | {(_model_size/1024):.1f} KB |" if _model_size is not None else "| Model size | n/a |",
+        f"| Start (UTC) | {_start_iso} |",
+        f"| End (UTC) | {_end_iso} |",
+        f"| Total time | {(t_eval_end - t0):.2f} s |",
+        f"| Load | {(t_load_end - t_load_start):.2f} s |",
+        f"| Split | {(t_split_end - t_split_start):.2f} s |",
+        f"| Preprocess | {(t_preproc_end - t_split_end):.2f} s |",
+        f"| Train | {(t_train_end - t_preproc_end):.2f} s |",
+        f"| Eval | {(t_eval_end - t_train_end):.2f} s |",
+        "",
+        "## What Changed",
+        notes_text if notes_text else "(no notes provided)",
         "",
         "## Metrics",
         f"- ROC AUC: {metrics.get('roc_auc'):.3f}",
@@ -587,16 +1057,299 @@ def train_from_config(cfg_path: str | Path):
         "- Evaluated defaults as the positive class.",
         "- Threshold selected according to configured strategy and annotated on curves.",
     ]
-    with open(run_dir / "README.md", "w", encoding="utf-8") as f:
-        f.write("\n".join(summary_lines))
+    # Instead of saving README locally, upload as a W&B artifact file
+    readme_content = "\n".join(summary_lines)
+    t_eval_end = time.time()
+
+    # W&B: log summary metrics and selected artifacts
+    if wandb_enabled and wandb_run is not None:
+        try:
+            import wandb  # type: ignore
+            # Set a friendly run name if not provided
+            wb_cfg = tracking_cfg.get("wandb", {})
+            if wb_cfg.get("run_name"):
+                wandb.run.name = str(wb_cfg.get("run_name"))
+            else:
+                wandb.run.name = run_id
+            # Tags for fast filtering
+            try:
+                tag_list = [
+                    f"backend:{model_backend}",
+                    f"split:{split_cfg.get('method', 'time')}",
+                    f"threshold:{strategy}",
+                    f"pos_label:{int(pos_label_cfg)}",
+                ]
+                csv_base = Path(str(data_cfg.get("csv_path", ""))).name
+                if csv_base:
+                    tag_list.append(f"data:{csv_base}")
+                wandb.run.tags = list({*list(wandb.run.tags or []), *tag_list})  # type: ignore[attr-defined]
+            except Exception:
+                pass
+            # Log scalar metrics
+            log_payload = {
+                "roc_auc": float(metrics.get("roc_auc", float("nan")) or float("nan")),
+                "average_precision": float(metrics.get("average_precision", float("nan")) or float("nan")),
+                "threshold": float(threshold),
+                "precision_at_thr": float(cm.get("precision", float("nan")) or float("nan")),
+                "recall_at_thr": float(cm.get("recall", float("nan")) or float("nan")),
+                "specificity_at_thr": float(1.0 - cm.get("fpr", 0.0)),
+                "n_train": int(len(y_train_np)),
+                "n_test": int(len(y_test_np)),
+                "n_features": int(X_train_np.shape[1]),
+            }
+            wandb.log(log_payload)
+
+            # Enrich summary and config with metadata
+            try:
+                env_meta = _collect_env_metadata()
+                sys_meta = _collect_system_info()
+                # model size on disk
+                model_size = None
+                try:
+                    st = (run_dir / model_path.name).stat()
+                    model_size = int(st.st_size)
+                except Exception:
+                    pass
+                wandb.summary.update({
+                    "run_id": run_id,
+                    "param_count": int(param_count) if param_count is not None else None,
+                    "model_size_bytes": model_size,
+                    "model_filename": model_path.name,
+                    "threshold_strategy": strategy,
+                    "pos_label_name": pos_label_name,
+                    "device.used": device_used,
+                    "epochs_ran": int(epochs_ran) if epochs_ran is not None else None,
+                    # Timing breakdown
+                    "timing.total_sec": float(t_eval_end - t0),
+                    "timing.load_sec": float(t_load_end - t_load_start),
+                    "timing.split_sec": float(t_split_end - t_split_start),
+                    "timing.preprocess_sec": float(t_preproc_end - t_split_end),
+                    "timing.train_sec": float(t_train_end - t_preproc_end),
+                    "timing.eval_sec": float(t_eval_end - t_train_end),
+                    # Start/end timestamps
+                    "time.start_epoch": int(t0),
+                    "time.end_epoch": int(t_eval_end),
+                    "time.start_iso": datetime.fromtimestamp(t0, tz=timezone.utc).isoformat(timespec="seconds"),
+                    "time.end_iso": datetime.fromtimestamp(t_eval_end, tz=timezone.utc).isoformat(timespec="seconds"),
+                })
+                # env versions and git
+                for k, v in (env_meta.get("env", {}) or {}).items():
+                    wandb.summary.update({f"env.{k}": v})
+                for k, v in (env_meta.get("git", {}) or {}).items():
+                    wandb.summary.update({f"git.{k}": v})
+                # system info
+                for k, v in (sys_meta or {}).items():
+                    wandb.summary.update({f"system.{k}": v})
+                # add commit as tag, if present
+                try:
+                    sha = env_meta.get("git", {}).get("commit")
+                    if sha:
+                        wandb.run.tags = list({*list(wandb.run.tags or []), f"commit:{sha}"})  # type: ignore[attr-defined]
+                except Exception:
+                    pass
+                if dataset_info:
+                    # add a compact subset of dataset manifest
+                    ds = dataset_info
+                    wandb.summary.update({
+                        "data.csv_path": ds.get("csv_path"),
+                        "data.sha256": ds.get("sha256"),
+                        "data.n_rows": ds.get("n_rows"),
+                        "data.n_cols": ds.get("n_cols"),
+                        "data.class_counts": ds.get("class_counts"),
+                        "data.date_ranges": ds.get("date_ranges"),
+                    })
+            except Exception:
+                pass
+
+            # Log W&B-native plots (no PNG uploads)
+            try:
+                # Learning curves as a multi-series line chart
+                try:
+                    tr = history_obj.history.get("loss", [])
+                    va = history_obj.history.get("val_loss", [])
+                    npts = max(len(tr), len(va))
+                    xs = list(range(1, npts + 1))
+                    ys = []
+                    keys = []
+                    if tr:
+                        ys.append([float(x) for x in tr])
+                        keys.append("loss")
+                    if va:
+                        ys.append([float(x) for x in va])
+                        keys.append("val_loss")
+                    if ys:
+                        plot = wandb.plot.line_series(xs=xs, ys=ys, keys=keys, title="Learning Curves", xname="epoch")
+                        wandb.log({"learning_curves_plot": plot})
+                except Exception:
+                    pass
+                # ROC and PR curves from raw predictions
+                try:
+                    from sklearn.metrics import roc_curve as _roc_curve, precision_recall_curve as _pr_curve
+                    _fpr, _tpr, _ = _roc_curve(y_true_pos, y_prob_pos)
+                    roc_table = wandb.Table(columns=["fpr", "tpr"])  # type: ignore[attr-defined]
+                    for i in range(len(_fpr)):
+                        roc_table.add_data(float(_fpr[i]), float(_tpr[i]))
+                    roc_plot = wandb.plot.line(roc_table, "fpr", "tpr", title="ROC Curve")
+                    wandb.log({"roc_curve_plot": roc_plot})
+                except Exception:
+                    pass
+                try:
+                    from sklearn.metrics import precision_recall_curve as _pr_curve
+                    _prec, _rec, _ = _pr_curve(y_true_pos, y_prob_pos)
+                    pr_table = wandb.Table(columns=["recall", "precision"])  # type: ignore[attr-defined]
+                    for i in range(len(_prec)):
+                        pr_table.add_data(float(_rec[i]), float(_prec[i]))
+                    pr_plot = wandb.plot.line(pr_table, "recall", "precision", title="Precision-Recall Curve")
+                    wandb.log({"pr_curve_plot": pr_plot})
+                except Exception:
+                    pass
+            except Exception:
+                pass
+
+            # Refine run name using template or default descriptive pattern
+            try:
+                csv_base = Path(str(data_cfg.get("csv_path", ""))).stem
+                split_method = split_cfg.get("method", "time")
+                pos_tok = "co" if int(pos_label_cfg) == 0 else "fp"
+                layers = model_cfg.get("layers")
+                layers_str = "-".join(str(x) for x in (layers or [])) if isinstance(layers, (list, tuple)) else str(layers)
+                nf = int(X_train_np.shape[1])
+                auc = float(metrics.get("roc_auc", float("nan")))
+                # optional commit for template
+                sha = None
+                try:
+                    sha = _collect_env_metadata().get("git", {}).get("commit")
+                except Exception:
+                    sha = None
+                template = wb_cfg.get("run_name_template")
+                if template:
+                    ctx = {
+                        "dataset": csv_base,
+                        "split": split_method,
+                        "pos": pos_tok,
+                        "layers": layers_str,
+                        "nf": nf,
+                        "auc": auc,
+                        "sha": sha or "",
+                        "run_id": run_id,
+                    }
+                    name = str(template).format(**ctx)
+                else:
+                    name = f"{csv_base}|{split_method}|{pos_tok}|mlp[{layers_str}]|nf{nf}|auc{auc:.3f}"
+                if len(name) > 120:
+                    name = name[:120]
+                wandb.run.name = name
+                # Also render tag templates and add static tags
+                try:
+                    tags_cfg = wb_cfg.get("tags", []) or []
+                    tag_tmps = wb_cfg.get("tag_templates", []) or []
+                    # Build the same context used above
+                    ctx = {
+                        "dataset": csv_base,
+                        "split": split_method,
+                        "pos": pos_tok,
+                        "layers": layers_str,
+                        "nf": nf,
+                        "auc": auc,
+                        "sha": sha or "",
+                        "run_id": run_id,
+                    }
+                    rendered = []
+                    for t in tag_tmps:
+                        try:
+                            rendered.append(str(t).format(**ctx))
+                        except Exception:
+                            continue
+                    current = list(wandb.run.tags or [])  # type: ignore[attr-defined]
+                    wandb.run.tags = list({*current, *tags_cfg, *rendered})  # type: ignore[attr-defined]
+                except Exception:
+                    pass
+            except Exception:
+                pass
+
+            # Log a lightweight artifact with key files
+            if bool(wb_cfg.get("log_artifacts", True)):
+                art = wandb.Artifact(name=run_id, type="run")
+                if notes_text:
+                    art.description = f"Run notes: {notes_text}"
+                for rel in [
+                    "metrics.json",
+                    "confusion.json",
+                    "config_resolved.yaml",
+                    "requirements.freeze.txt",
+                    "features.json",
+                    "history.csv",
+                    "training.log",
+                    # include the model weights saved for this run
+                    f"{model_path.name}",
+                ]:
+                    p = run_dir / rel
+                    if p.exists():
+                        art.add_file(p.as_posix(), name=rel)
+                # Add README.md dynamically from in-memory content via temp file
+                try:
+                    import tempfile
+                    with tempfile.TemporaryDirectory() as _td:
+                        _rp = Path(_td) / "README.md"
+                        _rp.write_text(readme_content, encoding="utf-8")
+                        art.add_file(_rp.as_posix(), name="README.md")
+                except Exception:
+                    pass
+                wandb.log_artifact(art)
+
+            # Also log a versioned "model" artifact with metadata and aliases
+            try:
+                model_file = run_dir / model_path.name
+                if model_file.exists():
+                    model_art = wandb.Artifact(
+                        name="loan-default",  # stable name; W&B versions it
+                        type="model",
+                        metadata={
+                            "param_count": int(param_count) if param_count is not None else None,
+                            "n_features": int(X_train_np.shape[1]),
+                            "layers": model_cfg.get("layers"),
+                            "dropout": model_cfg.get("dropout"),
+                            "batchnorm": bool(model_cfg.get("batchnorm", True)),
+                            "pos_label": int(pos_label_cfg),
+                            "threshold_strategy": strategy,
+                            "run_id": run_id,
+                            # attach git and env pointers as lightweight metadata
+                            **({f"env.{k}": v for k, v in (_collect_env_metadata().get("env", {}) or {}).items()}),
+                            **({f"git.{k}": v for k, v in (_collect_env_metadata().get("git", {}) or {}).items()}),
+                            "notes": notes_text if notes_text else None,
+                        },
+                    )
+                    model_art.add_file(model_file.as_posix(), name=model_path.name)
+                    wandb.log_artifact(model_art, aliases=[run_id, "latest"])
+            except Exception:
+                pass
+        except Exception:
+            pass
+
+    # Persist basic W&B identifiers for downstream automation
+    try:
+        if wandb_enabled:
+            wb_info = {"id": wb_id if 'wb_id' in locals() else None, "path": wb_path if 'wb_path' in locals() else None, "url": wb_url if 'wb_url' in locals() else None}
+            with open((run_dir / "wandb.json"), "w", encoding="utf-8") as _wf:
+                _json.dump(wb_info, _wf, indent=2)
+    except Exception:
+        pass
+
+    # Clean up W&B run if open
+    if wandb_enabled and wandb_run is not None:
+        try:
+            import wandb  # type: ignore
+            wandb.finish()
+        except Exception:
+            pass
 
     elapsed = time.time() - t0
     return {
-        "model_path": model_path.as_posix(),
-        "metrics_path": (reports_dir / "metrics.json").as_posix(),
-        "figures_path": (figures_dir / "learning_curves.png").as_posix(),
-        "roc_curve_path": (figures_dir / "roc_curve.png").as_posix(),
-        "pr_curve_path": (figures_dir / "pr_curve.png").as_posix(),
+        "model_path": (run_dir / model_path.name).as_posix() if not single_run_dir_mode else model_path.as_posix(),
+        "metrics_path": (run_dir / "metrics.json").as_posix() if not single_run_dir_mode else (reports_dir / "metrics.json").as_posix(),
+        "figures_path": (run_fig_dir / "learning_curves.png").as_posix(),
+        "roc_curve_path": (run_fig_dir / "roc_curve.png").as_posix(),
+        "pr_curve_path": (run_fig_dir / "pr_curve.png").as_posix(),
         "roc_auc": metrics.get("roc_auc"),
         "average_precision": metrics.get("average_precision"),
         "threshold": metrics.get("threshold"),
@@ -606,4 +1359,7 @@ def train_from_config(cfg_path: str | Path):
         "n_test": int(len(y_test_np)),
         "n_features": int(X_train_np.shape[1]),
         "run_summary_path": (run_dir / "README.md").as_posix(),
+        "run_dir": run_dir.as_posix(),
+        "wandb_run_path": (wb_path if wandb_enabled else None),
+        "wandb_run_url": (wb_url if wandb_enabled else None),
     }

@@ -1,7 +1,8 @@
-numpy
+numpy<2
 pandas
 scikit-learn>=1.2
 imbalanced-learn
 PyYAML
 matplotlib
 torch
+wandb

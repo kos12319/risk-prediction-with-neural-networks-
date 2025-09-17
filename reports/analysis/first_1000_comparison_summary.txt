@@ -1,4 +1,0 @@
-Header identical: True
-Rows read: accepted=1000, thesis=1000, target=1000
-Identical first 1000 rows: True
-Same rows count: 1000/1000

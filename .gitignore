@@ -29,3 +29,11 @@ data/raw/full/**
 
 # Large local sample (keep zip in LFS; ignore unzipped CSV)
 data/raw/samples/thesis_data_sample_100k.csv
+
+# Local run outputs and W&B cache (gitignored by design)
+local_runs/**
+wandb/**
+
+# Legacy artifact folders (no longer used)
+reports/**
+models/**

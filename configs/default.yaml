@@ -117,10 +117,8 @@ model:
   early_stopping_patience: 3
 
 output:
-  models_dir: models
+  runs_root: local_runs   # single gitignored folder where each run writes all artifacts
   model_filename: loan_default_model.pt
-  reports_dir: reports
-  figures_dir: reports/figures
 
 eval:
   # Which class counts as positive for ROC/PR and metrics: 1 (Fully Paid) or 0 (Charged Off)
@@ -132,3 +130,32 @@ eval:
 training:
   # Use class weights for BCE training. Options: null | "auto" | {0: w0, 1: w1}
   class_weight: null
+
+tracking:
+  backend: wandb          # options: none | wandb
+  wandb:
+    enabled: true
+    project: loan-risk-mlp   # set your W&B project name
+    entity: null             # optional W&B entity/org
+    mode: online             # online | offline | disabled
+    run_name: null           # optional explicit name
+    run_name_template: "{dataset}|{split}|{pos}|mlp[{layers}]|nf{nf}|auc{auc:.3f}"  # used if run_name is null
+    group: null              # optional W&B group
+    group_template: "{dataset}|{split}|{pos}"   # used if group is null
+    job_type: train          # optional W&B job_type (e.g., train, eval)
+    job_type_template: null  # optional template if job_type is null
+    tags: []                 # static tags to add to each run
+    tag_templates:           # rendered with dataset/split/pos/layers/nf/auc/sha/run_id
+      - "dataset:{dataset}"
+      - "split:{split}"
+      - "pos:{pos}"
+      - "nf:{nf}"
+      - "auc:{auc:.3f}"
+    log_artifacts: true      # upload key run artifacts
+    ignore_globs:            # reduce uploads; keeps metrics/figures/config only
+      - "**/*.csv"
+      - "data/**"
+      - "local_runs/**/roc_points.csv"
+      - "local_runs/**/pr_points.csv"
+
+

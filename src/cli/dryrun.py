@@ -41,6 +41,14 @@ def main() -> None:
         )
         base_cfg["output"] = out
 
+        # Ensure no experiment logging for dry runs
+        tracking = dict(base_cfg.get("tracking", {}))
+        tracking.update({"backend": "none"})
+        wb = dict(tracking.get("wandb", {}))
+        wb.update({"enabled": False, "mode": "disabled"})
+        tracking["wandb"] = wb
+        base_cfg["tracking"] = tracking
+
         dry_cfg_path = tmpdir / "config_dry.yaml"
         dry_cfg_path.write_text(yaml.safe_dump(base_cfg, sort_keys=False), encoding="utf-8")
 

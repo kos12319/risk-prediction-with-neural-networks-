@@ -1,6 +1,6 @@
 # Run Artifacts and Reproducibility
 
-Each training run creates a timestamped folder under `reports/runs/run_YYYYMMDD_HHMMSS/` that captures all key artifacts for analysis and reproducibility.
+Each training run creates a timestamped folder under `local_runs/run_YYYYMMDD_HHMMSS/` that captures all key artifacts for analysis and reproducibility.
 
 ## Contents
 - README.md — human summary of config, backend, positive class, threshold strategy, key metrics, confusion stats, dataset/model info.

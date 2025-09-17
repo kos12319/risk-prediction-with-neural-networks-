@@ -114,7 +114,5 @@ model:
   early_stopping_patience: 3
 
 output:
-  models_dir: models
+  runs_root: local_runs
   model_filename: loan_default_model.pt
-  reports_dir: reports
-  figures_dir: reports/figures
