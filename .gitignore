@@ -26,3 +26,6 @@ Thumbs.db
 # Ignore generated/intermediate data and unzipped full datasets
 data/processed/**
 data/raw/full/**
+
+# Large local sample (keep zip in LFS; ignore unzipped CSV)
+data/raw/samples/thesis_data_sample_100k.csv

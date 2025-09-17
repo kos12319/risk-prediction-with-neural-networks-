@@ -1,5 +1,5 @@
 data:
-  csv_path: data/raw/samples/first_10k_rows.csv
+  csv_path: data/raw/samples/thesis_data_sample_10k.csv
   target_col: loan_status
   target_mapping:
     'Charged Off': 0

@@ -6,8 +6,17 @@ Overview
 
 Repository Layout
 - data/
-  - raw/: place original CSV(s)
-  - processed/: optional cached splits
+  - raw/
+    - archives/ — original downloads and compressed files (tracked via Git LFS)
+      - kaggle_accepted_2007_to_2018Q4.csv.gz, kaggle_rejected_2007_to_2018Q4.csv.gz
+      - full data set.zip (original full‑dataset archive)
+    - full/ — canonical unzipped datasets (ignored by git)
+      - thesis_data_full.csv (accepted loans, 2007‑06 → 2018‑12)
+      - kaggle_accepted_2007_to_2018Q4.csv, kaggle_rejected_2007_to_2018Q4.csv
+    - samples/ — small CSVs for quick runs (tracked; the 100k CSV is ignored)
+      - thesis_data_sample_100.csv, thesis_data_sample_1k.csv, thesis_data_sample_10k.csv
+      - thesis_data_sample_100k.csv (gitignored) and thesis_data_sample_100k.zip (LFS‑tracked)
+  - processed/: optional cached splits (ignored by git)
 - models/: saved models (e.g., loan_default_model.pt)
 - reports/
   - figures/: learning curves and plots
@@ -16,13 +25,14 @@ Repository Layout
 - src/
   - data/: loading, cleaning, splitting
   - features/: preprocessing and feature engineering
-  - models/: neural network definition
+  - models/: neural network definition (PyTorch)
   - eval/: metrics and plots
   - training/: training orchestration
-  - cli/: command-line entry point
-- notebooks/: keep exploratory notebooks (optional)
+  - cli/: command-line entry points
+- notebooks/: exploratory notebooks
 
 Docs
+- Agent Guide: see `AGENTS.md` for onboarding and working instructions.
 - ADRs: see `docs/adr/` for architecture decision records.
 - Pain Points: see `docs/PAIN_POINTS.md` for current issues and recommendations.
 - Data dictionary: see `docs/data/COLUMN_DICTIONARY.md` for per-column types, leakage flags, and descriptions based on the sample CSV.
@@ -47,7 +57,7 @@ Quickstart
      Excludes lender pricing/scoring fields (int_rate, grade, sub_grade, installment) and funded_amnt.
    - Provider-aware: configs/provider_aware.yaml
      Includes int_rate, grade, sub_grade, installment.
-   Update data.csv_path to your CSV (e.g., `data/raw/samples/first_10k_rows.csv` for quick runs, or your local full file under `data/raw/full/loans_full.csv`).
+   Update data.csv_path to your CSV (e.g., `data/raw/samples/thesis_data_sample_10k.csv` for quick runs, or your local full file under `data/raw/full/thesis_data_full.csv`). The 100k sample is available as `data/raw/samples/thesis_data_sample_100k.csv` (ignored) and `data/raw/samples/thesis_data_sample_100k.zip` (LFS).
 
 3) Train the model:
    # via Makefile

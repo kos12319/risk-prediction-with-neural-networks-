@@ -1,0 +1,11 @@
+Header identical: True
+idx_issue: 15
+Matched prefix rows: 2104541
+Prefix match (thesis is prefix of accepted): True
+Divergence confirmed at (after 100 mismatches): None
+Last matched issue_d raw: Nov-2017
+Last matched issue_d parsed: 2017-11-01
+
+Checked next 100 rows from accepted after divergence/prefix end:
+Parsed dates: min=2017-11-01 max=2017-11-01
+> last_matched: 0, ==: 100, < : 0, unparsable: 0
