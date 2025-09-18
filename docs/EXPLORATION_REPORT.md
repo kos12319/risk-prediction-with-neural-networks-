@@ -133,6 +133,33 @@ Note: These fields (installment, funded_amnt) are informative but encode provide
 
 ---
 
+### Signal Strength and Stability (Quantitative)
+To clarify whether provider‑aware fields add value beyond FICO, we quantified their information content (mutual information, MI) and temporal stability (PSI; early ≤ 2016‑06 vs late ≥ 2016‑07). Higher MI indicates more predictive signal; PSI > 0.25 indicates large drift.
+
+- Mutual information (approximate from this dataset):
+  - `int_rate` MI ≈ 0.040
+  - `sub_grade` MI ≈ 0.037
+  - `grade` MI ≈ 0.035
+  - Reference origination‑only MIs: `fico_spread` ≈ 0.034, `term` ≈ 0.015, `fico_avg` ≈ 0.010
+  - Finding: provider‑aware fields carry as much or more signal as the strongest pure‑origination features individually; they are not mere duplicates of FICO.
+
+- PSI (stability across time cohorts):
+  - `grade` PSI ≈ 0.015 (small), `sub_grade` PSI ≈ 0.035 (small)
+  - `int_rate` PSI ≈ 0.127 (moderate drift; macro/policy sensitive)
+  - Finding: grades are relatively stable over the split; interest rates shift with market and pricing conditions.
+
+Modeling guidance (provider‑aware runs)
+- Use either `sub_grade` (or `grade`) or `int_rate` to avoid redundancy; including all three adds little incremental value.
+- Drop `installment` when `loan_amnt` + `term` (and `int_rate` if used) are present; it is mostly deterministic from these.
+- Prefer `loan_amnt` over `funded_amnt` (highly collinear); include `funded_amnt` only if `loan_amnt` is absent.
+- Monitor `int_rate` for drift (PSI ~0.13 here); recalibrate thresholds or retrain when distribution shifts materially.
+
+Portability vs accuracy
+- Provider‑agnostic: exclude provider pricing/scoring to keep models portable across lenders and stable across policy changes.
+- Provider‑aware: include `sub_grade`/`int_rate` for higher in‑provider accuracy, with drift monitoring and periodic recalibration.
+
+---
+
 ## Feature–Target Relationships
 
 ### Correlation (Origination‑Only Numeric)
