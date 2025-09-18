@@ -121,6 +121,18 @@ Modeling guidance
 
 ---
 
+### Other Provider‑Aware Fields (analyzed; excluded by default)
+
+![Installment by class](exploration/figures/hist_installment_orig.png)
+Caption: Higher scheduled installment payments tend to correlate with higher default risk, partly capturing loan size/term interactions.
+
+![Funded amount by class](exploration/figures/hist_funded_amnt_orig.png)
+Caption: Larger funded amounts show slightly higher default probability in the tail. The effect is modest on a marginal basis but interacts with income and term.
+
+Note: These fields (installment, funded_amnt) are informative but encode provider pricing and loan design; include them only in the provider‑aware configuration when portability is not a requirement.
+
+---
+
 ## Feature–Target Relationships
 
 ### Correlation (Origination‑Only Numeric)
