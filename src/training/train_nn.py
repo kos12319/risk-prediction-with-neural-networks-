@@ -271,6 +271,7 @@ def _train_with_pytorch(
     model_cfg: Dict[str, Any],
     out_model_path: Path,
     random_state: int,
+    pos_label_for_auc: int = 1,
 ) -> tuple[Dict[str, Any], _SimpleHistory]:
     import torch
     from torch.utils.data import DataLoader, TensorDataset, random_split as torch_random_split
@@ -427,14 +428,21 @@ def _train_with_pytorch(
                     val_logits_all.append(logits.detach().cpu())
             val_loss /= len(val_loader.dataset)
             va_losses.append(val_loss)
-            # Compute val AUC (positive class=label 1 prob)
+            # Compute validation AUC aligned to configured positive class
             try:
                 import numpy as _np
                 from sklearn.metrics import roc_auc_score as _roc_auc_score
                 vl = torch.cat(val_logits_all, dim=0).numpy().reshape(-1)
                 vt = torch.cat(val_targets, dim=0).numpy().reshape(-1)
                 vprob = 1.0 / (1.0 + _np.exp(-vl))
-                val_auc = float(_roc_auc_score(vt.astype(int), vprob))
+                # Align to pos_label_for_auc: if 0 => treat defaults as positive
+                if int(pos_label_for_auc) == 0:
+                    y_true_auc = (1 - vt).astype(int)
+                    y_prob_auc = 1.0 - vprob
+                else:
+                    y_true_auc = vt.astype(int)
+                    y_prob_auc = vprob
+                val_auc = float(_roc_auc_score(y_true_auc, y_prob_auc))
             except Exception:
                 val_auc = None
 
@@ -798,8 +806,23 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
     # Seed Python/NumPy/Torch for reproducibility
     set_seed(int(split_cfg.get("random_state", 42)))
 
+    # Resolve configured positive label early so epoch val_auc aligns to it
+    _pos_cfg = eval_cfg.get("pos_label", 1)
+    if isinstance(_pos_cfg, str):
+        _pos_cfg = 0 if str(_pos_cfg).lower() in {"default", "charged off", "charged_off"} else 1
+    pos_label_for_auc = int(_pos_cfg)
+
     result, history_obj = _train_with_pytorch(
-        X_train_np, y_train_np, X_val_np, y_val_np, X_test_np, y_test_np, model_cfg, model_path, int(split_cfg.get("random_state", 42))
+        X_train_np,
+        y_train_np,
+        X_val_np,
+        y_val_np,
+        X_test_np,
+        y_test_np,
+        model_cfg,
+        model_path,
+        int(split_cfg.get("random_state", 42)),
+        pos_label_for_auc,
     )
     y_prob = result["y_prob"]
     param_count = result.get("param_count") if isinstance(result, dict) else None
@@ -916,7 +939,8 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
 
     # Save per-threshold sweeps for ROC and PR (CSV)
     try:
-        fpr, tpr, thr_roc = roc_curve(y_true_pos, y_prob_pos)
+        # Use the test-set positives per configured pos_label
+        fpr, tpr, thr_roc = roc_curve(y_true_pos_test, y_prob_pos_test)
         with open(run_dir / "roc_points.csv", "w", encoding="utf-8") as f:
             f.write("threshold,fpr,tpr\n")
             # First ROC point corresponds to no threshold (0,0); leave threshold blank
@@ -933,24 +957,82 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
             for i in range(1, len(prec)):
                 th = "" if i - 1 >= len(thr_pr) else float(thr_pr[i - 1])
                 f.write(f"{th},{float(prec[i])},{float(rec[i])}\n")
+        # Also emit a richer threshold metrics sweep for convenience
+        try:
+            import numpy as _np
+            from src.eval.metrics import confusion_metrics_at_threshold as _cm_thr
+            thr_grid = _np.linspace(0.0, 1.0, 101)
+            with open(run_dir / "threshold_metrics.csv", "w", encoding="utf-8") as f:
+                f.write("threshold,precision,recall,tpr,fpr,specificity,f1\n")
+                for th in thr_grid:
+                    m = _cm_thr(_np.asarray(y_true_pos_test).astype(int), _np.asarray(y_prob_pos_test), float(th))
+                    prec_v = float(m.get("precision", 0.0))
+                    rec_v = float(m.get("recall", 0.0))
+                    tpr_v = float(m.get("tpr", 0.0))
+                    fpr_v = float(m.get("fpr", 0.0))
+                    spec_v = 1.0 - fpr_v
+                    f1_v = (2 * prec_v * rec_v) / (prec_v + rec_v + 1e-12)
+                    f.write(f"{th:.4f},{prec_v:.6f},{rec_v:.6f},{tpr_v:.6f},{fpr_v:.6f},{spec_v:.6f},{f1_v:.6f}\n")
+        except Exception:
+            pass
     except Exception:
         pass
 
-    # W&B: also log ROC/PR sweeps as interactive plots
+    # W&B: also log ROC/PR sweeps and threshold metrics as interactive panels
     if wandb_enabled and wandb_run is not None:
         try:
             import wandb  # type: ignore
             import numpy as _np
+            # Built-in ROC/PR plots (interactive)
+            try:
+                wandb.log({
+                    "roc_curve": wandb.plot.roc_curve(_np.asarray(y_true_pos_test).astype(int), _np.asarray(y_prob_pos_test)),
+                    "pr_curve": wandb.plot.pr_curve(_np.asarray(y_true_pos_test).astype(int), _np.asarray(y_prob_pos_test)),
+                })
+            except Exception:
+                pass
+            # Tables for ROC/PR points
             fpr, tpr, thr_roc = roc_curve(y_true_pos_test, y_prob_pos_test)
-            roc_tbl = wandb.Table(data=[[float("nan" if i == 0 else thr_roc[i-1]), float(fpr[i]), float(tpr[i])] for i in range(len(fpr))], columns=["threshold", "fpr", "tpr"])
-            pr_tbl = wandb.Table(data=(
-                [[float("nan"), float(prec[0]), float(rec[0])]] +
-                [[float(thr_pr[i-1]), float(prec[i]), float(rec[i])] for i in range(1, len(prec))]
-            ), columns=["threshold", "precision", "recall"])
-            wandb.log({
-                "roc_table": roc_tbl,
-                "pr_table": pr_tbl,
-            })
+            roc_tbl = wandb.Table(
+                data=[[float(_np.nan if i == 0 else thr_roc[i - 1]), float(fpr[i]), float(tpr[i])] for i in range(len(fpr))],
+                columns=["threshold", "fpr", "tpr"],
+            )
+            prec, rec, thr_pr = precision_recall_curve(y_true_pos_test, y_prob_pos_test)
+            pr_tbl = wandb.Table(
+                data=(([[float(_np.nan), float(prec[0]), float(rec[0])]] if len(prec) > 0 else []) +
+                      [[float(thr_pr[i - 1]), float(prec[i]), float(rec[i])] for i in range(1, len(prec))]),
+                columns=["threshold", "precision", "recall"],
+            )
+            # Threshold metrics sweep (precision/recall/specificity/f1 vs threshold)
+            try:
+                from src.eval.metrics import confusion_metrics_at_threshold as _cm_thr
+                thr_grid = _np.linspace(0.0, 1.0, 101)
+                rows = []
+                for th in thr_grid:
+                    m = _cm_thr(_np.asarray(y_true_pos_test).astype(int), _np.asarray(y_prob_pos_test), float(th))
+                    prec_v = float(m.get("precision", 0.0))
+                    rec_v = float(m.get("recall", 0.0))
+                    tpr_v = float(m.get("tpr", 0.0))
+                    fpr_v = float(m.get("fpr", 0.0))
+                    spec_v = 1.0 - fpr_v
+                    f1_v = (2 * prec_v * rec_v) / (prec_v + rec_v + 1e-12)
+                    rows.append([float(th), prec_v, rec_v, tpr_v, fpr_v, spec_v, f1_v])
+                thr_tbl = wandb.Table(data=rows, columns=["threshold", "precision", "recall", "tpr", "fpr", "specificity", "f1"])
+                # Line charts for threshold sweeps
+                try:
+                    wandb.log({
+                        "threshold_precision": wandb.plot.line_series(xs=[r[0] for r in rows], ys=[[r[1] for r in rows]], keys=["precision"], title="Precision vs Threshold", xname="threshold"),
+                        "threshold_recall": wandb.plot.line_series(xs=[r[0] for r in rows], ys=[[r[2] for r in rows]], keys=["recall"], title="Recall vs Threshold", xname="threshold"),
+                        "threshold_f1": wandb.plot.line_series(xs=[r[0] for r in rows], ys=[[r[6] for r in rows]], keys=["f1"], title="F1 vs Threshold", xname="threshold"),
+                    })
+                except Exception:
+                    pass
+            except Exception:
+                thr_tbl = None
+            log_payload = {"roc_table": roc_tbl, "pr_table": pr_tbl}
+            if thr_tbl is not None:
+                log_payload["threshold_metrics_table"] = thr_tbl
+            wandb.log(log_payload)
         except Exception:
             pass
 

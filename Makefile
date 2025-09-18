@@ -29,6 +29,7 @@ help:
 	@echo "  cpu-train      Run training on CPU with minimal threads (CONFIG=..., PULL=true)"
 	@echo "  select         Run feature selection (CONFIG=..., METHOD=mi|l1)"
 	@echo "  dict           Generate column dictionary (CONFIG=..., CSV optional)"
+	@echo "  explore        Explore dataset (CONFIG=..., CSV=path optional)"
 	@echo "  dryrun         Run training as a dry run (no artifacts persisted)"
 	@echo "  wandb-login    Login to W&B using env (WANDB_API_KEY, WANDB_ENTITY)"
 	@echo "  pull-run       Download a W&B run into ./wandb-history/<run_id> (RUN=entity/project/run_id | project/run_id | run_id)"
@@ -80,6 +81,11 @@ select: venv
 CSV ?=
 dict: venv
 	$(PY) -m src.cli.gen_column_dict --config $(CONFIG) $(if $(CSV),--csv $(CSV),)
+
+# Usage: make explore CONFIG=configs/default.yaml [CSV=data/raw/full/thesis_data_full.csv]
+CSV ?=
+explore: venv
+	$(SAFE_ENV) $(PY) -m src.cli.explore --config $(CONFIG) $(if $(CSV),--csv $(CSV),)
 
 # Usage: make dryrun CONFIG=configs/default.yaml
 dryrun: venv

@@ -114,7 +114,7 @@ model:
   epochs: 30
   batch_size: 128
   val_split: 0.2
-  early_stopping_patience: 3
+  early_stopping_patience: 10
 
 output:
   runs_root: local_runs   # single gitignored folder where each run writes all artifacts
