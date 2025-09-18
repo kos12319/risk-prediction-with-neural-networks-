@@ -93,6 +93,34 @@ Encoding guidance
 
 ---
 
+## Credit Scores and Provider Grades
+This section brings credit scores and LendingClub’s own grading scheme into focus. These variables are available at origination, but by project convention the default “provider‑agnostic” configuration excludes provider pricing/scoring fields (grade, sub_grade, int_rate, installment, funded_amnt) for portability. We analyze them here for completeness.
+
+### FICO Credit Scores (included in origination view)
+We explicitly examined FICO averages (and low/high ranges) — see the earlier histogram:
+
+![FICO average by class](exploration/figures/hist_fico_avg_orig.png)
+Caption: Lower FICO associates with higher default probability. FICO_* features are among the strongest origination‑time predictors (negative correlation around −0.13).
+
+### LendingClub Grade and Sub‑grade (analyzed; excluded by default)
+
+![Grade — counts and default rate](exploration/figures/cat_grade_orig.png)
+Caption: Default rate increases monotonically from A → G, matching risk expectations. Volume is concentrated in B–D grades.
+
+![Sub‑grade — counts and default rate](exploration/figures/cat_sub_grade_orig.png)
+Caption: Within each grade, higher sub‑grades (e.g., C5 vs C1) trend to higher default rates. The pattern is smooth and strongly informative.
+
+### Interest Rate (analyzed; excluded by default)
+
+![Interest rate by class](exploration/figures/hist_int_rate_orig.png)
+Caption: Higher interest rates are associated with higher default, reflecting pricing for risk.
+
+Modeling guidance
+- Provider‑agnostic runs: continue excluding `grade`, `sub_grade`, and `int_rate` to avoid baking in provider‑specific policy and pricing.
+- Provider‑aware runs: include them (see `configs/provider_aware.yaml`) — they provide strong incremental signal and can materially improve AUC/PR but reduce portability.
+
+---
+
 ## Feature–Target Relationships
 
 ### Correlation (Origination‑Only Numeric)
@@ -151,4 +179,3 @@ Rationale: These fields reflect outcomes after origination and produce unrealist
 
 ## Notes on Reproducibility
 Numbers and plots reflect the full accepted‑loans dataset (2007–2018). If the underlying CSV or feature list changes, regenerate figures and copy them into `docs/exploration/figures/` to keep this document self‑contained.
-
