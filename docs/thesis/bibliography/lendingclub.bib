@@ -1,0 +1,451 @@
+% LendingClub-focused bibliography grouped by subtopic
+% Subtopics: Default Modeling; Survival Analysis; Profit/Pricing; Selection Bias / Rejection Inference; Interpretability / Explainability; Feature Selection; Neural Networks (Credit Risk); LLMs (Credit Risk); Generative AI (Credit Risk).
+% Note: Fairness-focused items (e.g., disparate impact, equalized odds) are tracked in the grey bibliography: docs/bibliography/lendingclub_grey.bib
+
+% --- Default Modeling ---
+@article{Emekter2015,
+  title   = {Evaluating Credit Risk and Loan Performance in Online Peer-to-Peer (P2P) Lending},
+  author  = {Emekter, Riza and Tu, Yanbin and Jirasakuldech, Benjamas and Lu, Min},
+  journal = {Applied Economics},
+  year    = {2015},
+  volume  = {47},
+  number  = {1},
+  pages   = {54--70},
+  doi     = {10.1080/00036846.2014.962222},
+  url     = {https://doi.org/10.1080/00036846.2014.962222},
+  note    = {Early empirical baseline on P2P credit risk/returns; informs feature and evaluation choices often replicated on LendingClub.}
+}
+
+@article{NunezMora2023,
+  title   = {Loan Default Prediction: A Complete Revision of LendingClub},
+  author  = {N{\'u}{\~n}ez Mora, Jos{\'e} Antonio and Moncayo, Pamela and Franco, Carlos and Madrazo-Lemarroy, Pilar and Beltr{\'a}n, Jaime},
+  journal = {REMEF (The Mexican Journal of Economics and Finance)},
+  year    = {2023},
+  volume  = {18},
+  number  = {3},
+  pages   = {1--13},
+  doi     = {10.21919/remef.v18i3.886},
+  url     = {https://doi.org/10.21919/remef.v18i3.886},
+  note    = {Comprehensive LC default modeling using full dataset; random forest baseline and feature importance.}
+}
+
+@article{GuevaraDiaz2020,
+  title   = {Clasificaci{\'o}n de cr{\'e}ditos utilizando m{\'a}quinas de soporte vectorial sobre la base de datos de LendingClub},
+  author  = {Guevara-D{\'i}az, Karen Estefan{\'i}a},
+  journal = {ODEON},
+  year    = {2020},
+  number  = {18},
+  pages   = {59--98},
+  doi     = {10.18601/17941113.n18.03},
+  url     = {https://doi.org/10.18601/17941113.n18.03},
+  note    = {LC dataset; SVM classification vs. platform grades; identifies influential variables.}
+}
+
+@article{SerranoCinca2015,
+  title   = {Determinants of Default in P2P Lending},
+  author  = {Serrano-Cinca, Carlos and Guti{\'e}rrez-Nieto, Bego{\~n}a and L{\'o}pez-Palacios, Luz},
+  journal = {PLoS ONE},
+  year    = {2015},
+  volume  = {10},
+  number  = {10},
+  pages   = {e0139427},
+  doi     = {10.1371/journal.pone.0139427},
+  url     = {https://doi.org/10.1371/journal.pone.0139427},
+  note    = {Empirical analysis of default drivers in P2P lending; a widely cited baseline referenced in LendingClub modeling.}
+}
+
+@article{Malekipirbazari2015,
+  title   = {Risk Assessment in Social Lending via Random Forests},
+  author  = {Malekipirbazari, Milad and Aksakalli, Vural},
+  journal = {Expert Systems with Applications},
+  year    = {2015},
+  volume  = {42},
+  number  = {10},
+  pages   = {4621--4631},
+  doi     = {10.1016/j.eswa.2015.02.001},
+  url     = {https://doi.org/10.1016/j.eswa.2015.02.001},
+  note    = {Nonlinear tree-ensemble baseline for P2P default; approach often replicated on LendingClub vintages.}
+}
+
+% moved to lendingclub_grey.bib (working paper)
+
+@article{Sifrain2023,
+  title   = {Predictive Analysis of Default Risk in Peer-to-Peer Lending Platforms: Empirical Evidence from LendingClub},
+  author  = {Sifrain, Rocheny},
+  journal = {Journal of Financial Risk Management},
+  year    = {2023},
+  volume  = {12},
+  number  = {1},
+  pages   = {28--49},
+  doi     = {10.4236/jfrm.2023.121003},
+  url     = {https://doi.org/10.4236/jfrm.2023.121003},
+  note    = {LendingClub dataset; examines class imbalance and ML baselines for default prediction.}
+}
+
+% --- Profit/Pricing ---
+@article{SerranoCinca2016,
+  title   = {The Use of Profit Scoring as an Alternative to Credit Scoring Systems in Peer-to-Peer (P2P) Lending},
+  author  = {Serrano-Cinca, Carlos and Guti{\'e}rrez-Nieto, Bego{\~n}a},
+  journal = {Decision Support Systems},
+  year    = {2016},
+  volume  = {89},
+  pages   = {113--122},
+  doi     = {10.1016/j.dss.2016.06.014},
+  url     = {https://doi.org/10.1016/j.dss.2016.06.014},
+  note    = {Profit-oriented evaluation for P2P lending; complements default-centric metrics and thresholds.}
+}
+
+@article{Croux2020JEBO,
+  title   = {Important Factors Determining Fintech Loan Default: Evidence from a LendingClub Consumer Platform},
+  author  = {Croux, Christophe and Jagtiani, Julapa and Korivi, Tarunsai and Vulanovic, Milos},
+  journal = {Journal of Economic Behavior \& Organization},
+  year    = {2020},
+  volume  = {173},
+  pages   = {270--296},
+  doi     = {10.1016/j.jebo.2020.03.016},
+  url     = {https://doi.org/10.1016/j.jebo.2020.03.016},
+  note    = {Peer-reviewed version of FRB WP; LC default determinants and model performance.}
+}
+
+@article{Jagtiani2019FM,
+  title   = {The Roles of Alternative Data and Machine Learning in Fintech Lending: Evidence from the LendingClub Consumer Platform},
+  author  = {Jagtiani, Julapa and Lemieux, Catharine},
+  journal = {Financial Management},
+  year    = {2019},
+  volume  = {48},
+  number  = {4},
+  pages   = {1009--1029},
+  doi     = {10.1111/fima.12295},
+  url     = {https://doi.org/10.1111/fima.12295},
+  note    = {LendingClub grades, alternative data usage, and predictive performance; widely cited LC-specific study.}
+}
+
+% moved to lendingclub_grey.bib (working paper)
+
+% --- Survival Analysis (time-to-event / censoring) ---
+@article{Banasik1999,
+  title   = {Not if but When Will Borrowers Default},
+  author  = {Banasik, J and Crook, J N and Thomas, L C},
+  journal = {Journal of the Operational Research Society},
+  year    = {1999},
+  volume  = {50},
+  number  = {12},
+  pages   = {1185--1190},
+  doi     = {10.1057/palgrave.jors.2600851},
+  url     = {https://doi.org/10.1057/palgrave.jors.2600851},
+  note    = {Classic survival-model framing of default as time-to-event; motivates LC time-split and censoring handling.}
+}
+
+@article{Banasik2010,
+  title   = {Reject Inference in Survival Analysis by Augmentation},
+  author  = {Banasik, J and Crook, J},
+  journal = {Journal of the Operational Research Society},
+  year    = {2010},
+  volume  = {61},
+  number  = {3},
+  pages   = {473--485},
+  doi     = {10.1057/jors.2008.180},
+  url     = {https://doi.org/10.1057/jors.2008.180},
+  note    = {Addresses sample selection bias using reject inference in a survival setup; relevant when combining LC accepted/rejected cohorts.}
+}
+
+@article{Bellotti2013,
+  title   = {Forecasting and Stress Testing Credit Card Default Using Dynamic Models},
+  author  = {Bellotti, Tony and Crook, Jonathan},
+  journal = {International Journal of Forecasting},
+  year    = {2013},
+  volume  = {29},
+  number  = {4},
+  pages   = {563--574},
+  doi     = {10.1016/j.ijforecast.2013.04.003},
+  url     = {https://doi.org/10.1016/j.ijforecast.2013.04.003},
+  note    = {Dynamic/survival modeling and stress testing; techniques transferable to LC time-to-default and macro overlays.}
+}
+
+@article{SanchezBarrios2016,
+  title   = {Time-to-profit Scorecards for Revolving Credit},
+  author  = {Sanchez-Barrios, Luis Javier and Andreeva, Galina and Ansell, Jake},
+  journal = {European Journal of Operational Research},
+  year    = {2016},
+  volume  = {249},
+  number  = {2},
+  pages   = {397--406},
+  doi     = {10.1016/j.ejor.2015.09.052},
+  url     = {https://doi.org/10.1016/j.ejor.2015.09.052},
+  note    = {Survival-based profitability horizon; useful complement to LC default-only objectives.}
+}
+
+% --- Selection Bias / Rejection Inference ---
+% moved to lendingclub_grey.bib (working paper)
+
+@article{Guo2016,
+  title   = {Instance-based Credit Risk Assessment for Investment Decisions in P2P Lending},
+  author  = {Guo, Yanhong and Zhou, Wenjun and Luo, Chunyu and Liu, Chuanren and Xiong, Hui},
+  journal = {European Journal of Operational Research},
+  year    = {2016},
+  volume  = {249},
+  number  = {2},
+  pages   = {417--426},
+  doi     = {10.1016/j.ejor.2015.05.050},
+  url     = {https://doi.org/10.1016/j.ejor.2015.05.050},
+  note    = {Investor-oriented decision support for P2P platforms; feature design and evaluation paradigms applicable to LC.}
+}
+
+% --- Interpretability / Explainability ---
+@inproceedings{Ribeiro2016,
+  title     = {"Why Should I Trust You?": Explaining the Predictions of Any Classifier},
+  author    = {Ribeiro, Marco Tulio and Singh, Sameer and Guestrin, Carlos},
+  booktitle = {Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining},
+  year      = {2016},
+  pages     = {1135--1144},
+  doi       = {10.1145/2939672.2939778},
+  url       = {https://doi.org/10.1145/2939672.2939778},
+  note      = {LIME for local post-hoc explanations; commonly used to interpret LC default models for stakeholders.}
+}
+
+% --- Feature Selection ---
+@article{Tibshirani1996,
+  title   = {Regression Shrinkage and Selection Via the Lasso},
+  author  = {Tibshirani, Robert},
+  journal = {Journal of the Royal Statistical Society: Series B (Methodological)},
+  year    = {1996},
+  volume  = {58},
+  number  = {1},
+  pages   = {267--288},
+  doi     = {10.1111/j.2517-6161.1996.tb02080.x},
+  url     = {https://doi.org/10.1111/j.2517-6161.1996.tb02080.x},
+  note    = {White — L1-regularized selection; basis for METHOD=l1 feature selection in LC pipelines.}
+}
+
+% --- Neural Networks (Credit Risk) ---
+@article{West2000NN,
+  title   = {Neural Network Credit Scoring Models},
+  author  = {West, David},
+  journal = {Computers \& Operations Research},
+  year    = {2000},
+  volume  = {27},
+  number  = {11-12},
+  pages   = {1131--1152},
+  doi     = {10.1016/S0305-0548(99)00149-5},
+  url     = {https://doi.org/10.1016/S0305-0548(99)00149-5},
+  note    = {White — Early survey/empirics of NN credit scoring; Citations (Crossref): 697.}
+}
+
+% --- LLMs (Credit Risk) ---
+@inproceedings{Nygaard2024NRAS,
+  title     = {News Risk Alerting System (NRAS): A Data-Driven LLM Approach to Proactive Credit Risk Monitoring},
+  author    = {Nygaard, Adil and Upadhyay, Ashish and Hinkle, Lauren and Skotti, Xenia and Halliwell, Joe and Brown, Ian C and Noronha, Glen},
+  booktitle = {Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing: Industry Track},
+  year      = {2024},
+  pages     = {429--439},
+  doi       = {10.18653/2024.emnlp-industry.32},
+  url       = {https://doi.org/10.18653/2024.emnlp-industry.32},
+  note      = {White — LLMs for proactive credit risk monitoring using news; not LC-specific; Citations (Crossref): 0.}
+}
+
+@inproceedings{Devlin2019BERT,
+  title     = {BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding},
+  author    = {Devlin, Jacob and Chang, Ming-Wei and Lee, Kenton and Toutanova, Kristina},
+  booktitle = {Proceedings of NAACL-HLT 2019},
+  year      = {2019},
+  pages     = {4171--4186},
+  doi       = {10.18653/v1/N19-1423},
+  url       = {https://doi.org/10.18653/v1/N19-1423},
+  note      = {White — Foundational transformer (BERT); applicable to LC free-text fields (e.g., desc, emp\_title) for risk signals; Citations (Crossref): n/a here.}
+}
+
+% --- Generative AI (Credit Risk) ---
+@article{Lei2020GAFN,
+  title   = {Generative Adversarial Fusion Network for Class Imbalance Credit Scoring},
+  author  = {Lei, Kai and Xie, Yuexiang and Zhong, Shangru and Dai, Jingchao and Yang, Min and Shen, Ying},
+  journal = {Neural Computing and Applications},
+  year    = {2020},
+  volume  = {32},
+  number  = {12},
+  pages   = {8451--8462},
+  doi     = {10.1007/s00521-019-04335-1},
+  url     = {https://doi.org/10.1007/s00521-019-04335-1},
+  note    = {White — GAN-based approach to tackle class imbalance in credit scoring; applicable to LC default imbalance. Citations (Crossref): 34.}
+}
+
+@article{Zhu2022INS,
+  title   = {A GAN-based Hybrid Sampling Method for Imbalanced Customer Classification},
+  author  = {Zhu, Bing and Pan, Xin and vanden Broucke, Seppe and Xiao, Jin},
+  journal = {Information Sciences},
+  year    = {2022},
+  volume  = {609},
+  pages   = {1397--1411},
+  doi     = {10.1016/j.ins.2022.07.145},
+  url     = {https://doi.org/10.1016/j.ins.2022.07.145},
+  note    = {White — GAN-based hybrid resampling for imbalanced classification; patterns transferable to LC credit risk. Citations (Crossref): 49.}
+}
+
+@article{Ding2023IPM,
+  title   = {RGAN-EL: A GAN and Ensemble Learning-based Hybrid Approach for Imbalanced Data Classification},
+  author  = {Ding, Hongwei and Sun, Yu and Wang, Zhenyu and Huang, Nana and Shen, Zhidong and Cui, Xiaohui},
+  journal = {Information Processing \& Management},
+  year    = {2023},
+  volume  = {60},
+  number  = {2},
+  pages   = {103235},
+  doi     = {10.1016/j.ipm.2022.103235},
+  url     = {https://doi.org/10.1016/j.ipm.2022.103235},
+  note    = {White — GAN + ensembles for severe imbalance; relevant to LC default rates. Citations (Crossref): 74.}
+}
+
+@article{Chen2025JCC,
+  title   = {Explore the Use of Prompt-Based LLM for Credit Risk Classification},
+  author  = {Chen, Qizhao},
+  journal = {Journal of Computer and Communications},
+  year    = {2025},
+  volume  = {13},
+  number  = {6},
+  pages   = {33--46},
+  doi     = {10.4236/jcc.2025.136003},
+  url     = {https://doi.org/10.4236/jcc.2025.136003},
+  note    = {White — Prompt-based LLM for credit risk classification; generalizable to LC text fields; Citations (Crossref): 0.}
+}
+
+@article{Leippold2023FRL,
+  title   = {Thus Spoke GPT-3: Interviewing a Large-Language Model on Climate Finance},
+  author  = {Leippold, Markus},
+  journal = {Finance Research Letters},
+  year    = {2023},
+  volume  = {53},
+  pages   = {103617},
+  doi     = {10.1016/j.frl.2022.103617},
+  url     = {https://doi.org/10.1016/j.frl.2022.103617},
+  note    = {White — LLMs in finance context (methodological/ethical); background for LLM risk applications; Citations (Crossref): 40.}
+}
+
+@article{TsaiWu2008,
+  title   = {Using Neural Network Ensembles for Bankruptcy Prediction and Credit Scoring},
+  author  = {Tsai, Chih-Fong and Wu, Jun-Wei},
+  journal = {Expert Systems with Applications},
+  year    = {2008},
+  volume  = {34},
+  number  = {4},
+  pages   = {2639--2649},
+  doi     = {10.1016/j.eswa.2007.05.019},
+  url     = {https://doi.org/10.1016/j.eswa.2007.05.019},
+  note    = {White — NN ensembles for credit risk; strong benchmark; Citations (Crossref): 368.}
+}
+
+@article{Kvamme2018,
+  title   = {Predicting Mortgage Default Using Convolutional Neural Networks},
+  author  = {Kvamme, H\aa vard and Sellereite, Nikolai and Aas, Kjersti and Sjursen, Steffen},
+  journal = {Expert Systems with Applications},
+  year    = {2018},
+  volume  = {102},
+  pages   = {207--217},
+  doi     = {10.1016/j.eswa.2018.02.029},
+  url     = {https://doi.org/10.1016/j.eswa.2018.02.029},
+  note    = {White — Deep CNNs for consumer credit default (mortgage) prediction; techniques transfer to LC; Citations (Crossref): 118.}
+}
+
+@article{Kwon2025,
+  title   = {Credit Scoring Using Multi-Task Siamese Neural Network for Improving Prediction Performance and Stability},
+  author  = {Kwon, Soonjae and Jang, Jaeyeon and Kim, Chang Ouk},
+  journal = {Expert Systems with Applications},
+  year    = {2025},
+  volume  = {259},
+  pages   = {125327},
+  doi     = {10.1016/j.eswa.2024.125327},
+  url     = {https://doi.org/10.1016/j.eswa.2024.125327},
+  note    = {White — Modern deep architecture for credit scoring; focus on performance/stability; Citations (Crossref): 7.}
+}
+
+@article{Peng2005mRMR,
+  title   = {Feature selection based on mutual information criteria of max-dependency, max-relevance, and min-redundancy},
+  author  = {Peng, Hanchuan and Long, Fuhui and Ding, C.},
+  journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  year    = {2005},
+  volume  = {27},
+  number  = {8},
+  pages   = {1226--1238},
+  doi     = {10.1109/tpami.2005.159},
+  url     = {https://doi.org/10.1109/tpami.2005.159},
+  note    = {White — Mutual information (mRMR) filter; basis for METHOD=mi selection used before LC model training.}
+}
+
+@article{Kursa2010Boruta,
+  title   = {Feature Selection with the Boruta Package},
+  author  = {Kursa, Miron B. and Rudnicki, Witold R.},
+  journal = {Journal of Statistical Software},
+  year    = {2010},
+  volume  = {36},
+  number  = {11},
+  doi     = {10.18637/jss.v036.i11},
+  url     = {https://doi.org/10.18637/jss.v036.i11},
+  note    = {White — Wrapper around Random Forest for all-relevant feature selection; often used to sanity-check LC variable importance.}
+}
+
+@article{Papouskova2019,
+  title   = {Two-stage consumer credit risk modelling using heterogeneous ensemble learning},
+  author  = {Papouskova, Monika and Hajek, Petr},
+  journal = {Decision Support Systems},
+  year    = {2019},
+  volume  = {118},
+  pages   = {33--45},
+  doi     = {10.1016/j.dss.2019.01.002},
+  url     = {https://doi.org/10.1016/j.dss.2019.01.002},
+  note    = {White — Two-stage credit risk modeling with explicit dimensionality reduction/selection; applicable patterns for LC FS pipelines.}
+}
+
+@incollection{Conlon2023,
+  title     = {Distilling a Disruptive Disintermediary’s Data: Interpretable Machine-Learning Explanations for LendingClub Customers},
+  author    = {Conlon, Thomas and Kearney, Fearghal},
+  booktitle = {Transformations in Banking, Finance and Regulation},
+  series    = {FinTech Research and Applications},
+  publisher = {World Scientific},
+  year      = {2023},
+  pages     = {205--233},
+  doi       = {10.1142/9781800612723_0005},
+  url       = {https://doi.org/10.1142/9781800612723_0005},
+  note      = {LC-specific interpretability case study; model explanations for customer decisions.}
+}
+
+@inproceedings{Lou2013,
+  title     = {Accurate Intelligible Models with Pairwise Interactions},
+  author    = {Lou, Yin and Caruana, Rich and Gehrke, Johannes and Hooker, Giles},
+  booktitle = {Proceedings of the 19th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining},
+  year      = {2013},
+  pages     = {623--631},
+  doi       = {10.1145/2487575.2487579},
+  url       = {https://doi.org/10.1145/2487575.2487579},
+  note      = {GA2Ms with pairwise interactions (EBMs); accurate and interpretable baselines suitable for regulated LC risk use cases.}
+}
+
+% moved to lendingclub_grey.bib (preprint)
+
+% --- Fairness ---
+% moved to lendingclub_grey.bib (SSRN)
+
+% moved to lendingclub_grey.bib (preprint)
+
+% --- Additional LC-specific items (theses/capstones/LC analyses) ---
+@article{Sun2022,
+  title   = {Data Mining Techniques to Predict Default in LendingClub},
+  author  = {Sun, Jiaying},
+  journal = {Journal of Economics, Business and Management},
+  year    = {2022},
+  volume  = {10},
+  number  = {1},
+  pages   = {60--64},
+  doi     = {10.18178/joebm.2022.10.1.674},
+  url     = {https://doi.org/10.18178/joebm.2022.10.1.674},
+  note    = {Short applied study using LendingClub data; compares common ML classifiers for default prediction.}
+}
+
+@article{Andriansyah2019,
+  title   = {Prospek Gagal Sukses Pinjaman UMKM Melalui Peer-to-Peer Lending pada LendingClub},
+  author  = {Andriansyah, Wibi and Winarno, Agung},
+  journal = {Ekonomi Bisnis},
+  year    = {2019},
+  volume  = {24},
+  number  = {1},
+  pages   = {21--30},
+  doi     = {10.17977/um042v24i1p21-30},
+  url     = {https://doi.org/10.17977/um042v24i1p21-30},
+  note    = {LendingClub-based logistic analysis of loan success/default factors in an SME context.}
+}

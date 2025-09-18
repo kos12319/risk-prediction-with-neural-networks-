@@ -1,0 +1,289 @@
+% Grey literature for LendingClub: working papers, SSRN, arXiv, theses/capstones
+% Grouped by subtopic via notes
+% Subtopics: Default Modeling (grey); Profit/Pricing (grey); Selection Bias / Rejection Inference (grey); Interpretability / Fairness (grey); Feature Selection (grey); Neural Networks (LC/Credit Risk) — Grey; LLMs (LC/Credit Risk) — Grey; Generative AI (LC/Credit Risk) — Grey; Additional LC-oriented items.
+
+% --- Default Modeling (grey) ---
+@techreport{Croux2020,
+  title       = {Important Factors Determining Fintech Loan Default: Evidence from the LendingClub Consumer Platform},
+  author      = {Croux, Christophe and Jagtiani, Julapa and Korivi, Tarunsai and Vulanovic, Milos},
+  institution = {Federal Reserve Bank of Philadelphia},
+  number      = {WP 20-15},
+  year        = {2020},
+  doi         = {10.21799/frbp.wp.2020.15},
+  url         = {https://doi.org/10.21799/frbp.wp.2020.15},
+  note        = {Default modeling; LendingClub-specific working paper with factor importance and performance.}
+}
+
+% --- Profit/Pricing (grey) ---
+@techreport{JagtianiLemieux2018WP,
+  title       = {The Roles of Alternative Data and Machine Learning in Fintech Lending: Evidence from the LendingClub Consumer Platform},
+  author      = {Jagtiani, Julapa and Lemieux, Catharine},
+  institution = {Federal Reserve Bank of Philadelphia},
+  number      = {WP 18-15R},
+  year        = {2019},
+  doi         = {10.21799/frbp.wp.2018.15},
+  url         = {https://doi.org/10.21799/frbp.wp.2018.15},
+  note        = {Profit/pricing; LC grades, alternative data, ML; working paper version with details.}
+}
+
+% --- Selection Bias (grey) ---
+@techreport{DiMaggio2020,
+  title       = {Fintech Borrowers: Lax-Screening or Cream-Skimming?},
+  author      = {Di Maggio, Marco and Yao, Vincent},
+  institution = {National Bureau of Economic Research},
+  number      = {w28021},
+  year        = {2020},
+  doi         = {10.3386/w28021},
+  url         = {https://doi.org/10.3386/w28021},
+  note        = {Selection bias; fintech screening; context for LC acceptance policy.}
+}
+
+@techreport{Chioda2024,
+  title       = {FinTech Lending to Borrowers with No Credit History},
+  author      = {Chioda, Laura and Gertler, Paul and Higgins, Sean and Medina, Paolina},
+  institution = {National Bureau of Economic Research},
+  number      = {w33208},
+  year        = {2024},
+  doi         = {10.3386/w33208},
+  url         = {https://doi.org/10.3386/w33208},
+  note        = {Selection/coverage; broader fintech lending landscape relevant to LC.}
+}
+
+@article{BalyukDavydenko2018,
+  title   = {Reintermediation in FinTech: Evidence from Online Lending},
+  author  = {Balyuk, Tetyana and Davydenko, Sergei},
+  journal = {SSRN Electronic Journal},
+  year    = {2018},
+  doi     = {10.2139/ssrn.3189236},
+  url     = {https://doi.org/10.2139/ssrn.3189236},
+  note    = {Selection/intermediation; online lending platforms including LC; working paper.}
+}
+
+@article{Alyakoob2017,
+  title   = {Where You Live Matters: The Impact of Local Financial Market Competition in Managing Online Peer-to-Peer Loans},
+  author  = {Alyakoob, Mohammed and Rahman, Mohammad and Wei, Zhe},
+  journal = {SSRN Electronic Journal},
+  year    = {2017},
+  doi     = {10.2139/ssrn.2985099},
+  url     = {https://doi.org/10.2139/ssrn.2985099},
+  note    = {Selection/market effects; P2P loan management; includes online platforms context.}
+}
+
+% --- Interpretability/Fairness (grey) ---
+@inproceedings{Lundberg2017,
+  title     = {A Unified Approach to Interpreting Model Predictions},
+  author    = {Lundberg, Scott M. and Lee, Su-In},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS) Workshop Preprint},
+  year      = {2017},
+  doi       = {10.48550/arXiv.1705.07874},
+  url       = {https://arxiv.org/abs/1705.07874},
+  note      = {Interpretability; SHAP method widely used on LC models.}
+}
+
+@article{BarocasSelbst2016,
+  title   = {Big Data's Disparate Impact},
+  author  = {Barocas, Solon and Selbst, Andrew D.},
+  journal = {SSRN Electronic Journal},
+  year    = {2016},
+  doi     = {10.2139/ssrn.2477899},
+  url     = {https://doi.org/10.2139/ssrn.2477899},
+  note    = {Fairness; disparate impact framing; relevant to LC feature policy.}
+}
+
+@misc{Hardt2016,
+  title        = {Equality of Opportunity in Supervised Learning},
+  author       = {Hardt, Moritz and Price, Eric and Srebro, Nati},
+  year         = {2016},
+  howpublished = {NeurIPS 2016 (preprint)},
+  doi          = {10.48550/arXiv.1610.02413},
+  url          = {https://arxiv.org/abs/1610.02413},
+  note         = {Fairness; equalized odds definitions used for LC audits.}
+}
+
+% --- Additional grey LC-oriented entries (general P2P/online lending context) ---
+@article{Klafft2008,
+  title   = {Online Peer-to-Peer Lending: A Lender's Perspective},
+  author  = {Klafft, Michael},
+  journal = {SSRN Electronic Journal},
+  year    = {2008},
+  doi     = {10.2139/ssrn.1352352},
+  url     = {https://doi.org/10.2139/ssrn.1352352},
+  note    = {Early P2P lending analysis; useful context for LC platform dynamics.}
+}
+
+% --- Feature Selection (grey) ---
+@misc{KaggleLendingClubFS,
+  title        = {Lending Club Loan Data: Community Feature Selection Workflows},
+  author       = {{Kaggle community}},
+  year         = {2017},
+  howpublished = {Kaggle kernels/notebooks},
+  url          = {https://www.kaggle.com/wordsforthewise/lending-club},
+  note         = {Grey — Practical LC notebooks demonstrating MI/L1/RF-based feature selection and importance analysis; useful for exploratory FS.}
+}
+
+% --- Neural Networks (LC/Credit Risk) — Grey ---
+@article{Sirignano2018SSRN,
+  title   = {Deep Learning for Mortgage Risk},
+  author  = {Sirignano, Justin and Sadhwani, Apaar and Giesecke, Kay},
+  journal = {SSRN Electronic Journal},
+  year    = {2018},
+  doi     = {10.2139/ssrn.2799443},
+  url     = {https://doi.org/10.2139/ssrn.2799443},
+  note    = {Grey — Deep learning applied to mortgage default risk; Citations (Crossref): 30. Techniques inform NN design for LC risk.}
+}
+
+% --- LLMs (LC/Credit Risk) — Grey ---
+@article{SanzGuerrero2024SSRN,
+  title   = {Credit Risk Meets Large Language Models: Building a Risk Indicator from Loan Descriptions in Peer-to-Peer Lending},
+  author  = {Sanz-Guerrero, Mario and Arroyo, Javier},
+  journal = {SSRN Electronic Journal},
+  year    = {2024},
+  doi     = {10.2139/ssrn.4979155},
+  url     = {https://doi.org/10.2139/ssrn.4979155},
+  note    = {Grey — P2P (LC-like) loan descriptions; LLM-derived risk indicator; Citations (Crossref): 4.}
+}
+
+@misc{Araci2019FinBERT,
+  title        = {FinBERT: Financial Sentiment Analysis with Pre-trained Language Models},
+  author       = {Araci, D{"o}gu{"s}},
+  year         = {2019},
+  howpublished = {arXiv preprint},
+  doi          = {10.48550/arXiv.1908.10063},
+  url          = {https://arxiv.org/abs/1908.10063},
+  note         = {Grey — Domain-adapted BERT (financial) used to extract sentiment from financial text; applicable to LC loan descriptions to augment risk signals.}
+}
+
+% --- Generative AI (LC/Credit Risk) — Grey ---
+@misc{Xu2019CTGAN,
+  title        = {Modeling Tabular Data Using Conditional GAN},
+  author       = {Xu, Lei and Skoularidou, Maria and Cuesta-Infante, Alfredo and Veeramachaneni, Kalyan},
+  year         = {2019},
+  howpublished = {arXiv preprint},
+  doi          = {10.48550/arXiv.1907.00503},
+  url          = {https://arxiv.org/abs/1907.00503},
+  note         = {Grey — CTGAN for tabular synthesis; widely used to generate synthetic LC data for imbalance/privacy. Citations: n/a (arXiv).}
+}
+
+@misc{Douzas2017CGAN,
+  title        = {Effective Data Generation for Imbalanced Learning Using Conditional Generative Adversarial Networks},
+  author       = {Douzas, Georgios and Bacao, Fernando},
+  year         = {2017},
+  howpublished = {arXiv preprint},
+  doi          = {10.48550/arXiv.1711.00648},
+  url          = {https://arxiv.org/abs/1711.00648},
+  note         = {Grey — cGAN for imbalanced tabular classification; practical for LC class imbalance before training.}
+}
+
+@misc{Zhao2021CTABGAN,
+  title        = {CTAB-GAN: Effective Table Data Synthesizer},
+  author       = {Zhao, Lei and Ali, Syed and Wang, Li and et al.},
+  year         = {2021},
+  howpublished = {arXiv preprint},
+  doi          = {10.48550/arXiv.2102.08369},
+  url          = {https://arxiv.org/abs/2102.08369},
+  note         = {Grey — Tabular GAN variant handling mixed data types; practical for LC feature mix (categorical/continuous). Citations: n/a (arXiv).}
+}
+
+@misc{Kotelnikov2022TabDDPM,
+  title        = {TabDDPM: Modeling Tabular Data with Diffusion Models},
+  author       = {Kotelnikov, Eugene and others},
+  year         = {2022},
+  howpublished = {arXiv preprint},
+  doi          = {10.48550/arXiv.2209.11055},
+  url          = {https://arxiv.org/abs/2209.11055},
+  note         = {Grey — Diffusion models for tabular data; alternative to GANs for LC synthetic augmentation. Citations: n/a (arXiv).}
+}
+
+@misc{KaggleLC_GAN,
+  title        = {Lending Club: Synthetic Data Generation with CTGAN/SDV (Community)},
+  author       = {{Kaggle community}},
+  year         = {2019},
+  howpublished = {Kaggle kernels/notebooks},
+  url          = {https://www.kaggle.com/wordsforthewise/lending-club},
+  note         = {Grey — Hands-on LC notebooks generating synthetic samples with CTGAN/SDV for class balancing and privacy.}
+}
+
+@article{Shi2025SSRN,
+  title   = {Credit Risk Assessment for SMEs: A Hybrid Model Leveraging Large Language Models and Traditional Credit Scoring},
+  author  = {Shi, Bin and Wang, Yongqiao and Yao, Lifeng and Chen, Wei and Li, Zhaoxian},
+  journal = {SSRN Electronic Journal},
+  year    = {2025},
+  doi     = {10.2139/ssrn.5188781},
+  url     = {https://doi.org/10.2139/ssrn.5188781},
+  note    = {Grey — Hybrid LLM + structured scoring for credit risk; Citations (Crossref): 0.}
+}
+
+@article{Yang2023FinGPT,
+  title   = {FinGPT: Open-Source Financial Large Language Models},
+  author  = {Yang, Hongyang and Liu, Xiao-Yang and Dan Wang, Christina},
+  journal = {SSRN Electronic Journal},
+  year    = {2023},
+  doi     = {10.2139/ssrn.4489826},
+  url     = {https://doi.org/10.2139/ssrn.4489826},
+  note    = {Grey — Financial-domain LLMs; foundation for LC text (desc, emp\_title) modeling; Citations (Crossref): 121.}
+}
+
+@misc{Xie2023PIXIU,
+  title        = {PIXIU: A Large Language Model, Instruction Data and Evaluation Benchmark for Finance},
+  author       = {Xie, Q.Q. and Han, W.G. and others},
+  year         = {2023},
+  howpublished = {arXiv preprint},
+  doi          = {10.48550/arXiv.2306.05443},
+  url          = {https://arxiv.org/abs/2306.05443},
+  note         = {Grey — Finance-specific LLM + benchmark; helpful for evaluating LC-oriented tasks; Citations: n/a (arXiv).}
+}
+
+@article{IJSR2023LCNN,
+  title   = {Predicting Loan Default Risk in P2P Lending Platforms: A Study of Lending Club Borrowers},
+  author  = {Singh, Vinay},
+  journal = {International Journal of Science and Research (IJSR)},
+  year    = {2023},
+  volume  = {12},
+  number  = {11},
+  pages   = {2255--2260},
+  doi     = {10.21275/sr231114083515},
+  url     = {https://doi.org/10.21275/sr231114083515},
+  note    = {Grey — LC dataset; ML/ANN comparison for default prediction; Citations (Crossref): 0.}
+}
+
+@misc{KaggleLCDeep,
+  title        = {Lending Club Loan Data: Deep Learning Notebooks (Community)},
+  author       = {{Kaggle community}},
+  year         = {2017},
+  howpublished = {Kaggle kernels/notebooks},
+  url          = {https://www.kaggle.com/wordsforthewise/lending-club},
+  note         = {Grey — Practical LC deep learning pipelines (MLP/CNN on engineered features); useful for baseline architectures and preprocessing.}
+}
+
+@article{Liu2025AEMPS,
+  title   = {Evaluate Lending Club Loan Status by Machine Learning},
+  author  = {Liu, Zilan},
+  journal = {Advances in Economics, Management and Political Sciences},
+  year    = {2025},
+  volume  = {154},
+  number  = {1},
+  pages   = {51--57},
+  doi     = {10.54254/2754-1169/2024.19542},
+  url     = {https://doi.org/10.54254/2754-1169/2024.19542},
+  note    = {Grey — LC dataset; compares ML/ANN for loan status; Citations (Crossref): 0.}
+}
+
+@article{Zheng2023SSRN,
+  title   = {A Feature Selection Method with Feature Subcategorization in Regression},
+  author  = {Zheng, Wanwan},
+  journal = {SSRN Electronic Journal},
+  year    = {2023},
+  doi     = {10.2139/ssrn.4396789},
+  url     = {https://doi.org/10.2139/ssrn.4396789},
+  note    = {Grey — General FS preprint; techniques transferable to LC FS stage (e.g., pre-screening and grouping of features).}
+}
+
+@article{Chinco2014FSRisk,
+  title   = {Feature Selection Risk},
+  author  = {Chinco, Alexander},
+  journal = {SSRN Electronic Journal},
+  year    = {2014},
+  doi     = {10.2139/ssrn.2510536},
+  url     = {https://doi.org/10.2139/ssrn.2510536},
+  note    = {Grey — Cautions around overfitting from FS; include as methodological guardrail when building LC FS protocols.}
+}

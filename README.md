@@ -5,6 +5,13 @@
 - Configurable, reproducible pipeline extracted from notebooks.
 - All local artifacts write to a single gitignored folder per run under `local_runs/`.
 
+## Dataset (LendingClub)
+- This project uses the LendingClub consumer installment loans dataset (2007–2018 vintages).
+- Two public files exist: “accepted” loans (funded applications with final statuses) and “rejected” applications (declined, limited covariates).
+- Labels are derived from funding outcomes (e.g., Charged Off vs Fully Paid). For recent vintages, be mindful of right‑censoring when interpreting “non‑defaults”.
+- Modeling at origination strictly excludes post‑event fields (payments, recoveries, last_* dates, hardship/settlement) to prevent leakage.
+- Default positive class convention in configs is `eval.pos_label: 0` (Charged Off); curves/metrics reflect this unless changed.
+
 ## Project Layout
 - `data/`
   - `raw/`

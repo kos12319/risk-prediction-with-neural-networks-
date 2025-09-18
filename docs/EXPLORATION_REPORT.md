@@ -41,6 +41,28 @@ Implications
 
 ---
 
+## Right‑Censoring and “Current” Loans
+Recent vintages contain many loans that have not reached a final outcome yet (right‑censoring). Treating these as non‑defaults would bias results.
+
+Key findings (full accepted‑loans CSV, processed in one pass)
+- Total loans: 2,104,542
+- Final statuses kept: 1,271,779 (Fully Paid 1,020,444; Charged Off 251,335)
+- Non‑final dropped: 832,763 → 39.57% of rows (e.g., Current 799,583; Late/Grace 30,373 combined)
+
+Concentration of “Current” in recent periods
+- 80th‑percentile time cutoff by `issue_d`: 2018‑03‑01. In the last period, 88.11% of loans are “Current”. Earlier periods: 25.27% “Current”.
+- By year (share Current): 2014 5.06%, 2015 10.28%, 2016 27.24%, 2017 58.08%, 2018 86.26%.
+
+Mitigation in this project
+- Label policy: keep only final outcomes. We explicitly map `Charged Off → 0` and `Fully Paid → 1` and drop all other statuses (e.g., Current, Late, In Grace Period) at load time.
+- Leakage controls: drop post‑origination fields (payments, recoveries, last_* dates, hardship/settlement) so no overdue/collection signals leak into training.
+- Evaluation: time‑based split by `issue_d`; choose threshold on validation from the training period; report fixed‑threshold metrics on the held‑out test period.
+
+Notes
+- This conservative policy yields clean labels but removes many recent loans. If needed later, we can add a “matured‑only” filter (keep loans with `issue_d + term <= snapshot`) or switch to survival models to use censored observations without mislabeling.
+
+---
+
 ## Missingness and Leakage
 Large blocks of near‑100% missingness indicate non‑origination operational fields (hardship/settlement/next payment). These are also post‑event and therefore leaky.
 

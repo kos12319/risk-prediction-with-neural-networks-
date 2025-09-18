@@ -6,16 +6,9 @@ This guide adds repo‑specific guardrails and conventions that are easy to miss
 
 ## Makefile‑First Policy
 - Always run workflows via the Makefile. Do not call `python -m src...` directly in routine use.
-- Prefer these targets for all operations:
-  - Training: `make train CONFIG=... [NOTES=...] [PULL=true]` or CPU: `make cpu-train CONFIG=...`
-  - Dry run: `make dryrun CONFIG=...`
-  - Feature selection: `make select CONFIG=... METHOD=mi|l1`
-  - Column dictionary: `make dict CONFIG=... [CSV=path]`
-  - W&B: `make wandb-login`, `make pull-run RUN=...`, `make pull-all [ENTITY=...] [PROJECT=...]`
-  - Deps: `make deps-tools`, `make deps-compile`, `make deps-sync`
-  - Cleanup: `make clean-local-runs`, `make clean-wandb-local`, `make clean-local-history`, `make clean-all-local`, `make clean-venv`
+- Discover available operations by reading the `Makefile` (and `make help` if present). Do not rely on copied command snippets here.
 - If you need a new operation, add a Makefile target rather than introducing bespoke shell commands in docs or scripts.
-- Pass configuration via Makefile variables (not hardcoded flags): `CONFIG`, `NOTES`, `PULL`, `METHOD`, `CSV`, `RUN`, `FORCE`, `ENTITY`, `PROJECT`.
+- Pass configuration via Makefile variables (see the `Makefile` for supported variables and defaults). Avoid hardcoded flags in ad‑hoc commands.
 - Rationale: Make targets enforce safe environment settings (thread limits, headless plotting) and keep runs reproducible.
 
 ## Evaluation Invariants (don’t break)
@@ -24,6 +17,14 @@ This guide adds repo‑specific guardrails and conventions that are easy to miss
 - Choose threshold on validation using the configured strategy (`fixed|youden_j|f1`); report test metrics at that fixed threshold.
 - Respect `eval.pos_label` (default: 0 = Charged Off). Curves/metrics must reflect the configured positive class.
 - Seed Python, NumPy, PyTorch, and DataLoader workers for reproducibility.
+
+## Dataset Context (LendingClub)
+- Dataset: LendingClub consumer installment loans, 2007–2018 vintages.
+- Files: “accepted” (funded, final statuses) and “rejected” (declined, limited covariates).
+- Labels: derived from funding outcomes (e.g., Charged Off vs Fully Paid); beware right‑censoring in recent vintages.
+- Leakage policy: features must be available at origination only; drop post‑event fields (payments, recoveries, last_* dates, hardship/settlement) consistently.
+- Positive class convention: default is `eval.pos_label=0` (Charged Off); ensure curves/metrics/thresholding use the configured `pos_label`.
+- Splits: time‑based by `issue_d` (older→train, newer→test); carve validation from the training period only.
 
 ## Data Handling & LFS
 - Don’t commit large uncompressed data outside `data/raw/archives/` (LFS) or `data/raw/full/` (gitignored).
