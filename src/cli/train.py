@@ -4,8 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from src.training.train_nn import train_from_config
-from src.training.wandb_sync import login_from_env, download_run
+from src.cli._bootstrap import apply_safe_env
 
 
 def main():
@@ -28,6 +27,13 @@ def main():
         help="Force CPU training (ignore CUDA/MPS)",
     )
     args = parser.parse_args()
+
+    # Apply safe env before importing heavy libs (NumPy/Torch)
+    apply_safe_env()
+
+    # Import heavy modules after environment is set
+    from src.training.wandb_sync import login_from_env, download_run  # type: ignore
+    from src.training.train_nn import train_from_config  # type: ignore
 
     # Proactively login to W&B via env if available (no-op if not set)
     login_from_env()

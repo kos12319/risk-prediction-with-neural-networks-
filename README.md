@@ -36,7 +36,7 @@
 
 ## Documentation
 - Agent Guide: `AGENTS.md`
-- ADRs: `docs/adr/`
+- ADRs: `docs/ADRs/`
 - Pain Points: `docs/PAIN_POINTS.md`
 - Data dictionary: `docs/data/COLUMN_DICTIONARY.md`
 - Regenerate column dictionary:
@@ -65,6 +65,9 @@
    . .venv/bin/activate
    pip install -r requirements.txt
    ```
+   Notes:
+   - CPU-only environments: if Torch wheel resolution fails or attempts CUDA, install a CPU wheel explicitly (e.g., pip install torch==2.2.2 --index-url https://download.pytorch.org/whl/cpu) before syncing other deps.
+   - Apple Silicon: set VECLIB/OMP env already handled; use `make cpu-train` if you hit BLAS thread errors.
 2) Choose a config and set dataset path:
    - Provider‑agnostic (default): `configs/default.yaml` (excludes int_rate/grade/sub_grade/installment and funded_amnt)
    - Provider‑aware: `configs/provider_aware.yaml` (includes pricing/scoring fields)
@@ -171,6 +174,7 @@
   - Compile lock: `make deps-compile` (updates `requirements.txt`)
   - Sync venv: `make deps-sync` (installs exactly the pinned set)
   - Alternatively, install directly: `pip install -r requirements.txt`
+ - Contributors: prefer editing `requirements.in` and regenerating the lock (avoid hand-editing `requirements.txt`).
 
 
 ## Feature Subset Selection (Scope)

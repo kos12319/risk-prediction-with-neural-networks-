@@ -8,7 +8,7 @@ from typing import Any, Dict
 
 import yaml
 
-from src.training.train_nn import train_from_config
+from src.cli._bootstrap import apply_safe_env
 
 
 def main() -> None:
@@ -22,6 +22,12 @@ def main() -> None:
         help="Path to YAML config (will be extended by a temporary override)",
     )
     args = parser.parse_args()
+
+    # Apply safe env before importing heavy libs (NumPy/Torch)
+    apply_safe_env()
+
+    # Import after env is set
+    from src.training.train_nn import train_from_config  # type: ignore
 
     base_cfg_path = Path(args.config).resolve()
     if not base_cfg_path.exists():

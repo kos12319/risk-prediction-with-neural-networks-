@@ -35,7 +35,14 @@ def _resolve_run_path(path_or_id: str, default_entity: Optional[str], default_pr
     raise ValueError("Cannot resolve run path. Expected entity/project/run_id or set WANDB_ENTITY and WANDB_PROJECT")
 
 
-def download_run(path_or_id: str, target_dir: str | Path, *, entity: Optional[str] = None, project: Optional[str] = None) -> dict:
+def download_run(
+    path_or_id: str,
+    target_dir: str | Path,
+    *,
+    entity: Optional[str] = None,
+    project: Optional[str] = None,
+    skip_existing: bool = False,
+) -> dict:
     """Download all files and logged/used artifacts for a W&B run into target_dir.
 
     Returns a summary dict with keys: run_path, files_downloaded, artifacts_downloaded.
@@ -55,7 +62,8 @@ def download_run(path_or_id: str, target_dir: str | Path, *, entity: Optional[st
     files_downloaded = []
     for f in run.files():
         try:
-            f.download(root=str(target), replace=True)
+            # If skip_existing is True, avoid replacing existing files to speed up pulls
+            f.download(root=str(target), replace=not bool(skip_existing))
             files_downloaded.append(f.name)
         except Exception:
             continue
@@ -66,6 +74,10 @@ def download_run(path_or_id: str, target_dir: str | Path, *, entity: Optional[st
         for art in run.logged_artifacts():
             try:
                 art_dir = target / "artifacts" / (art.name.replace("/", "_"))
+                # Skip downloading artifact contents if target exists and skip_existing requested
+                if skip_existing and art_dir.exists() and any(art_dir.iterdir()):
+                    artifacts_downloaded.append(art.name)
+                    continue
                 art.download(root=str(art_dir))
                 artifacts_downloaded.append(art.name)
             except Exception:
@@ -78,6 +90,9 @@ def download_run(path_or_id: str, target_dir: str | Path, *, entity: Optional[st
         for art in run.used_artifacts():
             try:
                 art_dir = target / "artifacts_used" / (art.name.replace("/", "_"))
+                if skip_existing and art_dir.exists() and any(art_dir.iterdir()):
+                    artifacts_downloaded.append(art.name)
+                    continue
                 art.download(root=str(art_dir))
                 artifacts_downloaded.append(art.name)
             except Exception:
@@ -86,4 +101,3 @@ def download_run(path_or_id: str, target_dir: str | Path, *, entity: Optional[st
         pass
 
     return {"run_path": run_path, "files_downloaded": files_downloaded, "artifacts_downloaded": artifacts_downloaded}
-

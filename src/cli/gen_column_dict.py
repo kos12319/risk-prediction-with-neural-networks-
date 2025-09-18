@@ -4,8 +4,9 @@ import argparse
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-import pandas as pd
 import yaml
+
+from src.cli._bootstrap import apply_safe_env
 
 
 def _load_config(path: Path) -> Dict:
@@ -73,6 +74,8 @@ def generate_column_dictionary(
     sample_rows: int | None = None,
     sparse_unknown_threshold: float = 0.05,
 ) -> None:
+    # Import heavy dependency lazily after env setup
+    import pandas as pd  # type: ignore
     parse_dates = list(parse_dates or [])
     leakage_set = set(leakage_cols or [])
 
@@ -154,6 +157,9 @@ def main() -> None:
     parser.add_argument("--sparse_unknown_threshold", type=float, default=0.05, help="Mark type=unknown if non-null coverage below this fraction")
     args = parser.parse_args()
 
+    # Apply safe env before importing heavy libs
+    apply_safe_env()
+
     cfg = _load_config(Path(args.config))
     data_cfg = cfg.get("data", {})
     csv_path = Path(args.csv) if args.csv else Path(data_cfg.get("csv_path", ""))
@@ -175,4 +181,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

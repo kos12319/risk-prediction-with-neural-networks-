@@ -27,8 +27,8 @@ def time_based_split(
 ):
     """
     Split by time: earliest rows into train, most recent into test.
-    Uses a quantile on time_col to approximate test_size proportion.
-    Returns train_df, test_df
+    Implementation: sort by `time_col` ascending and split by index at
+    floor(n * (1 - test_size)). Returns (train_df, test_df).
     """
     if time_col not in df.columns:
         raise ValueError(f"Time column '{time_col}' not found for time-based split.")
@@ -44,4 +44,3 @@ def time_based_split(
         test_df = test_df.sample(frac=1.0, random_state=0).reset_index(drop=True)
 
     return train_df, test_df
-

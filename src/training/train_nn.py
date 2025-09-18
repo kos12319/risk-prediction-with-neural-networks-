@@ -11,6 +11,26 @@ import json as _json
 import hashlib
 import os
 
+# Apply safe env as early as possible to avoid BLAS/Accelerate crashes on import
+try:
+    os.environ.setdefault("OMP_NUM_THREADS", "1")
+    os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+    os.environ.setdefault("MKL_NUM_THREADS", "1")
+    os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
+    os.environ.setdefault("VECLIB_MAXIMUM_THREADS", "1")
+    os.environ.setdefault("MKL_THREADING_LAYER", "SEQUENTIAL")
+    os.environ.setdefault("KMP_INIT_AT_FORK", "FALSE")
+    os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+    os.environ.setdefault("OMP_PROC_BIND", "FALSE")
+    os.environ.setdefault("MPLBACKEND", "Agg")
+    os.environ.setdefault("XDG_CACHE_HOME", ".cache")
+    os.environ.setdefault("MPLCONFIGDIR", ".mplcache")
+    import platform as _platform  # local import to avoid global dependency
+    if _platform.system() == "Darwin" and _platform.machine() in {"arm64", "aarch64"}:
+        os.environ.setdefault("OPENBLAS_CORETYPE", "ARMV8")
+except Exception:
+    pass
+
 import numpy as np
 import pandas as pd
 import yaml
@@ -32,6 +52,7 @@ from src.eval.metrics import (
     confusion_metrics_at_threshold,
 )
 from src.features.preprocess import build_preprocessor, identify_feature_types
+from src.utils.seed import set_seed, make_torch_generator, make_worker_init_fn
 import platform
 
 
@@ -191,8 +212,8 @@ def _ensure_dirs(paths: List[Path]):
 
 
 def _to_dense(X):
-    if hasattr(X, "todense"):
-        X = X.todense()
+    if hasattr(X, "toarray"):
+        X = X.toarray()
     return np.asarray(X)
 
 
@@ -243,10 +264,13 @@ class _SimpleHistory:
 def _train_with_pytorch(
     X_train_np: np.ndarray,
     y_train_np: np.ndarray,
+    X_val_np: Optional[np.ndarray],
+    y_val_np: Optional[np.ndarray],
     X_test_np: np.ndarray,
     y_test_np: np.ndarray,
     model_cfg: Dict[str, Any],
     out_model_path: Path,
+    random_state: int,
 ) -> tuple[Dict[str, Any], _SimpleHistory]:
     import torch
     from torch.utils.data import DataLoader, TensorDataset, random_split as torch_random_split
@@ -320,14 +344,24 @@ def _train_with_pytorch(
     y_tensor = torch.tensor(y_train_np, dtype=torch.float32)
     ds = TensorDataset(X_tensor, y_tensor)
 
-    # Split into train/val as per val_split
-    n_total = len(ds)
-    n_val = int(max(1, round(n_total * val_split)))
-    n_train = n_total - n_val
-    train_ds, val_ds = torch_random_split(ds, [n_train, n_val]) if n_val > 0 else (ds, None)
+    # Use provided validation set if available; otherwise split here deterministically
+    if X_val_np is not None and y_val_np is not None:
+        val_tensor_x = torch.tensor(X_val_np, dtype=torch.float32)
+        val_tensor_y = torch.tensor(y_val_np, dtype=torch.float32)
+        val_ds = TensorDataset(val_tensor_x, val_tensor_y)
+        train_ds = ds
+    else:
+        n_total = len(ds)
+        n_val = int(max(1, round(n_total * val_split)))
+        n_train = n_total - n_val
+        g = make_torch_generator(random_state)  # deterministic split
+        train_ds, val_ds = torch_random_split(ds, [n_train, n_val], generator=g) if n_val > 0 else (ds, None)
 
-    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
-    val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False) if val_ds is not None else None
+    # DataLoaders with seeded workers and deterministic shuffles
+    g_loader = make_torch_generator(random_state)
+    worker_fn = make_worker_init_fn(random_state)
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, generator=g_loader, worker_init_fn=worker_fn)
+    val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, worker_init_fn=worker_fn) if val_ds is not None else None
 
     best_val = float("inf")
     best_state: Optional[dict[str, Any]] = None
@@ -456,12 +490,19 @@ def _train_with_pytorch(
     if best_state is not None:
         model.load_state_dict(best_state)
 
-    # Evaluate on test set
+    # Evaluate on test (and validation if provided)
     model.eval()
     Xt = torch.tensor(X_test_np, dtype=torch.float32).to(device)
     with torch.no_grad():
         logits = model(Xt).cpu().numpy().reshape(-1)
     y_prob = 1 / (1 + np.exp(-logits)) if use_logits else logits
+    # Optional validation probabilities for threshold selection upstream
+    y_prob_val = None
+    if X_val_np is not None and y_val_np is not None:
+        with torch.no_grad():
+            Xv = torch.tensor(X_val_np, dtype=torch.float32).to(device)
+            v_logits = model(Xv).cpu().numpy().reshape(-1)
+            y_prob_val = 1 / (1 + np.exp(-v_logits)) if use_logits else v_logits
     # Save model
     out_model_path.parent.mkdir(parents=True, exist_ok=True)
     import torch as _torch
@@ -470,6 +511,7 @@ def _train_with_pytorch(
     history = _SimpleHistory(tr_losses, va_losses)
     return {
         "y_prob": y_prob,
+        "y_prob_val": y_prob_val,
         "param_count": n_params,
         "device": str(device),
         "epochs_ran": len(tr_losses),
@@ -562,22 +604,36 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
         test_df = None
     t_split_end = time.time()
 
-    # Build and fit preprocessor on training data only
-    num_cols, cat_cols = identify_feature_types(X_train)
+    # Carve validation from training BEFORE preprocessing and oversampling
+    from sklearn.model_selection import train_test_split as _tts
+    val_split = float(model_cfg.get("val_split", 0.2))
+    X_train_df, X_val_df, y_train_s, y_val_s = _tts(
+        X_train,
+        y_train,
+        test_size=val_split if val_split > 0 else 0.0,
+        random_state=int(split_cfg.get("random_state", 42)),
+        stratify=y_train if val_split > 0 else None,
+    ) if val_split > 0 else (X_train, None, y_train, None)
+
+    # Build and fit preprocessor on the training subset only
+    num_cols, cat_cols = identify_feature_types(X_train_df)
     preproc = build_preprocessor(num_cols, cat_cols)
 
-    X_train_proc = preproc.fit_transform(X_train)
+    X_train_proc = preproc.fit_transform(X_train_df)
+    X_val_proc = preproc.transform(X_val_df) if val_split > 0 else None
     X_test_proc = preproc.transform(X_test)
 
-    # Oversample only on training set to avoid leakage
+    # Oversample only the training subset to avoid leakage
     if os_cfg.get("enabled", True):
         ros = RandomOverSampler(random_state=split_cfg.get("random_state", 42))
-        X_train_proc, y_train = ros.fit_resample(X_train_proc, y_train)
+        X_train_proc, y_train_s = ros.fit_resample(X_train_proc, y_train_s)
 
     # Convert to dense for downstream model training
     X_train_np = _to_dense(X_train_proc)
+    X_val_np = _to_dense(X_val_proc) if X_val_proc is not None else None
     X_test_np = _to_dense(X_test_proc)
-    y_train_np = np.asarray(y_train)
+    y_train_np = np.asarray(y_train_s)
+    y_val_np = np.asarray(y_val_s) if y_val_s is not None else None
     y_test_np = np.asarray(y_test)
     t_preproc_end = time.time()
 
@@ -739,8 +795,11 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
             pass
 
     t_train_start = time.time()
+    # Seed Python/NumPy/Torch for reproducibility
+    set_seed(int(split_cfg.get("random_state", 42)))
+
     result, history_obj = _train_with_pytorch(
-        X_train_np, y_train_np, X_test_np, y_test_np, model_cfg, model_path
+        X_train_np, y_train_np, X_val_np, y_val_np, X_test_np, y_test_np, model_cfg, model_path, int(split_cfg.get("random_state", 42))
     )
     y_prob = result["y_prob"]
     param_count = result.get("param_count") if isinstance(result, dict) else None
@@ -754,34 +813,52 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
         pos_label_cfg = 0 if pos_label_cfg.lower() in {"default", "charged off", "charged_off"} else 1
 
     if int(pos_label_cfg) == 1:
-        y_true_pos = y_test_np.astype(int)
-        y_prob_pos = y_prob
+        y_true_pos_test = y_test_np.astype(int)
+        y_prob_pos_test = y_prob
         pos_label_name = "positive=1 (Fully Paid)"
     else:
         # Treat defaults as positive (label=0 in data mapping)
-        y_true_pos = (1 - y_test_np).astype(int)
-        y_prob_pos = 1.0 - y_prob
+        y_true_pos_test = (1 - y_test_np).astype(int)
+        y_prob_pos_test = 1.0 - y_prob
         pos_label_name = "positive=default (Charged Off)"
 
     # Threshold strategy
     thr_cfg = eval_cfg.get("threshold", {})
     strategy = str(thr_cfg.get("strategy", "fixed")).lower()
-    if strategy == "youden_j":
-        threshold = choose_threshold_youden(y_true_pos, y_prob_pos)
-    elif strategy in {"f1", "f1_max", "max_f1"}:
-        threshold = choose_threshold_f1(y_true_pos, y_prob_pos)
+    # Choose threshold on validation and apply to test
+    # If no explicit validation set was provided, fall back to test (legacy behavior)
+    threshold: float
+    y_prob_val = result.get("y_prob_val") if isinstance(result, dict) else None
+    if y_prob_val is not None and y_val_np is not None:
+        if int(pos_label_cfg) == 1:
+            y_true_pos_val = y_val_np.astype(int)
+            y_prob_pos_val = y_prob_val
+        else:
+            y_true_pos_val = (1 - y_val_np).astype(int)
+            y_prob_pos_val = 1.0 - np.asarray(y_prob_val)
+        if strategy == "youden_j":
+            threshold = choose_threshold_youden(y_true_pos_val, y_prob_pos_val)
+        elif strategy in {"f1", "f1_max", "max_f1"}:
+            threshold = choose_threshold_f1(y_true_pos_val, y_prob_pos_val)
+        else:
+            threshold = float(thr_cfg.get("value", 0.5))
     else:
-        threshold = float(thr_cfg.get("value", 0.5))
+        if strategy == "youden_j":
+            threshold = choose_threshold_youden(y_true_pos_test, y_prob_pos_test)
+        elif strategy in {"f1", "f1_max", "max_f1"}:
+            threshold = choose_threshold_f1(y_true_pos_test, y_prob_pos_test)
+        else:
+            threshold = float(thr_cfg.get("value", 0.5))
 
     # Compute metrics and plots using chosen positive class and threshold
-    metrics = compute_metrics_binary(y_true_pos, y_prob_pos, threshold=threshold)
+    metrics = compute_metrics_binary(y_true_pos_test, y_prob_pos_test, threshold=threshold)
 
     # Save common artifacts (latest)
     save_metrics(metrics, reports_dir / "metrics.json")
     plot_learning_curves(history_obj, figures_dir / "learning_curves.png")
-    cm = confusion_metrics_at_threshold(y_true_pos, y_prob_pos, threshold)
-    plot_roc_curve(y_true_pos, y_prob_pos, figures_dir / "roc_curve.png", point=(cm["fpr"], cm["tpr"]))
-    plot_pr_curve(y_true_pos, y_prob_pos, figures_dir / "pr_curve.png", point=(cm["precision"], cm["recall"]))
+    cm = confusion_metrics_at_threshold(y_true_pos_test, y_prob_pos_test, threshold)
+    plot_roc_curve(y_true_pos_test, y_prob_pos_test, figures_dir / "roc_curve.png", point=(cm["fpr"], cm["tpr"]))
+    plot_pr_curve(y_true_pos_test, y_prob_pos_test, figures_dir / "pr_curve.png", point=(cm["precision"], cm["recall"]))
 
     # Save confusion metrics
     cm_path = reports_dir / "confusion.json"
@@ -792,7 +869,7 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
         try:
             import wandb  # type: ignore
             import numpy as _np  # local alias to avoid shadowing
-            y_pred_pos = (_np.asarray(y_prob_pos) >= float(threshold)).astype(int)
+            y_pred_pos = (_np.asarray(y_prob_pos_test) >= float(threshold)).astype(int)
             # Class names reflecting the configured positive class
             if int(pos_label_cfg) == 0:
                 # 0 => Charged Off is the positive class in our mapping above
@@ -800,7 +877,7 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
             else:
                 class_names = ["charged_off", "fully_paid"]
             cm_plot = wandb.plot.confusion_matrix(
-                y_true=_np.asarray(y_true_pos).astype(int),
+                y_true=_np.asarray(y_true_pos_test).astype(int),
                 preds=y_pred_pos.astype(int),
                 class_names=class_names,
             )
@@ -837,7 +914,7 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
         except Exception:
             pass
 
-    # Save per-threshold sweeps for ROC and PR
+    # Save per-threshold sweeps for ROC and PR (CSV)
     try:
         fpr, tpr, thr_roc = roc_curve(y_true_pos, y_prob_pos)
         with open(run_dir / "roc_points.csv", "w", encoding="utf-8") as f:
@@ -846,7 +923,7 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
             for i in range(len(fpr)):
                 th = "" if i == 0 else float(thr_roc[i - 1])
                 f.write(f"{th},{float(fpr[i])},{float(tpr[i])}\n")
-        prec, rec, thr_pr = precision_recall_curve(y_true_pos, y_prob_pos)
+        prec, rec, thr_pr = precision_recall_curve(y_true_pos_test, y_prob_pos_test)
         with open(run_dir / "pr_points.csv", "w", encoding="utf-8") as f:
             f.write("threshold,precision,recall\n")
             # Precision-Recall pairs are length N; thresholds length N-1; align accordingly
@@ -858,6 +935,24 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
                 f.write(f"{th},{float(prec[i])},{float(rec[i])}\n")
     except Exception:
         pass
+
+    # W&B: also log ROC/PR sweeps as interactive plots
+    if wandb_enabled and wandb_run is not None:
+        try:
+            import wandb  # type: ignore
+            import numpy as _np
+            fpr, tpr, thr_roc = roc_curve(y_true_pos_test, y_prob_pos_test)
+            roc_tbl = wandb.Table(data=[[float("nan" if i == 0 else thr_roc[i-1]), float(fpr[i]), float(tpr[i])] for i in range(len(fpr))], columns=["threshold", "fpr", "tpr"])
+            pr_tbl = wandb.Table(data=(
+                [[float("nan"), float(prec[0]), float(rec[0])]] +
+                [[float(thr_pr[i-1]), float(prec[i]), float(rec[i])] for i in range(1, len(prec))]
+            ), columns=["threshold", "precision", "recall"])
+            wandb.log({
+                "roc_table": roc_tbl,
+                "pr_table": pr_tbl,
+            })
+        except Exception:
+            pass
 
     # Save resolved config used for this run
     resolved_cfg_path = run_dir / "config_resolved.yaml"
@@ -1041,22 +1136,32 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
         "```",
         "",
         "## Artifacts",
-        f"- Model: `{(run_dir / model_path.name).as_posix()}`",
-        f"- Metrics: `{(run_dir / 'metrics.json').as_posix()}`",
-        f"- Confusion: `{(run_dir / 'confusion.json').as_posix()}`",
-        f"- History CSV: `{(run_dir / 'history.csv').as_posix()}`",
-        f"- ROC points CSV: `{(run_dir / 'roc_points.csv').as_posix()}`",
-        f"- PR points CSV: `{(run_dir / 'pr_points.csv').as_posix()}`",
-        f"- Learning curves: `{(run_fig_dir / 'learning_curves.png').as_posix()}`",
-        f"- ROC curve: `{(run_fig_dir / 'roc_curve.png').as_posix()}`",
-        f"- PR curve: `{(run_fig_dir / 'pr_curve.png').as_posix()}`",
-        f"- Resolved config: `{(run_dir / 'config_resolved.yaml').as_posix()}`",
-        f"- Features manifest: `{(run_dir / 'features.json').as_posix()}`",
+        f"- Model: `{model_path.name}`",
+        f"- Metrics: `metrics.json`",
+        f"- Confusion: `confusion.json`",
+        f"- History CSV: `history.csv`",
+        f"- ROC points CSV: `roc_points.csv`",
+        f"- PR points CSV: `pr_points.csv`",
+        f"- Learning curves: `figures/learning_curves.png`",
+        f"- ROC curve: `figures/roc_curve.png`",
+        f"- PR curve: `figures/pr_curve.png`",
+        f"- Resolved config: `config_resolved.yaml`",
+        f"- Features manifest: `features.json`",
         "",
         "## Notes",
-        "- Evaluated defaults as the positive class.",
+        ("- Evaluated defaults as the positive class." if int(pos_label_cfg) == 0 else "- Evaluated fully paid as the positive class."),
         "- Threshold selected according to configured strategy and annotated on curves.",
     ]
+    # Add a simple threshold sanity note for extreme operating points
+    try:
+        if cm.get("precision", 1.0) < 1e-3 or cm.get("recall", 1.0) < 1e-3:
+            summary_lines.append("")
+            summary_lines.append(
+                "> Note: precision or recall is near 0 at the chosen threshold. Consider revising the threshold strategy or dataset balance."
+            )
+    except Exception:
+        pass
+
     # Instead of saving README locally, upload as a W&B artifact file
     readme_content = "\n".join(summary_lines)
     t_eval_end = time.time()
@@ -1185,7 +1290,7 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
                 # ROC and PR curves from raw predictions
                 try:
                     from sklearn.metrics import roc_curve as _roc_curve, precision_recall_curve as _pr_curve
-                    _fpr, _tpr, _ = _roc_curve(y_true_pos, y_prob_pos)
+                    _fpr, _tpr, _ = _roc_curve(y_true_pos_test, y_prob_pos_test)
                     roc_table = wandb.Table(columns=["fpr", "tpr"])  # type: ignore[attr-defined]
                     for i in range(len(_fpr)):
                         roc_table.add_data(float(_fpr[i]), float(_tpr[i]))
@@ -1195,7 +1300,7 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
                     pass
                 try:
                     from sklearn.metrics import precision_recall_curve as _pr_curve
-                    _prec, _rec, _ = _pr_curve(y_true_pos, y_prob_pos)
+                    _prec, _rec, _ = _pr_curve(y_true_pos_test, y_prob_pos_test)
                     pr_table = wandb.Table(columns=["recall", "precision"])  # type: ignore[attr-defined]
                     for i in range(len(_prec)):
                         pr_table.add_data(float(_rec[i]), float(_prec[i]))
@@ -1344,6 +1449,13 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
             pass
 
     elapsed = time.time() - t0
+    # Add a simple threshold sanity note for extreme operating points
+    try:
+        if cm.get("precision", 1.0) < 1e-3 or cm.get("recall", 1.0) < 1e-3:
+            summary_lines.append("\n> Note: Precision/Recall is near 0 at the chosen threshold. Consider revising the threshold strategy or dataset balance.")
+    except Exception:
+        pass
+
     return {
         "model_path": (run_dir / model_path.name).as_posix() if not single_run_dir_mode else model_path.as_posix(),
         "metrics_path": (run_dir / "metrics.json").as_posix() if not single_run_dir_mode else (reports_dir / "metrics.json").as_posix(),

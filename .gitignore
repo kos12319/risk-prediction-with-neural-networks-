@@ -33,6 +33,7 @@ data/raw/samples/thesis_data_sample_100k.csv
 # Local run outputs and W&B cache (gitignored by design)
 local_runs/**
 wandb/**
+wandb-history/**
 
 # Legacy artifact folders (no longer used)
 reports/**

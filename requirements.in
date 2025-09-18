@@ -1,0 +1,9 @@
+numpy<2
+pandas
+scikit-learn>=1.2
+imbalanced-learn
+PyYAML
+matplotlib
+# Pin Torch due to wheel availability constraints on macOS (Apple Silicon/x86)
+torch==2.2.2
+wandb

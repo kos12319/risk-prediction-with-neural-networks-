@@ -4,6 +4,20 @@ Start here: open README.md and follow Quick Start and Makefile Targets. Treat RE
 
 This guide adds repo‑specific guardrails and conventions that are easy to miss. Avoid hardcoding paths; everything is config‑driven.
 
+## Makefile‑First Policy
+- Always run workflows via the Makefile. Do not call `python -m src...` directly in routine use.
+- Prefer these targets for all operations:
+  - Training: `make train CONFIG=... [NOTES=...] [PULL=true]` or CPU: `make cpu-train CONFIG=...`
+  - Dry run: `make dryrun CONFIG=...`
+  - Feature selection: `make select CONFIG=... METHOD=mi|l1`
+  - Column dictionary: `make dict CONFIG=... [CSV=path]`
+  - W&B: `make wandb-login`, `make pull-run RUN=...`, `make pull-all [ENTITY=...] [PROJECT=...]`
+  - Deps: `make deps-tools`, `make deps-compile`, `make deps-sync`
+  - Cleanup: `make clean-local-runs`, `make clean-wandb-local`, `make clean-local-history`, `make clean-all-local`, `make clean-venv`
+- If you need a new operation, add a Makefile target rather than introducing bespoke shell commands in docs or scripts.
+- Pass configuration via Makefile variables (not hardcoded flags): `CONFIG`, `NOTES`, `PULL`, `METHOD`, `CSV`, `RUN`, `FORCE`, `ENTITY`, `PROJECT`.
+- Rationale: Make targets enforce safe environment settings (thread limits, headless plotting) and keep runs reproducible.
+
 ## Evaluation Invariants (don’t break)
 - Use time‑based split by `issue_d` for test; older → train, newer → test.
 - Hold out validation from the training period; oversample the training subset only.
@@ -42,5 +56,5 @@ This guide adds repo‑specific guardrails and conventions that are easy to miss
 ## If You’re Lost
 - Read README.md (Quick Start, Makefile Targets).
 - If data is missing, `git lfs pull`, then update `data.csv_path` to a sample CSV under `data/raw/samples/`.
-- See `docs/adr/` (time split rationale and PyTorch choice) and `docs/PAIN_POINTS.md`.
+- See `docs/ADRs/` (time split rationale and proposals) and `docs/PAIN_POINTS.md`.
 - Ask for clarification before changing evaluation protocols or data handling.

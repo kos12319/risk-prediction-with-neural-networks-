@@ -1,37 +1,41 @@
 # Pain Points and Recommendations
 
-This document captures friction points identified while reviewing the repo, with quick recommendations to address each.
+This document captures friction points identified while reviewing the repo, with quick recommendations. Updated to reflect current code and scope.
 
-## Reproducibility & Environment
-- Unpinned dependencies. `scikit-learn` API used (`OneHotEncoder(sparse_output=...)`) requires ≥1.2, but `requirements.txt` is unpinned. Pin known‑good versions (e.g., sklearn ≥1.2), and consider a lock or constraints file.
-- PyTorch install friction. Bare `torch` in requirements can pull GPU wheels or fail on some OSes. Pin a CPU wheel or document install matrix.
-- Missing global seeding. Training, sampling, and splits are not fully deterministic. Add a `set_seed()` that seeds `random`, `numpy`, and `torch` (incl. DataLoader workers) and pass a `torch.Generator` where applicable.
+Legend: [Status: Addressed | Partially addressed | Still applies]
+
+-## Reproducibility & Environment
+- Unpinned dependencies. [Status: Addressed] `requirements.txt` pins versions. Maintain the pip‑tools workflow to keep the lock consistent.
+- PyTorch install friction. [Status: Partially addressed] Pinning helps and README notes CPU‑only guidance; an optional CPU constraints file could further reduce friction.
+- Missing global seeding. [Status: Addressed] Added `set_seed`, seeded Torch splits and DataLoader workers.
+- requirements.in discoverability. [Status: Addressed] There was confusion about a missing `requirements.in`. The repo includes it at the root and the README documents pip‑tools. Recommendation: reference `requirements.in` prominently in contribution guidelines and ensure devs use `make deps-compile`/`make deps-sync`.
 
 ## Config & Data Loading
-- Date columns not guaranteed to load. `load_and_prepare()` only includes `features + [target]` in `usecols`; `parse_dates` columns may be omitted, breaking time split and feature engineering (src/data/load.py). Include `parse_dates` in `usecols`.
-- Selection CLI ignores `extends`. `src/cli/select.py` loads YAML directly and does not resolve `extends`, unlike training. Harmonize by reusing the training config loader.
+- Date columns not guaranteed to load. [Status: Addressed] `load_and_prepare()` now includes `parse_dates` in `usecols`.
+- Selection CLI ignores `extends`. [Status: Addressed] Selection resolves `extends` like training.
 
 ## Modeling & Training
-- PyTorch validation split nondeterminism. `torch_random_split` is called without a seeded generator, so val fold varies across runs. Provide a `Generator().manual_seed(random_state)`.
-- Sparse→dense conversion via `.todense()`. Use `.toarray()` to avoid `numpy.matrix` quirks; ensure arrays are `float32` for frameworks.
-- Slightly misleading docstring in `time_based_split` mentions quantiles; code does index split. Consider clarifying the docstring or implementing quantile thresholding.
-- Oversampling before validation split. The pipeline oversamples the entire training set and then carves a validation subset from it. Duplicated minority samples can land in both train and val, inflating validation signal and weakening early stopping. Split train→(train_sub, val_sub) deterministically first, then apply oversampling only to train_sub. Prefer class weighting (`training.class_weight`) or focal loss for this NN to avoid prior distortion and calibration drift; if keeping ROS, cap the effective ratio (e.g., ≤1:1) and seed ROS for reproducibility.
+- PyTorch validation split nondeterminism. [Status: Addressed] Use a seeded `torch.Generator` and worker seeding.
+- Sparse→dense conversion via `.todense()`. [Status: Addressed] Switched to `.toarray()` with `float32` downstream.
+- `time_based_split` docstring vs behavior. [Status: Addressed] Docstring clarified to reflect index split after sorting.
+- Oversampling before validation split. [Status: Addressed] Now splits train→(train, val) before ROS; preprocessor fits on train subset only.
 
 ## Evaluation & Reporting
-- Unconditional note in run README. The summary note says “Evaluated defaults as the positive class.” regardless of `eval.pos_label`. Make this conditional to the actual setting.
-- Absolute paths in run README. Artifacts are listed with absolute paths, reducing portability. Prefer paths relative to the repo root or the run directory.
-- Threshold sanity. No warnings when the chosen threshold yields degenerate precision/recall. Add a check and brief note in README when metrics are extreme.
-- Threshold chosen on the test set. The operating point (Youden/F1/fixed) is selected using test labels and scores, which lets the test set influence the reported operating metrics. Prefer choosing the threshold on validation (or via temporal CV) and reporting its performance on the untouched test set.
+- Unconditional positive‑class note. [Status: Addressed] README note reflects the configured `eval.pos_label`.
+- Absolute paths in run README. [Status: Addressed] Artifact paths in README are relative to the run dir.
+- Threshold sanity. [Status: Addressed] Adds a note when precision/recall are near 0 at the chosen threshold.
+- Threshold chosen on the test set. [Status: Addressed] Threshold is chosen on validation (fallback to test if no val) and applied to test metrics.
+- W&B threshold sweep plots show one point. [Status: Addressed] Full ROC/PR sweeps are logged as W&B tables/plots.
 
 ## Feature Selection
-- Fragile OHE group mapping. Mapping encoded columns back to original features splits on the first underscore, which breaks for names like `fico_range_low` and categories containing underscores (src/selection/utils.py). Build the mapping from the OneHotEncoder internals (`categories_`) and the original `feature_names_in_`, or parse `get_feature_names_out` with the `ColumnTransformer` structure rather than string splits.
-- Single holdout evaluation. Incremental AUC uses one train/test split (time or random). Estimates can be unstable. Consider temporal CV (rolling windows) or repeated holdout for more robust curves.
+- Fragile OHE group mapping. [Status: Addressed] Grouping uses encoder introspection with `categories_` and ColumnTransformer structure.
+- Single holdout evaluation. [Status: Still applies] Consider temporal CV (rolling windows) or repeated holdout for more stable AUC curves.
 
 ## Repo Hygiene & Tests
-- Large data artifacts in git. CSVs/zips under the repo contradict the guidance; move large data outside git and reference via config. Add to `.gitignore`.
-- Stray/broken script. `csv_prep.py` calls `pd.read_excel()` without arguments; remove or fix with explicit inputs.
-- No tests. Add minimal `pytest` coverage for: preprocessing invariants (no leakage; consistent feature counts), time‑split correctness, and model I/O (save/load works).
+- Large data artifacts in git. [Status: Addressed] Archives are tracked via LFS and unzipped full datasets are gitignored.
+- Stray/broken script. [Status: Addressed] `csv_prep.py` no longer exists.
+- No tests. [Status: Partially addressed] Added minimal tests; expand to model I/O round‑trip, threshold selection correctness, and run artifacts schema.
 
 ## Minor/Edge Cases
-- `credit_history_length` can be negative if dates are out of order; clamp to non‑negative or drop anomalies.
-- Document that oversampling applies only to training to prevent leakage (already implemented) and that class weight mode (`training.class_weight`) is supported in the backend.
+- `credit_history_length` can be negative if dates are out of order; clamp to non‑negative or drop anomalies. [Status: Addressed]
+- Oversampling documentation vs behavior. [Status: Addressed] README clarifies oversampling applies only to the training subset; class‑weight mode supported.

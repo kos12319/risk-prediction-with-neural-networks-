@@ -71,7 +71,7 @@ def run_mi_selection(
         train_df = pd.concat([X_train, y_train], axis=1)
         test_df = pd.concat([X_test, y_test], axis=1)
 
-    # Full-set reference AUC
+    # Full-set reference AUC (single split)
     auc_full = _evaluate_subset(train_df, test_df, keep_features, target_col)
 
     # Fit preprocessor on keep_features to compute MI on encoded design
@@ -139,4 +139,3 @@ def run_mi_selection(
                 f.write(f"{ftr},{sc}\n")
 
     return results
-

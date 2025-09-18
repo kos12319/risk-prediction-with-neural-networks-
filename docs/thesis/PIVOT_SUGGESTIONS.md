@@ -32,8 +32,8 @@ This document proposes concrete changes to make the MSc CS thesis scope explicit
 - Run README template: add “Threats to validity” and “Related ADRs” sections.
 
 ## Decision & Rationale Tracking (ADRs)
-- Keep ADRs under `docs/adr/`; add `docs/adr/TEMPLATE.md` (Context, Decision, Rationale, Consequences, Alternatives, Status).
-- Require ADRs for: time split (added), class weighting vs oversampling, threshold selection policy, backend choice, feature subset method.
+- Keep ADRs under `docs/ADRs/` structured as `accepted/`, `proposed/`, `rejected/`; add a `TEMPLATE.md` (Context, Decision/Proposal, Rationale, Consequences, Alternatives, Status).
+- Require ADRs for: time split (accepted), class weighting vs oversampling, threshold selection policy, backend choice, feature subset method.
 - Reference relevant ADR IDs in each run README.
 
 ## Configuration & Sweeps
@@ -73,4 +73,3 @@ This document proposes concrete changes to make the MSc CS thesis scope explicit
 - Confirm whether to standardize on PyTorch (recommended) and remove TF code.
 - Approve the ledger schema and run folder additions.
 - I can implement steps (1)–(4) next if you agree.
-

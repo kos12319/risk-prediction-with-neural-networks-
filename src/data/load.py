@@ -45,12 +45,17 @@ def compute_credit_history_length_months(issue_d: pd.Series, earliest_cr_line: p
     delta = issue_d_parsed - earliest_parsed
     # Convert to months (approximate by 30 days)
     months = (delta.dt.days / 30.0).round().astype("Int64")
+    # Clamp to non-negative to avoid anomalies from out-of-order dates
+    try:
+        months = months.clip(lower=0)
+    except Exception:
+        pass
     return months
 
 
 def load_and_prepare(cfg: LoadConfig) -> pd.DataFrame:
     # Ensure we request the declared features plus target/date cols if not present
-    usecols = list(dict.fromkeys(cfg.features + [cfg.target_col]))
+    usecols = list(dict.fromkeys(list(cfg.features) + list(cfg.parse_dates) + [cfg.target_col]))
 
     # Read
     df = pd.read_csv(cfg.csv_path, usecols=lambda c: (c in usecols), low_memory=False)
