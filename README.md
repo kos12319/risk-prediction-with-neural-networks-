@@ -83,11 +83,16 @@
    # On Linux/WSL or constrained envs, use CPU-only helper:
    make cpu-train CONFIG=configs/default.yaml         # CPU with minimal threads
    ```
-5) Download any W&B run later (to a local folder):
+5) Download runs from W&B (to a separate history folder):
    ```bash
-   make pull-run RUN=entity/project/run_id            # default: local_runs/<run_id>/wandb/
-   # or specify explicit destination
-   make pull-run RUN=entity/project/run_id TARGET=/path/to/folder
+   # Pull a specific run (requires a run_id); resolves entity/project from config/env
+   make pull-run RUN=entity/project/run_id            # downloads into wandb-history/<run_id>/
+   make pull-run RUN=project/run_id                   # uses WANDB_ENTITY from env/config
+   make pull-run RUN=run_id                           # uses WANDB_ENTITY and WANDB_PROJECT
+
+   # Pull all runs for the configured project (skips existing folders by default)
+   make pull-all                                      # downloads into wandb-history/<run_id>/
+   make pull-all FORCE=1                              # force re-download/overwrite
    ```
 
 ## Artifacts
@@ -102,12 +107,23 @@
   - W&B: `wandb.json` with `{id, path, url}`; optional `wandb/` with downloaded files/artifacts (when `PULL=true` or via `pull-run`)
 
 ## Feature Selection
-- Mutual Information or L1‑logistic selection with incremental AUC evaluation:
-  ```bash
-  python -m src.cli.select --config configs/default.yaml --method mi
-  python -m src.cli.select --config configs/default.yaml --method l1
-  ```
-- Outputs under `reports/selection/<method>/`: ranked list (CSV/JSON), selected subset, and AUC curve plot. See `docs/FEATURE_SELECTION.md`.
+- How to run (two options):
+  - Makefile: `make select CONFIG=configs/default.yaml METHOD=mi` (or `METHOD=l1`)
+  - Direct:
+    ```bash
+    python -m src.cli.select --config configs/default.yaml --method mi
+    python -m src.cli.select --config configs/default.yaml --method l1
+    ```
+- Optional flags (direct invocation): `--target_coverage 0.99 --missingness_threshold 0.5 --max_features 50 --outdir reports/selection`
+- Outputs under `reports/selection/<method>/`:
+  - `*_results.json` — selected_features, full_AUC, incremental steps
+  - `*_ranking.csv` — full ranking with scores
+  - `*_auc_curve.png` — AUC vs number of features
+- Apply the subset:
+  1) Open `reports/selection/<method>/*_results.json`
+  2) Copy `selected_features` into `data.features` in your YAML config (or create a new config variant)
+  3) Train with that config and compare to the full set
+- Details and method rationale: see `docs/FEATURE_SELECTION.md`.
 
 ## Experiment Tracking (W&B)
 - Enable in config: `tracking.backend: wandb`; `tracking.wandb.enabled: true`.
@@ -118,7 +134,7 @@
 - Login via env: set `WANDB_API_KEY` and `WANDB_ENTITY`, then `make wandb-login` or just train (trainer auto‑logins if key is present). Optional `WANDB_PROJECT` overrides config.
 - Download W&B data to local folder:
   - After training: `make train CONFIG=configs/default.yaml PULL=true` → `local_runs/<run_id>/wandb/`
-  - Any time: `make pull-run RUN=entity/project/run_id [TARGET=dir]`
+  - Any time: `make pull-run RUN=entity/project/run_id` → `wandb-history/<run_id>/`
 - Logged in W&B: per‑epoch loss/val_loss/val_auc/lr/time, final metrics (incl. confusion), env+git metadata, requirements snapshot, figures, interactive confusion matrix panel; key files and model are logged as artifacts.
 
 ## Environment Variables
@@ -137,8 +153,25 @@
 - `make train CONFIG=... [PULL=true] [NOTES=...]`
 - `make cpu-train CONFIG=... [PULL=true] [NOTES=...]`
 - `make wandb-login`
-- `make pull-run RUN=entity/project/run_id [TARGET=dir]`
-- `make clean-artifacts` — removes `reports/`, `models/`, and `local_runs/`
+- `make pull-run RUN=entity/project/run_id` — saves to `wandb-history/<run_id>/`
+- `make pull-all [FORCE=1]` — saves all to `wandb-history/<run_id>/`
+- `make clean-local-runs` — removes `local_runs/` only
+- `make clean-wandb-local` — removes `./wandb` (local SDK logs/cache)
+- `make clean-local-history` — removes `./wandb-history` (downloaded run histories)
+- `make clean-all-local` — removes `local_runs/`, `./wandb`, and `./wandb-history`
+- `make clean-cloud-history FORCE=1` — deletes all runs (and logged artifacts) from the configured W&B project
+
+## Dependency Management
+- This repo uses pip-tools with a two-file setup:
+  - `requirements.in` — human-edited top-level deps (loose pins allowed)
+  - `requirements.txt` — compiled, fully pinned lockfile
+- Typical workflow:
+  - Edit `requirements.in`
+  - Install tools: `make deps-tools`
+  - Compile lock: `make deps-compile` (updates `requirements.txt`)
+  - Sync venv: `make deps-sync` (installs exactly the pinned set)
+  - Alternatively, install directly: `pip install -r requirements.txt`
+
 
 ## Feature Subset Selection (Scope)
 - Goal: identify a minimal subset of origination‑time features with near‑maximal predictive power.
