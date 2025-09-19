@@ -1,0 +1,387 @@
+# Missing Papers
+Generated: 2025-09-19 16:26 UTC
+
+## credit_risk_neural_networks_research_papers.bib
+- **Chang2015** — Predicting credit risk in peer-to-peer lending
+  - Authors: An-Hsing Chang and Li-Kai Yang and Rua-Huan Tsaih and Shih-Kuei Lin; Year: 2015
+  - Access issue: HTTP 418
+  - Links: DOI: 10.1109/SSCI.2015.109
+  - Abstract/Notes: (not available)
+- **chen2025cnn** — CNN-based financial risk identification and assessment
+  - Authors: Chen, Y and Wang, Y; Year: 2025
+  - Access issue: HTTP 404
+  - Links: DOI: 10.3233/JIFS-233599
+  - Abstract/Notes: (not available)
+- **feng2025explore** — Explore the use of prompt-based llm for credit risk assessment
+  - Authors: Feng, S and Wang, Y and Wang, J; Year: 2025
+  - Access issue: HTTP 404
+  - Links: DOI: 10.3905/jfds.2024.1.141
+  - Abstract/Notes: (not available)
+- **fernandez2023complete** — A complete revision of lendingclub predicci{\'o
+  - Authors: Fern{\'a; Year: 2023
+  - Access issue: HTTP 404
+  - Links: DOI: 10.1186/s40537-023-00741-6
+  - Abstract/Notes: (not available)
+- **ge2023credit** — Credit risk assessment models in financial technology
+  - Authors: Ge, R and Son, J and Yao, Y; Year: 2023
+  - Access issue: HTTP 404
+  - Links: DOI: 10.1109/SSEIS58473.2023.00078
+  - Abstract/Notes: (not available)
+- **harl2025credit** — Credit Risk BERT: A Pre-Trained Technique for Credit Risk Forecasting
+  - Authors: Harl, C; Year: 2025
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.2139/ssrn.4330123
+  - Abstract/Notes: (not available)
+- **jiang2022data** — Data mining techniques to predict default in lendingclub
+  - Authors: Jiang, S and Ralescu, D; Year: 2022
+  - Access issue: HTTP 404
+  - Links: DOI: 10.3844/jcssp.2022.416.426
+  - Abstract/Notes: (not available)
+- **li2020multi** — Multi-view ensemble learning based on distance-to-model for P2P credit risk
+  - Authors: Li, Y and Li, J and He, J; Year: 2020
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.1016/j.physa.2020.124293
+  - Abstract/Notes: (not available)
+- **li2021credit** — A credit risk assessment model of borrowers in P2P lending based on a BP neural network with an improved LM algorithm
+  - Authors: Li, X and Li, J and He, J; Year: 2021
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.1371/journal.pone.0255841
+  - Abstract/Notes: Background Efforts to minimize COVID-19 exposure during the current SARS-CoV-2 pandemic have led to limitations in access to medical care and testing. The Tasso-SST kit includes all of the components necessary for remote, capillary blood self-collection. In this study, we sought to investigate the accuracy and reliability of the Tasso-SST device as a self-collection device for measurement of SARS-CoV-2 IgG antibodies. Methods Capillary blood was obtained via unsupervised and supervised application of the Tasso-SST device, and venous blood was collected by standard venipuncture. Unsupervised self-collected blood samples underwent either extreme summer or winter-simulated shipping conditions prior to testing. Sera obtained by all three methods were tested concurrently using the EuroImmun anti-SARS-CoV-2 S1 IgG assay in a CLIA-certified clinical laboratory. Results Successful Tasso-SST capillary blood collection by unsupervised and supervised administration was completed by 93.4% and 94.5% of participants, respectively. Sera from 56 participants, 55 with documented (PCR+) COVID-19, and 33 healthy controls were then tested for anti-SARS-CoV-2 IgG antibodies. Compared to venous blood results, Tasso-SST-collected (unstressed) and the summer- and winter-stressed blood samples demonstrated Deming regression slopes of 1.00 (95% CI: 0.99–1.02), 1.00 (95% CI: 0.98–1.01), and 0.99 (95% CI: 0.97–1.01), respectively, with an overall accuracy of 98.9%. Conclusions Capillary blood self-collection using the Tasso-SST device had a high success rate. Moreover, excellent concordance was found for anti-SARS-CoV-2 IgG results between Tasso-SST capillary and standard venous blood-derived sera. The Tasso-SST device should enable widespread collection of capillary blood for testing without medical supervision, facilitating epidemiologic studies.
+- **li2022evaluation** — The evaluation on the credit risk of enterprises based on the combination of cnn-lstm-att
+  - Authors: Li, Hongxia and Sun, Jian and Li, Ang; Year: 2022
+  - Access issue: HTTP 403
+  - Links: DOI: 10.3390/electronics11193169
+  - Abstract/Notes: Due to numerous advantages, a neutral point clamped (NPC) inverter is a preferred choice for high-power applications and renewable technology. The reliability of the NPC inverter is a major concerning factor during the assessment of system performance as power semiconductor switches are vulnerable to abnormal conditions. Open-circuit (OC) switch faults are not as dangerous as short circuit (SC) faults but eventually have enough potential to cause cascaded failure to other components in the system and thus need to be supervised carefully. The OC faults result in a distortion of voltage and current signals in the NPC converter. Based on these signals, over the past few years, many efforts have been made to identify and localize the OC switch fault to the switch level in the NPC topology. In this paper, a review of different OC switch fault diagnostic methods is provided. Starting from the NPC inverter operation under healthy and faulty conditions, the various possible and unavailable switching states along with the deviation in pole voltage under different switch fault conditions is discussed. Then, based on the approach used for system-based fault detection, the OC fault detection methods are classified. The various OC methods are further discussed on the basis of signal, i.e., current, voltage or a combination of both signals used as a signature for fault detection. Emphasis is given to the principle involved, diagnostic variables utilized, the implementation approach and the diagnostic time required. Finally, the approaches are tabulated so as to provide a quick reference for NPC fault diagnostics.
+- **li2022machine** — Machine learning and artificial neural networks to construct P2P loan credit-scoring model
+  - Authors: Li, Y and Li, J and He, J; Year: 2022
+  - Access issue: HTTP 404
+  - Links: DOI: 10.1007/s12652-020-02820-6
+  - Abstract/Notes: (not available)
+- **lopez2020credit** — Credit risk modeling with generative ai and autonomous agents
+  - Authors: Lopez, de Prado, Marcos; Year: 2020
+  - Access issue: HTTP 410
+  - Links: DOI: 10.2139/ssrn.3686233
+  - Abstract/Notes: (not available)
+- **namvar2018credit** — Credit risk prediction in an imbalanced social lending environment
+  - Authors: Namvar, Anahita and Siami, Mohammad and Rabhi, Fethi and Naderpour, Mohsen; Year: 2018
+  - Access issue: non-pdf content-type text/html; charset=utf-8
+  - Links: DOI: 10.2991/ijcis.11.1.70
+  - Abstract/Notes: (not available)
+- **savine2022neural** — Neural networks for credit risk and xva in a front office pricing environment
+  - Authors: Savine, Antoine; Year: 2022
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.2139/ssrn.4052932
+  - Abstract/Notes: (not available)
+- **shen2021new** — A new deep learning ensemble credit risk evaluation model
+  - Authors: Shen, F and Liu, L and Li, FY and Wang, D and He, J; Year: 2021
+  - Access issue: HTTP 404
+  - Links: DOI: 10.1155/2021/5576241
+  - Abstract/Notes: (not available)
+- **vasicek2024gpt** — GPT classifications, with application to credit lending
+  - Authors: Vasicek, O; Year: 2024
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.1016/j.frl.2024.105029
+  - Abstract/Notes: (not available)
+- **wang2022credit** — Credit risk prediction of small and medium-sized enterprises based on lstm
+  - Authors: Wang, Y and Wang, J; Year: 2022
+  - Access issue: non-pdf content-type text/html;charset=utf-8
+  - Links: DOI: 10.2991/aebmr.k.220307.021
+  - Abstract/Notes: (not available)
+- **wang2024hybrid** — A hybrid CNN-LSTM model for enhancing bond default risk prediction
+  - Authors: Wang, Yuxuan and Wang, Jian; Year: 2024
+  - Access issue: HTTP 404
+  - Links: DOI: 10.1016/j.jocs.2024.102299
+  - Abstract/Notes: (not available)
+- **wang2025research** — Research on credit risk of listed companies: a hybrid model with Transformer
+  - Authors: Wang, Y and Wang, J; Year: 2025
+  - Access issue: HTTP 404
+  - Links: DOI: 10.1038/s41598-024-62004-w
+  - Abstract/Notes: (not available)
+## feature_selection_transformer_credit_risk_papers.bib
+- **arik2019tabnet** — Tabnet: Attentive interpretable tabular learning
+  - Authors: Arik, Sercan O and Pfister, Tomas; Year: 2019
+  - Access issue: non-pdf content-type text/html; charset=utf-8
+  - Links: DOI: 10.1609/aaai.v35i8.16826
+  - Abstract/Notes: We propose a novel high-performance and interpretable canonical deep tabular data learning architecture, TabNet. TabNet uses sequential attention to choose which features to reason from at each decision step, enabling interpretability and more efficient learning as the learning capacity is used for the most salient features. We demonstrate that TabNet outperforms other variants on a wide range of non-performance-saturated tabular datasets and yields interpretable feature attributions plus insights into its global behavior. Finally, we demonstrate self-supervised learning for tabular data, significantly improving performance when unlabeled data is abundant.
+- **harl2025dynamic** — Dynamic self-attention for credit scoring: A novel ensemble approach
+  - Authors: Harl, C; Year: 2025
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.2139/ssrn.4330123
+  - Abstract/Notes: (not available)
+- **li2022path** — A path-based feature selection algorithm for enterprise credit risk
+  - Authors: Li, Y and Li, J and He, J; Year: 2022
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.1016/j.engappai.2022.105102
+  - Abstract/Notes: (not available)
+- **li2022transformer** — A transformer-based model integrated with feature selection for credit scoring
+  - Authors: Li, Y and Li, J and He, J; Year: 2022
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.1016/j.eswa.2022.118133
+  - Abstract/Notes: (not available)
+- **li2023internet** — Internet financial credit risk assessment with sliding window and attention lstm
+  - Authors: Li, Y and Li, J and He, J; Year: 2023
+  - Access issue: HTTP 404
+  - Links: DOI: 10.1080/01605682.2022.2078849
+  - Abstract/Notes: (not available)
+- **li2024hierarchical** — A hierarchical attention-based feature selection and fusion for credit risk
+  - Authors: Li, Y and Li, J and He, J; Year: 2024
+  - Access issue: HTTP 404
+  - Links: DOI: 10.1080/01605682.2022.2156939
+  - Abstract/Notes: (not available)
+- **wu2025transformer** — Transformer encoder and multi-features time2vec for financial prediction
+  - Authors: Wu, H and Wang, Y and Wang, J; Year: 2025
+  - Access issue: HTTP 403
+  - Links: DOI: 10.1002/for.3269
+  - Abstract/Notes: ABSTRACTEarly studies that used rolling windows found it to be a useful forecasting technique. These studies were, by‐and‐large, based on pre‐2000 data, which were nonstationary. Subsequent work, based on stationary data from the mid‐1990s to 2020, has not been able to confirm that finding. However, this latter result may reflect the fact that there was relatively little structural instability between the mid‐1990s and 2020: The data had become stationary. Following the series of shocks of the early 2020s, this is no longer the case because the shocks produced nonstationarity in the macroeconomic data, such as inflation. Consequently, rolling windows may again be a sensible way forward. The present study assesses this conjecture.
+- **xia2017performance** — Performance analysis of credit scoring models on lending club data
+  - Authors: Xia, Y and Liu, C and Li, Y and Liu, N; Year: 2017
+  - Access issue: HTTP 418
+  - Links: DOI: 10.1109/ICSSSM.2017.7996222
+  - Abstract/Notes: (not available)
+## lendingclub_subtopics_grey.bib
+- **Alyakoob2017** — Where You Live Matters: The Impact of Local Financial Market Competition in Managing Online Peer-to-Peer Loans
+  - Authors: Alyakoob, Mohammed and Rahman, Mohammad and Wei, Zhe; Year: 2017
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.2139/ssrn.2985099 | URL: https://doi.org/10.2139/ssrn.2985099
+  - Abstract/Notes: Selection/market effects; P2P loan management; includes online platforms context.
+- **BalyukDavydenko2018** — Reintermediation in FinTech: Evidence from Online Lending
+  - Authors: Balyuk, Tetyana and Davydenko, Sergei; Year: 2018
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.2139/ssrn.3189236 | URL: https://doi.org/10.2139/ssrn.3189236
+  - Abstract/Notes: Selection/intermediation; online lending platforms including LC; working paper.
+- **BarocasSelbst2016** — Big Data's Disparate Impact
+  - Authors: Barocas, Solon and Selbst, Andrew D.; Year: 2016
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.2139/ssrn.2477899 | URL: https://doi.org/10.2139/ssrn.2477899
+  - Abstract/Notes: Fairness; disparate impact framing; relevant to LC feature policy.
+- **Chinco2014FSRisk** — Feature Selection Risk
+  - Authors: Chinco, Alexander; Year: 2014
+  - Access issue: HTTP 429
+  - Links: DOI: 10.2139/ssrn.2510536 | URL: https://doi.org/10.2139/ssrn.2510536
+  - Abstract/Notes: Grey — Cautions around overfitting from FS; include as methodological guardrail when building LC FS protocols.
+- **IJSR2023LCNN** — Predicting Loan Default Risk in P2P Lending Platforms: A Study of Lending Club Borrowers
+  - Authors: Singh, Vinay; Year: 2023
+  - Access issue: non-pdf content-type text/html; charset=UTF-8
+  - Links: DOI: 10.21275/sr231114083515 | URL: https://doi.org/10.21275/sr231114083515
+  - Abstract/Notes: Grey — LC dataset; ML/ANN comparison for default prediction; Citations (Crossref): 0.
+- **KaggleLC_GAN** — Lending Club: Synthetic Data Generation with CTGAN/SDV (Community)
+  - Authors: {Kaggle community; Year: 2019
+  - Access issue: non-pdf content-type text/html; charset=utf-8
+  - Links: URL: https://www.kaggle.com/wordsforthewise/lending-club
+  - Abstract/Notes: Grey — Hands-on LC notebooks generating synthetic samples with CTGAN/SDV for class balancing and privacy.
+- **KaggleLCDeep** — Lending Club Loan Data: Deep Learning Notebooks (Community)
+  - Authors: {Kaggle community; Year: 2017
+  - Access issue: non-pdf content-type text/html; charset=utf-8
+  - Links: URL: https://www.kaggle.com/wordsforthewise/lending-club
+  - Abstract/Notes: Grey — Practical LC deep learning pipelines (MLP/CNN on engineered features); useful for baseline architectures and preprocessing.
+- **KaggleLendingClubFS** — Lending Club Loan Data: Community Feature Selection Workflows
+  - Authors: {Kaggle community; Year: 2017
+  - Access issue: non-pdf content-type text/html; charset=utf-8
+  - Links: URL: https://www.kaggle.com/wordsforthewise/lending-club
+  - Abstract/Notes: Grey — Practical LC notebooks demonstrating MI/L1/RF-based feature selection and importance analysis; useful for exploratory FS.
+- **Klafft2008** — Online Peer-to-Peer Lending: A Lender's Perspective
+  - Authors: Klafft, Michael; Year: 2008
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.2139/ssrn.1352352 | URL: https://doi.org/10.2139/ssrn.1352352
+  - Abstract/Notes: Early P2P lending analysis; useful context for LC platform dynamics.
+- **Liu2025AEMPS** — Evaluate Lending Club Loan Status by Machine Learning
+  - Authors: Liu, Zilan; Year: 2025
+  - Access issue: non-pdf content-type text/html; charset=utf-8
+  - Links: DOI: 10.54254/2754-1169/2024.19542 | URL: https://doi.org/10.54254/2754-1169/2024.19542
+  - Abstract/Notes: To reduce the information asymmetry between investors and lenders and enable P2P lending platforms to develop more accurate lending standards, this study uses Lending Club data to build a credit scoring model based on machine learning (ML) and artificial neural network (ANN) algorithms. The data is first cleaned and preprocessed through feature engineering techniques, and then trained using XGBoost to evaluate feature importance. To address the class imbalance problem, undersampling is used to divide the dataset into training and test sets. The study also uses grid search and cross-validation methods to determine the best hyperparameters for four algorithms (logistic regression (LR), random forest (RF), lightweight gradient boosting machine (LightGBM), and XGBoost). Finally, this paper compares and analyzes the performance of different models and points out the practicality of different models. The results of this process provide insights into the most important features for predicting creditworthiness and identify the most effective model for improving lending decisions on P2P platforms.
+- **SanzGuerrero2024SSRN** — Credit Risk Meets Large Language Models: Building a Risk Indicator from Loan Descriptions in Peer-to-Peer Lending
+  - Authors: Sanz-Guerrero, Mario and Arroyo, Javier; Year: 2024
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.2139/ssrn.4979155 | URL: https://doi.org/10.2139/ssrn.4979155
+  - Abstract/Notes: Grey — P2P (LC-like) loan descriptions; LLM-derived risk indicator; Citations (Crossref): 4.
+- **Shi2025SSRN** — Credit Risk Assessment for SMEs: A Hybrid Model Leveraging Large Language Models and Traditional Credit Scoring
+  - Authors: Shi, Bin and Wang, Yongqiao and Yao, Lifeng and Chen, Wei and Li, Zhaoxian; Year: 2025
+  - Access issue: HTTP 429
+  - Links: DOI: 10.2139/ssrn.5188781 | URL: https://doi.org/10.2139/ssrn.5188781
+  - Abstract/Notes: Grey — Hybrid LLM + structured scoring for credit risk; Citations (Crossref): 0.
+- **Sirignano2018SSRN** — Deep Learning for Mortgage Risk
+  - Authors: Sirignano, Justin and Sadhwani, Apaar and Giesecke, Kay; Year: 2018
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.2139/ssrn.2799443 | URL: https://doi.org/10.2139/ssrn.2799443
+  - Abstract/Notes: Grey — Deep learning applied to mortgage default risk; Citations (Crossref): 30. Techniques inform NN design for LC risk.
+- **Yang2023FinGPT** — FinGPT: Open-Source Financial Large Language Models
+  - Authors: Yang, Hongyang and Liu, Xiao-Yang and Dan Wang, Christina; Year: 2023
+  - Access issue: HTTP 429
+  - Links: DOI: 10.2139/ssrn.4489826 | URL: https://doi.org/10.2139/ssrn.4489826
+  - Abstract/Notes: Grey — Financial-domain LLMs; foundation for LC text (desc, emp\_title) modeling; Citations (Crossref): 121.
+- **Zheng2023SSRN** — A Feature Selection Method with Feature Subcategorization in Regression
+  - Authors: Zheng, Wanwan; Year: 2023
+  - Access issue: HTTP 429
+  - Links: DOI: 10.2139/ssrn.4396789 | URL: https://doi.org/10.2139/ssrn.4396789
+  - Abstract/Notes: Grey — General FS preprint; techniques transferable to LC FS stage (e.g., pre-screening and grouping of features).
+## lendingclub_subtopics_white.bib
+- **Andriansyah2019** — Prospek Gagal Sukses Pinjaman UMKM Melalui Peer-to-Peer Lending pada LendingClub
+  - Authors: Andriansyah, Wibi and Winarno, Agung; Year: 2019
+  - Access issue: HTTP 403
+  - Links: DOI: 10.17977/um042v24i1p21-30 | URL: https://doi.org/10.17977/um042v24i1p21-30
+  - Abstract/Notes: Peer-to-peer lending as an innovation of financial services is a genuine opportunity for SMEs who are experiencing difficulties in accessing loans to formal financial institutions. The asymmetric information issue on peer-to-peer lending activity can lead to a credit risk that may cause a default loan. This research is a kind of associative research with the form of causal relationship. the purpose of this study is to determine the factors that influence the success of SMEs loans on Peer to peer lending activities. Samples obtained from the LendingClub platform using purposive sampling method. Analysis In this study using logistic regression analysis. Based on logistic regression analysis, it is found that loan amount, loan term, debt-to- income ratio, delinquency in last 2 year, inquiries in the last 6 month, and revolving credit utilization have a significant negative effect on the success of the loan. while annual income is not significant effect on the success of the loan.
+- **Banasik1999** — Not if but When Will Borrowers Default
+  - Authors: Banasik, J and Crook, J N and Thomas, L C; Year: 1999
+  - Access issue: HTTP 403
+  - Links: DOI: 10.1057/palgrave.jors.2600851 | URL: https://doi.org/10.1057/palgrave.jors.2600851
+  - Abstract/Notes: Classic survival-model framing of default as time-to-event; motivates LC time-split and censoring handling.
+- **Banasik2010** — Reject Inference in Survival Analysis by Augmentation
+  - Authors: Banasik, J and Crook, J; Year: 2010
+  - Access issue: HTTP 403
+  - Links: DOI: 10.1057/jors.2008.180 | URL: https://doi.org/10.1057/jors.2008.180
+  - Abstract/Notes: Addresses sample selection bias using reject inference in a survival setup; relevant when combining LC accepted/rejected cohorts.
+- **Bellotti2013** — Forecasting and Stress Testing Credit Card Default Using Dynamic Models
+  - Authors: Bellotti, Tony and Crook, Jonathan; Year: 2013
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.1016/j.ijforecast.2013.04.003 | URL: https://doi.org/10.1016/j.ijforecast.2013.04.003
+  - Abstract/Notes: Dynamic/survival modeling and stress testing; techniques transferable to LC time-to-default and macro overlays.
+- **Chen2025JCC** — Explore the Use of Prompt-Based LLM for Credit Risk Classification
+  - Authors: Chen, Qizhao; Year: 2025
+  - Access issue: non-pdf content-type text/html; charset=utf-8
+  - Links: DOI: 10.4236/jcc.2025.136003 | URL: https://doi.org/10.4236/jcc.2025.136003
+  - Abstract/Notes: White — Prompt-based LLM for credit risk classification; generalizable to LC text fields; Citations (Crossref): 0.
+- **Conlon2023** — Distilling a Disruptive Disintermediary’s Data: Interpretable Machine-Learning Explanations for LendingClub Customers
+  - Authors: Conlon, Thomas and Kearney, Fearghal; Year: 2023
+  - Access issue: HTTP 403
+  - Links: DOI: 10.1142/9781800612723_0005 | URL: https://doi.org/10.1142/9781800612723_0005
+  - Abstract/Notes: LC-specific interpretability case study; model explanations for customer decisions.
+- **Croux2020JEBO** — Important Factors Determining Fintech Loan Default: Evidence from a LendingClub Consumer Platform
+  - Authors: Croux, Christophe and Jagtiani, Julapa and Korivi, Tarunsai and Vulanovic, Milos; Year: 2020
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.1016/j.jebo.2020.03.016 | URL: https://doi.org/10.1016/j.jebo.2020.03.016
+  - Abstract/Notes: Peer-reviewed version of FRB WP; LC default determinants and model performance.
+- **Devlin2019BERT** — BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding
+  - Authors: Devlin, Jacob and Chang, Ming-Wei and Lee, Kenton and Toutanova, Kristina; Year: 2019
+  - Access issue: HTTP 406
+  - Links: DOI: 10.18653/v1/N19-1423 | URL: https://doi.org/10.18653/v1/N19-1423
+  - Abstract/Notes: White — Foundational transformer (BERT); applicable to LC free-text fields (e.g., desc, emp\_title) for risk signals; Citations (Crossref): n/a here.
+- **Ding2023IPM** — RGAN-EL: A GAN and Ensemble Learning-based Hybrid Approach for Imbalanced Data Classification
+  - Authors: Ding, Hongwei and Sun, Yu and Wang, Zhenyu and Huang, Nana and Shen, Zhidong and Cui, Xiaohui; Year: 2023
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.1016/j.ipm.2022.103235 | URL: https://doi.org/10.1016/j.ipm.2022.103235
+  - Abstract/Notes: White — GAN + ensembles for severe imbalance; relevant to LC default rates. Citations (Crossref): 74.
+- **Emekter2015** — Evaluating Credit Risk and Loan Performance in Online Peer-to-Peer (P2P) Lending
+  - Authors: Emekter, Riza and Tu, Yanbin and Jirasakuldech, Benjamas and Lu, Min; Year: 2015
+  - Access issue: HTTP 403
+  - Links: DOI: 10.1080/00036846.2014.962222 | URL: https://doi.org/10.1080/00036846.2014.962222
+  - Abstract/Notes: Early empirical baseline on P2P credit risk/returns; informs feature and evaluation choices often replicated on LendingClub.
+- **GuevaraDiaz2020** — Clasificaci{\'o
+  - Authors: Guevara-D{\'i; Year: 2020
+  - Access issue: non-pdf content-type text/html; charset=utf-8
+  - Links: DOI: 10.18601/17941113.n18.03 | URL: https://doi.org/10.18601/17941113.n18.03
+  - Abstract/Notes: Se presenta la teoría de máquinas de soporte vectorial (Support Vector Machine – svm) aplicada a la clasificación de créditos otorgados por la banca fintech (financial technology) de Estados Unidos LendingClub. Se estudiará la clasifi­cación que da el método svm a los créditos contra la ya otorgada por la entidad. Se analizan las variables más importantes que maneja LendingClub para el otorgamiento de créditos comparándolas con la clasificación de pago o impago que arroja el experimento de SVM.
+- **Guo2016** — Instance-based Credit Risk Assessment for Investment Decisions in P2P Lending
+  - Authors: Guo, Yanhong and Zhou, Wenjun and Luo, Chunyu and Liu, Chuanren and Xiong, Hui; Year: 2016
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.1016/j.ejor.2015.05.050 | URL: https://doi.org/10.1016/j.ejor.2015.05.050
+  - Abstract/Notes: Investor-oriented decision support for P2P platforms; feature design and evaluation paradigms applicable to LC.
+- **Jagtiani2019FM** — The Roles of Alternative Data and Machine Learning in Fintech Lending: Evidence from the LendingClub Consumer Platform
+  - Authors: Jagtiani, Julapa and Lemieux, Catharine; Year: 2019
+  - Access issue: HTTP 403
+  - Links: DOI: 10.1111/fima.12295 | URL: https://doi.org/10.1111/fima.12295
+  - Abstract/Notes: AbstractThere have been concerns about the use of alternative data sources by fintech lenders. We compare loans made by LendingClub and similar loans that were originated by banks. The correlations between the rating grades (assigned by LendingClub) and the borrowers’ FICO scores declined from about 80% (for loans originated in 2007) to about 35% for recent vintages (originated in 2014–2015), indicating that nontraditional data (not already accounted for in the FICO scores) have been increasingly used by fintech lenders. The rating grades perform well in predicting loan default. The use of alternative data has allowed some borrowers who would have been classified as subprime by traditional criteria to be slotted into “better” loan grades, allowing them to obtain lower priced credit.
+- **Kursa2010Boruta** — Feature Selection with the Boruta Package
+  - Authors: Kursa, Miron B. and Rudnicki, Witold R.; Year: 2010
+  - Access issue: non-pdf content-type text/html; charset=utf-8
+  - Links: DOI: 10.18637/jss.v036.i11 | URL: https://doi.org/10.18637/jss.v036.i11
+  - Abstract/Notes: White — Wrapper around Random Forest for all-relevant feature selection; often used to sanity-check LC variable importance.
+- **Kvamme2018** — Predicting Mortgage Default Using Convolutional Neural Networks
+  - Authors: Kvamme, H\aa vard and Sellereite, Nikolai and Aas, Kjersti and Sjursen, Steffen; Year: 2018
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.1016/j.eswa.2018.02.029 | URL: https://doi.org/10.1016/j.eswa.2018.02.029
+  - Abstract/Notes: White — Deep CNNs for consumer credit default (mortgage) prediction; techniques transfer to LC; Citations (Crossref): 118.
+- **Kwon2025** — Credit Scoring Using Multi-Task Siamese Neural Network for Improving Prediction Performance and Stability
+  - Authors: Kwon, Soonjae and Jang, Jaeyeon and Kim, Chang Ouk; Year: 2025
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.1016/j.eswa.2024.125327 | URL: https://doi.org/10.1016/j.eswa.2024.125327
+  - Abstract/Notes: White — Modern deep architecture for credit scoring; focus on performance/stability; Citations (Crossref): 7.
+- **Lei2020GAFN** — Generative Adversarial Fusion Network for Class Imbalance Credit Scoring
+  - Authors: Lei, Kai and Xie, Yuexiang and Zhong, Shangru and Dai, Jingchao and Yang, Min and Shen, Ying; Year: 2020
+  - Access issue: non-pdf content-type text/html; charset=utf-8
+  - Links: DOI: 10.1007/s00521-019-04335-1 | URL: https://doi.org/10.1007/s00521-019-04335-1
+  - Abstract/Notes: White — GAN-based approach to tackle class imbalance in credit scoring; applicable to LC default imbalance. Citations (Crossref): 34.
+- **Leippold2023FRL** — Thus Spoke GPT-3: Interviewing a Large-Language Model on Climate Finance
+  - Authors: Leippold, Markus; Year: 2023
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.1016/j.frl.2022.103617 | URL: https://doi.org/10.1016/j.frl.2022.103617
+  - Abstract/Notes: White — LLMs in finance context (methodological/ethical); background for LLM risk applications; Citations (Crossref): 40.
+- **Lou2013** — Accurate Intelligible Models with Pairwise Interactions
+  - Authors: Lou, Yin and Caruana, Rich and Gehrke, Johannes and Hooker, Giles; Year: 2013
+  - Access issue: HTTP 403
+  - Links: DOI: 10.1145/2487575.2487579 | URL: https://doi.org/10.1145/2487575.2487579
+  - Abstract/Notes: GA2Ms with pairwise interactions (EBMs); accurate and interpretable baselines suitable for regulated LC risk use cases.
+- **Malekipirbazari2015** — Risk Assessment in Social Lending via Random Forests
+  - Authors: Malekipirbazari, Milad and Aksakalli, Vural; Year: 2015
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.1016/j.eswa.2015.02.001 | URL: https://doi.org/10.1016/j.eswa.2015.02.001
+  - Abstract/Notes: Nonlinear tree-ensemble baseline for P2P default; approach often replicated on LendingClub vintages.
+- **NunezMora2023** — Loan Default Prediction: A Complete Revision of LendingClub
+  - Authors: N{\'u; Year: 2023
+  - Access issue: non-pdf content-type text/html; charset=utf-8
+  - Links: DOI: 10.21919/remef.v18i3.886 | URL: https://doi.org/10.21919/remef.v18i3.886
+  - Abstract/Notes: The study aims to determine a credit default prediction model using data from LendingClub. The model estimates the effect of the influential variables on the prediction process of paid and unpaid loans. We implemented the random forest algorithm to identify the variables with the most significant influence on payment or default, addressing nine predictors related to the borrower's credit and payment background. Results confirm that the model’s performance generates a F1 Macro Score that accomplishes 90% in accuracy for the evaluation sample. Contributions of this study include using the complete dataset of the entire operation of LendingClub available, to obtain transcendental variables for the classification and prediction task, which can be helpful to estimate the default in the person-to-person loan market. We can draw two important conclusions, first we confirm the Random Forest algorithm's capacity to predict binary classification problems based on performance metrics obtained and second, we denote the influence of traditional credit scoring variables on default prediction problems.
+- **Nygaard2024NRAS** — News Risk Alerting System (NRAS): A Data-Driven LLM Approach to Proactive Credit Risk Monitoring
+  - Authors: Nygaard, Adil and Upadhyay, Ashish and Hinkle, Lauren and Skotti, Xenia and Halliwell, Joe and Brown, Ian C and Noronha, Glen; Year: 2024
+  - Access issue: HTTP 404
+  - Links: DOI: 10.18653/2024.emnlp-industry.32 | URL: https://doi.org/10.18653/2024.emnlp-industry.32
+  - Abstract/Notes: White — LLMs for proactive credit risk monitoring using news; not LC-specific; Citations (Crossref): 0.
+- **Papouskova2019** — Two-stage consumer credit risk modelling using heterogeneous ensemble learning
+  - Authors: Papouskova, Monika and Hajek, Petr; Year: 2019
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.1016/j.dss.2019.01.002 | URL: https://doi.org/10.1016/j.dss.2019.01.002
+  - Abstract/Notes: White — Two-stage credit risk modeling with explicit dimensionality reduction/selection; applicable patterns for LC FS pipelines.
+- **Peng2005mRMR** — Feature selection based on mutual information criteria of max-dependency, max-relevance, and min-redundancy
+  - Authors: Peng, Hanchuan and Long, Fuhui and Ding, C.; Year: 2005
+  - Access issue: HTTP 418
+  - Links: DOI: 10.1109/tpami.2005.159 | URL: https://doi.org/10.1109/tpami.2005.159
+  - Abstract/Notes: White — Mutual information (mRMR) filter; basis for METHOD=mi selection used before LC model training.
+- **Ribeiro2016** — "Why Should I Trust You?": Explaining the Predictions of Any Classifier
+  - Authors: Ribeiro, Marco Tulio and Singh, Sameer and Guestrin, Carlos; Year: 2016
+  - Access issue: HTTP 403
+  - Links: DOI: 10.1145/2939672.2939778 | URL: https://doi.org/10.1145/2939672.2939778
+  - Abstract/Notes: LIME for local post-hoc explanations; commonly used to interpret LC default models for stakeholders.
+- **SanchezBarrios2016** — Time-to-profit Scorecards for Revolving Credit
+  - Authors: Sanchez-Barrios, Luis Javier and Andreeva, Galina and Ansell, Jake; Year: 2016
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.1016/j.ejor.2015.09.052 | URL: https://doi.org/10.1016/j.ejor.2015.09.052
+  - Abstract/Notes: Survival-based profitability horizon; useful complement to LC default-only objectives.
+- **SerranoCinca2015** — Determinants of Default in P2P Lending
+  - Authors: Serrano-Cinca, Carlos and Guti{\'e; Year: 2015
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.1371/journal.pone.0139427 | URL: https://doi.org/10.1371/journal.pone.0139427
+  - Abstract/Notes: Empirical analysis of default drivers in P2P lending; a widely cited baseline referenced in LendingClub modeling.
+- **SerranoCinca2016** — The Use of Profit Scoring as an Alternative to Credit Scoring Systems in Peer-to-Peer (P2P) Lending
+  - Authors: Serrano-Cinca, Carlos and Guti{\'e; Year: 2016
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.1016/j.dss.2016.06.014 | URL: https://doi.org/10.1016/j.dss.2016.06.014
+  - Abstract/Notes: Profit-oriented evaluation for P2P lending; complements default-centric metrics and thresholds.
+- **Sifrain2023** — Predictive Analysis of Default Risk in Peer-to-Peer Lending Platforms: Empirical Evidence from LendingClub
+  - Authors: Sifrain, Rocheny; Year: 2023
+  - Access issue: non-pdf content-type text/html; charset=utf-8
+  - Links: DOI: 10.4236/jfrm.2023.121003 | URL: https://doi.org/10.4236/jfrm.2023.121003
+  - Abstract/Notes: LendingClub dataset; examines class imbalance and ML baselines for default prediction.
+- **Sun2022** — Data Mining Techniques to Predict Default in LendingClub
+  - Authors: Sun, Jiaying; Year: 2022
+  - Access issue: non-pdf content-type text/html; charset=utf-8
+  - Links: DOI: 10.18178/joebm.2022.10.1.674 | URL: https://doi.org/10.18178/joebm.2022.10.1.674
+  - Abstract/Notes: Short applied study using LendingClub data; compares common ML classifiers for default prediction.
+- **Tibshirani1996** — Regression Shrinkage and Selection Via the Lasso
+  - Authors: Tibshirani, Robert; Year: 1996
+  - Access issue: HTTP 403
+  - Links: DOI: 10.1111/j.2517-6161.1996.tb02080.x | URL: https://doi.org/10.1111/j.2517-6161.1996.tb02080.x
+  - Abstract/Notes: SUMMARY We propose a new method for estimation in linear models. The ‘lasso’ minimizes the residual sum of squares subject to the sum of the absolute value of the coefficients being less than a constant. Because of the nature of this constraint it tends to produce some coefficients that are exactly 0 and hence gives interpretable models. Our simulation studies suggest that the lasso enjoys some of the favourable properties of both subset selection and ridge regression. It produces interpretable models like subset selection and exhibits the stability of ridge regression. There is also an interesting relationship with recent work in adaptive function estimation by Donoho and Johnstone. The lasso idea is quite general and can be applied in a variety of statistical models: extensions to generalized regression models and tree-based models are briefly described.
+- **TsaiWu2008** — Using Neural Network Ensembles for Bankruptcy Prediction and Credit Scoring
+  - Authors: Tsai, Chih-Fong and Wu, Jun-Wei; Year: 2008
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.1016/j.eswa.2007.05.019 | URL: https://doi.org/10.1016/j.eswa.2007.05.019
+  - Abstract/Notes: White — NN ensembles for credit risk; strong benchmark; Citations (Crossref): 368.
+- **West2000NN** — Neural Network Credit Scoring Models
+  - Authors: West, David; Year: 2000
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.1016/S0305-0548(99)00149-5 | URL: https://doi.org/10.1016/S0305-0548(99)00149-5
+  - Abstract/Notes: White — Early survey/empirics of NN credit scoring; Citations (Crossref): 697.
+- **Zhu2022INS** — A GAN-based Hybrid Sampling Method for Imbalanced Customer Classification
+  - Authors: Zhu, Bing and Pan, Xin and vanden Broucke, Seppe and Xiao, Jin; Year: 2022
+  - Access issue: non-pdf content-type text/html;charset=UTF-8
+  - Links: DOI: 10.1016/j.ins.2022.07.145 | URL: https://doi.org/10.1016/j.ins.2022.07.145
+  - Abstract/Notes: White — GAN-based hybrid resampling for imbalanced classification; patterns transferable to LC credit risk. Citations (Crossref): 49.

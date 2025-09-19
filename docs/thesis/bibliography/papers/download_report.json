@@ -1,0 +1,826 @@
+[
+  {
+    "key": "namvar2018credit",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html; charset=utf-8",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.2991/ijcis.11.1.70"
+  },
+  {
+    "key": "gupta2022classification",
+    "status": "exists",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "arxiv",
+    "path": "docs/thesis/bibliography/papers/gupta2022classification.pdf"
+  },
+  {
+    "key": "Chang2015",
+    "status": "failed",
+    "reason": "HTTP 418",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1109/SSCI.2015.109"
+  },
+  {
+    "key": "hahn2024building",
+    "status": "exists",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "arxiv",
+    "path": "docs/thesis/bibliography/papers/hahn2024building.pdf"
+  },
+  {
+    "key": "boz2023generalist",
+    "status": "exists",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "arxiv",
+    "path": "docs/thesis/bibliography/papers/boz2023generalist.pdf"
+  },
+  {
+    "key": "li2022evaluation",
+    "status": "failed",
+    "reason": "HTTP 403",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.3390/electronics11193169"
+  },
+  {
+    "key": "wang2024hybrid",
+    "status": "failed",
+    "reason": "HTTP 404",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1016/j.jocs.2024.102299"
+  },
+  {
+    "key": "lopez2020credit",
+    "status": "failed",
+    "reason": "HTTP 410",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "doi",
+    "url": "https://papers.ssrn.com/sol3/Delivery.cfm?abstractid=3686233&type=2"
+  },
+  {
+    "key": "van2023synthesizing",
+    "status": "downloaded",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "arxiv-doi",
+    "path": "docs/thesis/bibliography/papers/van2023synthesizing.pdf"
+  },
+  {
+    "key": "ala2020sequential",
+    "status": "downloaded",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "arxiv-doi",
+    "path": "docs/thesis/bibliography/papers/ala2020sequential.pdf"
+  },
+  {
+    "key": "huang2024enhancing",
+    "status": "downloaded",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "arxiv-doi",
+    "path": "docs/thesis/bibliography/papers/huang2024enhancing.pdf"
+  },
+  {
+    "key": "kou2025credit",
+    "status": "downloaded",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "arxiv-doi",
+    "path": "docs/thesis/bibliography/papers/kou2025credit.pdf"
+  },
+  {
+    "key": "savine2022neural",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "doi",
+    "url": "https://papers.ssrn.com/sol3/Delivery.cfm?abstractid=4052932&type=2"
+  },
+  {
+    "key": "shen2021new",
+    "status": "failed",
+    "reason": "HTTP 404",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1155/2021/5576241"
+  },
+  {
+    "key": "al2023multi",
+    "status": "downloaded",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "arxiv-doi",
+    "path": "docs/thesis/bibliography/papers/al2023multi.pdf"
+  },
+  {
+    "key": "ge2023credit",
+    "status": "failed",
+    "reason": "HTTP 404",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1109/SSEIS58473.2023.00078"
+  },
+  {
+    "key": "fernandez2023complete",
+    "status": "failed",
+    "reason": "HTTP 404",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1186/s40537-023-00741-6"
+  },
+  {
+    "key": "emiroglu2018credit",
+    "status": "skipped",
+    "reason": "no doi/url/eprint",
+    "file": "credit_risk_neural_networks_research_papers.bib"
+  },
+  {
+    "key": "jiang2022data",
+    "status": "failed",
+    "reason": "HTTP 404",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.3844/jcssp.2022.416.426"
+  },
+  {
+    "key": "li2020multi",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1016/j.physa.2020.124293"
+  },
+  {
+    "key": "li2021credit",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1371/journal.pone.0255841"
+  },
+  {
+    "key": "li2022machine",
+    "status": "failed",
+    "reason": "HTTP 404",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1007/s12652-020-02820-6"
+  },
+  {
+    "key": "liu2025kolmogorov",
+    "status": "downloaded",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "arxiv-doi",
+    "path": "docs/thesis/bibliography/papers/liu2025kolmogorov.pdf"
+  },
+  {
+    "key": "zhang2024finlangnet",
+    "status": "downloaded",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "arxiv-doi",
+    "path": "docs/thesis/bibliography/papers/zhang2024finlangnet.pdf"
+  },
+  {
+    "key": "wang2025research",
+    "status": "failed",
+    "reason": "HTTP 404",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1038/s41598-024-62004-w"
+  },
+  {
+    "key": "wang2022credit",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=utf-8",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.2991/aebmr.k.220307.021"
+  },
+  {
+    "key": "chen2025cnn",
+    "status": "failed",
+    "reason": "HTTP 404",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.3233/JIFS-233599"
+  },
+  {
+    "key": "harl2025credit",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "doi",
+    "url": "https://papers.ssrn.com/sol3/Delivery.cfm?abstractid=4330123&type=2"
+  },
+  {
+    "key": "boz2025interpretable",
+    "status": "downloaded",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "arxiv-doi",
+    "path": "docs/thesis/bibliography/papers/boz2025interpretable.pdf"
+  },
+  {
+    "key": "vasicek2024gpt",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1016/j.frl.2024.105029"
+  },
+  {
+    "key": "feng2025explore",
+    "status": "failed",
+    "reason": "HTTP 404",
+    "file": "credit_risk_neural_networks_research_papers.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.3905/jfds.2024.1.141"
+  },
+  {
+    "key": "Emekter2015",
+    "status": "failed",
+    "reason": "HTTP 403",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1080/00036846.2014.962222"
+  },
+  {
+    "key": "NunezMora2023",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html; charset=utf-8",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.21919/remef.v18i3.886"
+  },
+  {
+    "key": "GuevaraDiaz2020",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html; charset=utf-8",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.18601/17941113.n18.03"
+  },
+  {
+    "key": "SerranoCinca2015",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1371/journal.pone.0139427"
+  },
+  {
+    "key": "Malekipirbazari2015",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1016/j.eswa.2015.02.001"
+  },
+  {
+    "key": "Sifrain2023",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html; charset=utf-8",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.4236/jfrm.2023.121003"
+  },
+  {
+    "key": "SerranoCinca2016",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1016/j.dss.2016.06.014"
+  },
+  {
+    "key": "Croux2020JEBO",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1016/j.jebo.2020.03.016"
+  },
+  {
+    "key": "Jagtiani2019FM",
+    "status": "failed",
+    "reason": "HTTP 403",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1111/fima.12295"
+  },
+  {
+    "key": "Banasik1999",
+    "status": "failed",
+    "reason": "HTTP 403",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1057/palgrave.jors.2600851"
+  },
+  {
+    "key": "Banasik2010",
+    "status": "failed",
+    "reason": "HTTP 403",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1057/jors.2008.180"
+  },
+  {
+    "key": "Bellotti2013",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1016/j.ijforecast.2013.04.003"
+  },
+  {
+    "key": "SanchezBarrios2016",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1016/j.ejor.2015.09.052"
+  },
+  {
+    "key": "Guo2016",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1016/j.ejor.2015.05.050"
+  },
+  {
+    "key": "Ribeiro2016",
+    "status": "failed",
+    "reason": "HTTP 403",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1145/2939672.2939778"
+  },
+  {
+    "key": "Tibshirani1996",
+    "status": "failed",
+    "reason": "HTTP 403",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1111/j.2517-6161.1996.tb02080.x"
+  },
+  {
+    "key": "West2000NN",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1016/S0305-0548(99)00149-5"
+  },
+  {
+    "key": "Nygaard2024NRAS",
+    "status": "failed",
+    "reason": "HTTP 404",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.18653/2024.emnlp-industry.32"
+  },
+  {
+    "key": "Devlin2019BERT",
+    "status": "failed",
+    "reason": "HTTP 406",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.18653/v1/N19-1423"
+  },
+  {
+    "key": "Lei2020GAFN",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html; charset=utf-8",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1007/s00521-019-04335-1"
+  },
+  {
+    "key": "Zhu2022INS",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1016/j.ins.2022.07.145"
+  },
+  {
+    "key": "Ding2023IPM",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1016/j.ipm.2022.103235"
+  },
+  {
+    "key": "Chen2025JCC",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html; charset=utf-8",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.4236/jcc.2025.136003"
+  },
+  {
+    "key": "Leippold2023FRL",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1016/j.frl.2022.103617"
+  },
+  {
+    "key": "TsaiWu2008",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1016/j.eswa.2007.05.019"
+  },
+  {
+    "key": "Kvamme2018",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1016/j.eswa.2018.02.029"
+  },
+  {
+    "key": "Kwon2025",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1016/j.eswa.2024.125327"
+  },
+  {
+    "key": "Peng2005mRMR",
+    "status": "failed",
+    "reason": "HTTP 418",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1109/tpami.2005.159"
+  },
+  {
+    "key": "Kursa2010Boruta",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html; charset=utf-8",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.18637/jss.v036.i11"
+  },
+  {
+    "key": "Papouskova2019",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1016/j.dss.2019.01.002"
+  },
+  {
+    "key": "Conlon2023",
+    "status": "failed",
+    "reason": "HTTP 403",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1142/9781800612723_0005"
+  },
+  {
+    "key": "Lou2013",
+    "status": "failed",
+    "reason": "HTTP 403",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1145/2487575.2487579"
+  },
+  {
+    "key": "Sun2022",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html; charset=utf-8",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.18178/joebm.2022.10.1.674"
+  },
+  {
+    "key": "Andriansyah2019",
+    "status": "failed",
+    "reason": "HTTP 403",
+    "file": "lendingclub_subtopics_white.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.17977/um042v24i1p21-30"
+  },
+  {
+    "key": "bunnell2020feature",
+    "status": "exists",
+    "file": "feature_selection_transformer_credit_risk_papers.bib",
+    "source": "arxiv",
+    "path": "docs/thesis/bibliography/papers/bunnell2020feature.pdf"
+  },
+  {
+    "key": "harl2023comparative",
+    "status": "downloaded",
+    "file": "feature_selection_transformer_credit_risk_papers.bib",
+    "source": "arxiv-doi",
+    "path": "docs/thesis/bibliography/papers/harl2023comparative.pdf"
+  },
+  {
+    "key": "li2024hierarchical",
+    "status": "failed",
+    "reason": "HTTP 404",
+    "file": "feature_selection_transformer_credit_risk_papers.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1080/01605682.2022.2156939"
+  },
+  {
+    "key": "hahn2024building",
+    "status": "exists",
+    "file": "feature_selection_transformer_credit_risk_papers.bib",
+    "source": "arxiv",
+    "path": "docs/thesis/bibliography/papers/hahn2024building.pdf"
+  },
+  {
+    "key": "li2023internet",
+    "status": "failed",
+    "reason": "HTTP 404",
+    "file": "feature_selection_transformer_credit_risk_papers.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1080/01605682.2022.2078849"
+  },
+  {
+    "key": "arik2019tabnet",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html; charset=utf-8",
+    "file": "feature_selection_transformer_credit_risk_papers.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1609/aaai.v35i8.16826"
+  },
+  {
+    "key": "li2022transformer",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "feature_selection_transformer_credit_risk_papers.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1016/j.eswa.2022.118133"
+  },
+  {
+    "key": "wu2025transformer",
+    "status": "failed",
+    "reason": "HTTP 403",
+    "file": "feature_selection_transformer_credit_risk_papers.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1002/for.3269"
+  },
+  {
+    "key": "li2022path",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "feature_selection_transformer_credit_risk_papers.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1016/j.engappai.2022.105102"
+  },
+  {
+    "key": "harl2025dynamic",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "feature_selection_transformer_credit_risk_papers.bib",
+    "source": "doi",
+    "url": "https://papers.ssrn.com/sol3/Delivery.cfm?abstractid=4330123&type=2"
+  },
+  {
+    "key": "xia2017performance",
+    "status": "failed",
+    "reason": "HTTP 418",
+    "file": "feature_selection_transformer_credit_risk_papers.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.1109/ICSSSM.2017.7996222"
+  },
+  {
+    "key": "shah2025finbert",
+    "status": "downloaded",
+    "file": "feature_selection_transformer_credit_risk_papers.bib",
+    "source": "arxiv-doi",
+    "path": "docs/thesis/bibliography/papers/shah2025finbert.pdf"
+  },
+  {
+    "key": "tiwari2023financial",
+    "status": "downloaded",
+    "file": "feature_selection_transformer_credit_risk_papers.bib",
+    "source": "arxiv-doi",
+    "path": "docs/thesis/bibliography/papers/tiwari2023financial.pdf"
+  },
+  {
+    "key": "huang2023incorporating",
+    "status": "downloaded",
+    "file": "feature_selection_transformer_credit_risk_papers.bib",
+    "source": "arxiv-doi",
+    "path": "docs/thesis/bibliography/papers/huang2023incorporating.pdf"
+  },
+  {
+    "key": "vaswani2025rnn",
+    "status": "downloaded",
+    "file": "feature_selection_transformer_credit_risk_papers.bib",
+    "source": "arxiv-doi",
+    "path": "docs/thesis/bibliography/papers/vaswani2025rnn.pdf"
+  },
+  {
+    "key": "Croux2020",
+    "status": "exists",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "doi",
+    "path": "docs/thesis/bibliography/papers/Croux2020.pdf"
+  },
+  {
+    "key": "JagtianiLemieux2018WP",
+    "status": "exists",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "doi",
+    "path": "docs/thesis/bibliography/papers/JagtianiLemieux2018WP.pdf"
+  },
+  {
+    "key": "DiMaggio2020",
+    "status": "exists",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "doi",
+    "path": "docs/thesis/bibliography/papers/DiMaggio2020.pdf"
+  },
+  {
+    "key": "Chioda2024",
+    "status": "exists",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "doi",
+    "path": "docs/thesis/bibliography/papers/Chioda2024.pdf"
+  },
+  {
+    "key": "BalyukDavydenko2018",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "doi",
+    "url": "https://papers.ssrn.com/sol3/Delivery.cfm?abstractid=3189236&type=2"
+  },
+  {
+    "key": "Alyakoob2017",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "doi",
+    "url": "https://papers.ssrn.com/sol3/Delivery.cfm?abstractid=2985099&type=2"
+  },
+  {
+    "key": "Lundberg2017",
+    "status": "exists",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "arxiv-doi",
+    "path": "docs/thesis/bibliography/papers/Lundberg2017.pdf"
+  },
+  {
+    "key": "BarocasSelbst2016",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "doi",
+    "url": "https://papers.ssrn.com/sol3/Delivery.cfm?abstractid=2477899&type=2"
+  },
+  {
+    "key": "Hardt2016",
+    "status": "exists",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "arxiv-doi",
+    "path": "docs/thesis/bibliography/papers/Hardt2016.pdf"
+  },
+  {
+    "key": "Klafft2008",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "doi",
+    "url": "https://papers.ssrn.com/sol3/Delivery.cfm?abstractid=1352352&type=2"
+  },
+  {
+    "key": "KaggleLendingClubFS",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html; charset=utf-8",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "url",
+    "url": "https://www.kaggle.com/wordsforthewise/lending-club"
+  },
+  {
+    "key": "Sirignano2018SSRN",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "doi",
+    "url": "https://papers.ssrn.com/sol3/Delivery.cfm?abstractid=2799443&type=2"
+  },
+  {
+    "key": "SanzGuerrero2024SSRN",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html;charset=UTF-8",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "doi",
+    "url": "https://papers.ssrn.com/sol3/Delivery.cfm?abstractid=4979155&type=2"
+  },
+  {
+    "key": "Araci2019FinBERT",
+    "status": "exists",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "arxiv-doi",
+    "path": "docs/thesis/bibliography/papers/Araci2019FinBERT.pdf"
+  },
+  {
+    "key": "Xu2019CTGAN",
+    "status": "exists",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "arxiv-doi",
+    "path": "docs/thesis/bibliography/papers/Xu2019CTGAN.pdf"
+  },
+  {
+    "key": "Douzas2017CGAN",
+    "status": "exists",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "arxiv-doi",
+    "path": "docs/thesis/bibliography/papers/Douzas2017CGAN.pdf"
+  },
+  {
+    "key": "Zhao2021CTABGAN",
+    "status": "exists",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "arxiv-doi",
+    "path": "docs/thesis/bibliography/papers/Zhao2021CTABGAN.pdf"
+  },
+  {
+    "key": "Kotelnikov2022TabDDPM",
+    "status": "exists",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "arxiv-doi",
+    "path": "docs/thesis/bibliography/papers/Kotelnikov2022TabDDPM.pdf"
+  },
+  {
+    "key": "KaggleLC_GAN",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html; charset=utf-8",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "url",
+    "url": "https://www.kaggle.com/wordsforthewise/lending-club"
+  },
+  {
+    "key": "Shi2025SSRN",
+    "status": "failed",
+    "reason": "HTTP 429",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "doi",
+    "url": "https://papers.ssrn.com/sol3/Delivery.cfm?abstractid=5188781&type=2"
+  },
+  {
+    "key": "Yang2023FinGPT",
+    "status": "failed",
+    "reason": "HTTP 429",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "doi",
+    "url": "https://papers.ssrn.com/sol3/Delivery.cfm?abstractid=4489826&type=2"
+  },
+  {
+    "key": "Xie2023PIXIU",
+    "status": "exists",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "arxiv-doi",
+    "path": "docs/thesis/bibliography/papers/Xie2023PIXIU.pdf"
+  },
+  {
+    "key": "IJSR2023LCNN",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html; charset=UTF-8",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.21275/sr231114083515"
+  },
+  {
+    "key": "KaggleLCDeep",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html; charset=utf-8",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "url",
+    "url": "https://www.kaggle.com/wordsforthewise/lending-club"
+  },
+  {
+    "key": "Liu2025AEMPS",
+    "status": "failed",
+    "reason": "non-pdf content-type text/html; charset=utf-8",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "doi",
+    "url": "https://doi.org/10.54254/2754-1169/2024.19542"
+  },
+  {
+    "key": "Zheng2023SSRN",
+    "status": "failed",
+    "reason": "HTTP 429",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "doi",
+    "url": "https://papers.ssrn.com/sol3/Delivery.cfm?abstractid=4396789&type=2"
+  },
+  {
+    "key": "Chinco2014FSRisk",
+    "status": "failed",
+    "reason": "HTTP 429",
+    "file": "lendingclub_subtopics_grey.bib",
+    "source": "doi",
+    "url": "https://papers.ssrn.com/sol3/Delivery.cfm?abstractid=2510536&type=2"
+  }
+]
