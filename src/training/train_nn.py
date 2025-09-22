@@ -81,10 +81,28 @@ def _collect_system_info() -> Dict[str, Any]:
                 info["gpu_name"] = _torch.cuda.get_device_name(0)
             except Exception:
                 pass
-        try:
-            info["has_mps"] = bool(getattr(_torch.backends, "mps", None) and _torch.backends.mps.is_available())
-        except Exception:
-            pass
+        mps_backend = getattr(_torch.backends, "mps", None)
+        if mps_backend is not None:
+            try:
+                info["has_mps"] = bool(mps_backend.is_available())
+            except Exception:
+                info["has_mps"] = None
+            try:
+                info["mps_is_built"] = bool(mps_backend.is_built())
+            except Exception:
+                pass
+            ane_fn = getattr(mps_backend, "is_neural_engine_available", None)
+            if callable(ane_fn):
+                try:
+                    info["has_ane"] = bool(ane_fn())
+                except Exception:
+                    info["has_ane"] = None
+        xpu_backend = getattr(_torch, "xpu", None)
+        if xpu_backend is not None:
+            try:
+                info["has_xpu"] = bool(xpu_backend.is_available())
+            except Exception:
+                info["has_xpu"] = None
     except Exception:
         pass
     # Threads
@@ -206,6 +224,59 @@ def _collect_env_metadata() -> Dict[str, Any]:
     return info
 
 
+def _resolve_torch_device(force_cpu: bool) -> tuple["torch.device", Dict[str, Any]]:
+    """Best-effort accelerator selection with CPU fallback."""
+    import torch
+
+    meta: Dict[str, Any] = {"forced_cpu": bool(force_cpu)}
+
+    if force_cpu:
+        meta["selected"] = "cpu"
+        meta["reason"] = "FORCE_CPU env toggle"
+        return torch.device("cpu"), meta
+
+    if torch.cuda.is_available():
+        idx = torch.cuda.current_device()
+        meta.update({"selected": "cuda", "cuda_index": int(idx)})
+        try:
+            meta["cuda_name"] = torch.cuda.get_device_name(idx)
+        except Exception:
+            pass
+        return torch.device("cuda"), meta
+
+    mps_backend = getattr(torch.backends, "mps", None)
+    if mps_backend is not None:
+        try:
+            if mps_backend.is_available():
+                meta["selected"] = "mps"
+                try:
+                    meta["mps_is_built"] = bool(mps_backend.is_built())
+                except Exception:
+                    pass
+                ane_fn = getattr(mps_backend, "is_neural_engine_available", None)
+                if callable(ane_fn):
+                    try:
+                        meta["mps_neural_engine"] = bool(ane_fn())
+                    except Exception:
+                        pass
+                return torch.device("mps"), meta
+        except Exception:
+            pass
+
+    xpu_backend = getattr(torch, "xpu", None)
+    if xpu_backend is not None:
+        try:
+            if callable(getattr(xpu_backend, "is_available", None)) and xpu_backend.is_available():
+                meta["selected"] = "xpu"
+                return torch.device("xpu"), meta
+        except Exception:
+            pass
+
+    meta["selected"] = "cpu"
+    meta.setdefault("reason", "no accelerator detected")
+    return torch.device("cpu"), meta
+
+
 def _ensure_dirs(paths: List[Path]):
     for p in paths:
         p.mkdir(parents=True, exist_ok=True)
@@ -278,8 +349,9 @@ def _train_with_pytorch(
     from src.models.torch_nn import MLP as TorchMLP, focal_binary_loss as torch_focal_loss
     # Device selection with optional CPU override (FORCE_CPU=1)
     force_cpu = str(os.environ.get("FORCE_CPU", "")).lower() in {"1", "true", "yes"}
-    if force_cpu:
-        device = torch.device("cpu")
+    device, device_meta = _resolve_torch_device(force_cpu)
+    device_meta.setdefault("repr", str(device))
+    if device.type == "cpu" and force_cpu:
         try:
             # Keep threading modest for stability in constrained envs
             torch.set_num_threads(int(os.environ.get("OMP_NUM_THREADS", "1")))
@@ -287,12 +359,6 @@ def _train_with_pytorch(
                 torch.set_num_interop_threads(1)
         except Exception:
             pass
-    else:
-        device = torch.device(
-            "cuda"
-            if torch.cuda.is_available()
-            else ("mps" if hasattr(torch.backends, "mps") and torch.backends.mps.is_available() else "cpu")
-        )
 
     # Build model
     model = TorchMLP(
@@ -522,6 +588,7 @@ def _train_with_pytorch(
         "y_prob_val": y_prob_val,
         "param_count": n_params,
         "device": str(device),
+        "device_info": device_meta,
         "epochs_ran": len(tr_losses),
         "epoch_stats": epoch_stats,
     }, history
@@ -826,7 +893,12 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
     )
     y_prob = result["y_prob"]
     param_count = result.get("param_count") if isinstance(result, dict) else None
-    device_used = result.get("device") if isinstance(result, dict) else None
+    device_info = result.get("device_info") if isinstance(result, dict) else {}
+    device_used = None
+    if isinstance(device_info, dict):
+        device_used = device_info.get("selected") or device_info.get("repr")
+    if device_used is None and isinstance(result, dict):
+        device_used = result.get("device")
     epochs_ran = result.get("epochs_ran") if isinstance(result, dict) else None
     t_train_end = time.time()
 
@@ -1186,6 +1258,18 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
         "| Key | Value |",
         "| --- | --- |",
         f"| Device | {device_used or 'n/a'} |",
+    ]
+    if isinstance(device_info, dict) and device_info:
+        detail_parts = []
+        for key in ("cuda_name", "cuda_index", "mps_is_built", "mps_neural_engine", "reason"):
+            val = device_info.get(key)
+            if val is None or val == "":
+                continue
+            detail_parts.append(f"{key}={val}")
+        if detail_parts:
+            detail_str = "; ".join(detail_parts)
+            summary_lines.append(f"| Device details | {detail_str} |")
+    summary_lines.extend([
         f"| Epochs (ran) | {int(epochs_ran) if epochs_ran is not None else 'n/a'} |",
         f"| Param count | {int(param_count) if param_count is not None else 'n/a'} |",
         f"| Model size | {(_model_size/1024):.1f} KB |" if _model_size is not None else "| Model size | n/a |",
@@ -1233,7 +1317,7 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
         "## Notes",
         ("- Evaluated defaults as the positive class." if int(pos_label_cfg) == 0 else "- Evaluated fully paid as the positive class."),
         "- Threshold selected according to configured strategy and annotated on curves.",
-    ]
+    ])
     # Add a simple threshold sanity note for extreme operating points
     try:
         if cm.get("precision", 1.0) < 1e-3 or cm.get("recall", 1.0) < 1e-3:
@@ -1319,6 +1403,8 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
                     "time.start_iso": datetime.fromtimestamp(t0, tz=timezone.utc).isoformat(timespec="seconds"),
                     "time.end_iso": datetime.fromtimestamp(t_eval_end, tz=timezone.utc).isoformat(timespec="seconds"),
                 })
+                if isinstance(device_info, dict):
+                    wandb.summary.update({f"device.{k}": v for k, v in device_info.items()})
                 # env versions and git
                 for k, v in (env_meta.get("env", {}) or {}).items():
                     wandb.summary.update({f"env.{k}": v})

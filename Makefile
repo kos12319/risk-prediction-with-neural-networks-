@@ -19,7 +19,8 @@ else
 endif
 
 .PHONY: help venv install train select clean clean-venv deps-tools deps-compile deps-sync \
-	clean-cloud-history clean-wandb-local clean-local-history clean-local-runs clean-all-local
+	clean-cloud-history clean-wandb-local clean-local-history clean-local-runs clean-all-local \
+	marker-install marker-pdf
 
 help:
 	@echo "Targets:"
@@ -43,6 +44,8 @@ help:
 	@echo "  deps-tools     Install pip-tools into the venv"
 	@echo "  deps-compile   Compile requirements.in -> requirements.txt (pinned)"
 	@echo "  deps-sync      Sync venv to requirements.txt (exact)"
+	@echo "  marker-install Install optional marker-pdf tooling"
+	@echo "  marker-pdf     Convert a PDF to Markdown (MARKER_PAPER=... [MARKER_PAGE_RANGE=... MARKER_OUTDIR=...])"
 
 $(VENV)/bin/activate: requirements.txt
 	@echo "Using Python: $(PYTHON_BIN)"
@@ -141,3 +144,14 @@ deps-compile: venv
 
 deps-sync: venv
 	$(PIP_SYNC) requirements.txt
+
+MARKER_PAPER ?=
+MARKER_PAGE_RANGE ?=
+MARKER_OUTDIR ?= docs/thesis/bibliography/papers_md
+
+marker-install: venv
+	$(PIP) install -r requirements-marker.txt
+
+marker-pdf: marker-install
+	@if [ -z "$(MARKER_PAPER)" ]; then echo "Set MARKER_PAPER=path/to/file.pdf"; exit 1; fi
+	$(VENV)/bin/marker_single $(MARKER_PAPER) --output_dir $(MARKER_OUTDIR) $(if $(MARKER_PAGE_RANGE),--page_range $(MARKER_PAGE_RANGE),)

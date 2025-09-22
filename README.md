@@ -171,6 +171,19 @@
 - `make clean-all-local` — removes `local_runs/`, `./wandb`, and `./wandb-history`
 - `make clean-cloud-history FORCE=1` — deletes all runs (and logged artifacts) from the configured W&B project
 
+## Optional: PDF → Markdown Conversion
+- Install the extra tooling only when you need PDF conversion support:
+  ```bash
+  make marker-install
+  ```
+  This pulls the `marker-pdf` stack from `requirements-marker.txt` into the existing virtual environment.
+- Convert a PDF without any external LLM calls (offline by default):
+  ```bash
+  make marker-pdf MARKER_PAPER=docs/thesis/bibliography/papers/example.pdf \
+                   MARKER_PAGE_RANGE=0-4
+  ```
+  Skip `MARKER_PAGE_RANGE` to process the whole document. Outputs land in `docs/thesis/bibliography/papers_md/` (ignored by git) and large OCR models cache to `~/Library/Caches/datalab/`.
+
 ## Dependency Management
 - This repo uses pip-tools with a two-file setup:
   - `requirements.in` — human-edited top-level deps (loose pins allowed)

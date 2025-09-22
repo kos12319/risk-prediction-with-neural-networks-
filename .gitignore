@@ -35,6 +35,7 @@ data/raw/samples/thesis_data_sample_100k.csv
 local_runs/**
 wandb/**
 wandb-history/**
+docs/thesis/bibliography/papers_md/**
 
 # Legacy artifact folders (no longer used)
 reports/**
