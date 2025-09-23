@@ -50,6 +50,7 @@ Each experiment yields artifacts in `local_runs/` (metrics, curves, config snaps
 - Add a CLI/Make target for forward-chaining selection and calibration sweeps.
 - Automate generation of metrics tables and plots for the thesis (ROC/PR curves, calibration curves, threshold trade-off diagrams).
 - Ensure reproducible environments (lock requirements, log git SHA/dirty state).
+- Track implementation-specific alignment work in `PROJECT_ALIGNMENT.md`.
 
 ## Relevance & Fit to the Project
 - Aligns with the existing codebase (PyTorch pipeline, feature selection, H2O integration) and exploration documentation.
