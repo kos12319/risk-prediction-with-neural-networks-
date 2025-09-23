@@ -35,7 +35,7 @@ def main():
 
     # Import heavy modules after environment is set
     from src.training.wandb_sync import login_from_env, download_run  # type: ignore
-    from src.training.pipeline import train_from_config  # type: ignore
+    from src.training.pipeline import load_config_with_extends, train_from_config  # type: ignore
 
     # Proactively login to W&B via env if available (no-op if not set)
     login_from_env()
@@ -44,6 +44,15 @@ def main():
     if args.cpu:
         import os as _os
         _os.environ["FORCE_CPU"] = "1"
+
+    # Ensure the config targets the PyTorch backend; H2O runs use a dedicated CLI
+    cfg = load_config_with_extends(Path(args.config))
+    backend = str(cfg.get("model", {}).get("backend", "pytorch")).lower()
+    if backend != "pytorch":
+        raise ValueError(
+            "PyTorch training CLI requires model.backend to be 'pytorch'. "
+            "Use `make automl-h2o` for H2O AutoML runs."
+        )
 
     results = train_from_config(args.config, notes=args.notes)
     print(json.dumps(results, indent=2))

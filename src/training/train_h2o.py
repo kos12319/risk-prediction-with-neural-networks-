@@ -31,6 +31,7 @@ def train_h2o(
 ) -> Tuple[Dict[str, Any], SimpleHistory]:
     import h2o
     import matplotlib.pyplot as plt
+    from sklearn.metrics import precision_recall_curve, roc_curve
     from h2o.automl import H2OAutoML
 
     feature_list = [str(f) for f in feature_names] if len(feature_names) else [f"feature_{i}" for i in range(X_train_np.shape[1])]
@@ -142,6 +143,21 @@ def train_h2o(
 
         leader = aml.leader
         leaderboard_df = aml.leaderboard.as_data_frame()
+        leaderboard_frames: Dict[str, pd.DataFrame] = {"default": leaderboard_df}
+        extra_cols_cfg = automl_cfg.get("leaderboard_extra_columns")
+        if extra_cols_cfg:
+            try:
+                lb_extra = aml.get_leaderboard(extra_columns=extra_cols_cfg)
+                leaderboard_frames["extra"] = lb_extra.as_data_frame()
+            except Exception as exc:
+                logger.warning("Failed to fetch extended leaderboard columns: %s", exc)
+        if automl_cfg.get("leaderboard_make_test"):
+            test_extra = extra_cols_cfg or "ALL"
+            try:
+                lb_test = h2o.make_leaderboard(aml, leaderboard_frame=test_hf, extra_columns=test_extra)
+                leaderboard_frames["test"] = lb_test.as_data_frame()
+            except Exception as exc:
+                logger.warning("Failed to build test leaderboard: %s", exc)
         logger.info("AutoML completed; %d models on leaderboard. Leader=%s", leaderboard_df.shape[0], getattr(leader, 'model_id', 'unknown'))
         leaderboard_path = run_dir / "h2o_leaderboard.csv"
         try:
@@ -154,11 +170,23 @@ def train_h2o(
             leaderboard_df.to_json(leaderboard_json_path, orient="records", indent=2)
         except Exception:
             pass
+        for name, frame in leaderboard_frames.items():
+            if name == "default":
+                continue
+            out_path = run_dir / f"h2o_leaderboard_{name}.csv"
+            try:
+                frame.to_csv(out_path, index=False)
+            except Exception:
+                try:
+                    out_txt = out_path.with_suffix(".txt")
+                    out_txt.write_text(frame.to_string(index=False), encoding="utf-8")
+                except Exception as exc:
+                    logger.warning("Failed to persist leaderboard '%s': %s", name, exc)
 
         try:
             figures_dir = run_dir / "figures"
             figures_dir.mkdir(parents=True, exist_ok=True)
-            lb_plot_df = leaderboard_df.copy()
+            lb_plot_df = leaderboard_frames.get("test", leaderboard_df).copy()
             for col in lb_plot_df.columns:
                 try:
                     lb_plot_df[col] = pd.to_numeric(lb_plot_df[col])
@@ -187,6 +215,117 @@ def train_h2o(
                 fig_path = figures_dir / f"h2o_leaderboard_{metric}.png"
                 fig.savefig(fig_path, dpi=150)
                 plt.close(fig)
+
+            # Prepare helper for probability extraction once class levels are known
+            levels_raw = train_hf[target_name].levels()
+            levels = levels_raw[0] if isinstance(levels_raw, list) and len(levels_raw) else []
+            lvl_map = {str(lv): idx for idx, lv in enumerate(levels)}
+            pos_label_str = str(int(pos_label))
+            pos_idx_default = lvl_map.get(pos_label_str)
+            if pos_idx_default is None:
+                pos_idx_default = lvl_map.get(str(pos_label))
+            if pos_idx_default is None and levels:
+                # Fallback to last level (pos label was appended during preprocessing)
+                pos_idx_default = len(levels) - 1
+            if pos_idx_default is None:
+                pos_idx_default = 1
+
+            def extract_probabilities(preds_df: pd.DataFrame, default_idx: int) -> Tuple[np.ndarray, int, Optional[str]]:
+                idx = int(default_idx)
+                prob_col = f"p{idx}"
+                if prob_col not in preds_df.columns:
+                    candidates = [c for c in preds_df.columns if c.startswith("p")]
+                    if candidates:
+                        candidates_sorted = sorted(candidates)
+                        prob_col = candidates_sorted[-1]
+                        try:
+                            idx = int(prob_col[1:])
+                        except Exception:
+                            pass
+                probs = np.asarray(preds_df[prob_col]).astype(float)
+                label_raw: Optional[str] = None
+                if levels and 0 <= idx < len(levels):
+                    label_raw = levels[idx]
+                return probs, idx, label_raw
+
+            y_true_test_bin = (test_df[target_name].astype(int).to_numpy() == int(pos_label)).astype(int)
+            curves_top_n = automl_cfg.get("leaderboard_curve_top_n", 5) or 5
+            try:
+                curves_top_n = int(curves_top_n)
+            except Exception:
+                curves_top_n = 5
+
+            roc_curves: List[Tuple[str, np.ndarray, np.ndarray]] = []
+            pr_curves: List[Tuple[str, np.ndarray, np.ndarray]] = []
+
+            source_lb_for_curves = leaderboard_frames.get("test", leaderboard_df)
+            if curves_top_n > 0 and "model_id" in source_lb_for_curves.columns:
+                top_curve_models = source_lb_for_curves.head(curves_top_n)["model_id"].tolist()
+                for model_id in top_curve_models:
+                    try:
+                        candidate = h2o.get_model(model_id)
+                        preds_candidate = candidate.predict(test_hf).as_data_frame()
+                        probs_candidate, candidate_idx, _ = extract_probabilities(preds_candidate, pos_idx_default)
+                        fpr, tpr, _ = roc_curve(y_true_test_bin, probs_candidate)
+                        precision, recall, _ = precision_recall_curve(y_true_test_bin, probs_candidate)
+                        roc_curves.append((model_id, fpr, tpr))
+                        pr_curves.append((model_id, recall, precision))
+                        # Update default index for downstream use if column choice changed
+                        pos_idx_default = candidate_idx
+                    except Exception:
+                        continue
+
+            if roc_curves:
+                fig, ax = plt.subplots(figsize=(8, 6))
+                for model_id, fpr, tpr in roc_curves:
+                    ax.plot(fpr, tpr, label=model_id)
+                ax.plot([0, 1], [0, 1], linestyle="--", color="#888888", linewidth=1)
+                ax.set_xlabel("False Positive Rate")
+                ax.set_ylabel("True Positive Rate")
+                ax.set_title("H2O Leaderboard — ROC Curves (Test)")
+                ax.legend(loc="lower right", fontsize="small")
+                ax.grid(True, alpha=0.2)
+                plt.tight_layout()
+                (figures_dir / "comparison").mkdir(parents=True, exist_ok=True)
+                roc_path = figures_dir / "comparison" / "h2o_leaderboard_roc.png"
+                fig.savefig(roc_path, dpi=150)
+                plt.close(fig)
+
+            if pr_curves:
+                fig, ax = plt.subplots(figsize=(8, 6))
+                baseline = y_true_test_bin.mean() if y_true_test_bin.size else 0.0
+                ax.hlines(baseline, 0, 1, linestyle="--", color="#888888", linewidth=1, label="Baseline")
+                for model_id, recall, precision in pr_curves:
+                    ax.plot(recall, precision, label=model_id)
+                ax.set_xlabel("Recall")
+                ax.set_ylabel("Precision")
+                ax.set_title("H2O Leaderboard — Precision-Recall Curves (Test)")
+                ax.set_xlim([0.0, 1.0])
+                ax.set_ylim([0.0, 1.0])
+                ax.legend(loc="lower left", fontsize="small")
+                ax.grid(True, alpha=0.2)
+                plt.tight_layout()
+                pr_path = figures_dir / "comparison" / "h2o_leaderboard_pr.png"
+                fig.savefig(pr_path, dpi=150)
+                plt.close(fig)
+
+            explanation_plots_cfg = automl_cfg.get("explanation_plots") or {}
+            if explanation_plots_cfg.get("model_correlation", True):
+                try:
+                    corr_dir = figures_dir / "comparison"
+                    corr_dir.mkdir(parents=True, exist_ok=True)
+                    corr_path = corr_dir / "h2o_model_correlation.png"
+                    aml.model_correlation_heatmap(test_hf, save_plot_path=corr_path.as_posix())
+                except Exception as exc:
+                    logger.warning("Failed to generate model correlation heatmap: %s", exc)
+            if explanation_plots_cfg.get("varimp_heatmap", True):
+                try:
+                    heat_dir = figures_dir / "comparison"
+                    heat_dir.mkdir(parents=True, exist_ok=True)
+                    heat_path = heat_dir / "h2o_varimp_heatmap.png"
+                    aml.varimp_heatmap(save_plot_path=heat_path.as_posix())
+                except Exception as exc:
+                    logger.warning("Failed to generate variable importance heatmap: %s", exc)
         except Exception:
             pass
 

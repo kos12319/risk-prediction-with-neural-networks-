@@ -29,7 +29,7 @@ def main() -> None:
     setup_logging()
 
     # Import after env is set
-    from src.training.pipeline import train_from_config  # type: ignore
+    from src.training.pipeline import load_config_with_extends, train_from_config  # type: ignore
 
     base_cfg_path = Path(args.config).resolve()
     if not base_cfg_path.exists():
@@ -37,8 +37,8 @@ def main() -> None:
 
     with tempfile.TemporaryDirectory(prefix="dryrun_") as tmp:
         tmpdir = Path(tmp)
-        # Load base config and merge output overrides (no extends to keep it simple)
-        base_cfg: Dict[str, Any] = yaml.safe_load(base_cfg_path.read_text(encoding="utf-8")) or {}
+        # Resolve the config (handles extends/merges) before applying dry-run overrides
+        base_cfg: Dict[str, Any] = load_config_with_extends(base_cfg_path)
         out = dict(base_cfg.get("output", {}))
         out.update(
             {

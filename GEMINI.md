@@ -27,17 +27,24 @@ First, create the virtual environment and install dependencies.
 make venv
 ```
 
-**2. Training:**
-Run the training pipeline using a configuration file.
+**2. PyTorch Training:**
+Run the neural-network pipeline using a configuration with `model.backend: pytorch`.
 ```bash
 # Train with the default configuration
 make train CONFIG=configs/default.yaml
 
 # Train using a different configuration
-make train CONFIG=configs/provider_aware.yaml
+make train CONFIG=configs/pytorch/provider_aware.yaml
 
 # Add run notes for tracking
 make train CONFIG=configs/default.yaml NOTES="testing new dropout"
+```
+
+**H2O AutoML:**
+Switch to the AutoML backend (configs must set `model.backend: h2o`).
+```bash
+make automl-h2o
+make automl-h2o AUTOML_CONFIG=configs/h2o/automl.yaml NOTES="smoke test"
 ```
 
 **3. Feature Selection:**

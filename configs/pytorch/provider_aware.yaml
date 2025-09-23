@@ -1,44 +1,9 @@
+extends: ../default
+
+# Provider-aware: include lender-derived pricing/scoring fields on top of the default feature set.
+
 data:
   csv_path: data/raw/samples/first_10k_rows.csv
-  target_col: loan_status
-  target_mapping:
-    'Charged Off': 0
-    'Fully Paid': 1
-  parse_dates: [issue_d, earliest_cr_line]
-  drop_leakage: true
-  leakage_cols:
-    - out_prncp
-    - out_prncp_inv
-    - total_pymnt
-    - total_pymnt_inv
-    - last_pymnt_d
-    - last_pymnt_amnt
-    - next_pymnt_d
-    - last_credit_pull_d
-    - collection_recovery_fee
-    - recoveries
-    - hardship_flag
-    - hardship_type
-    - hardship_reason
-    - hardship_status
-    - hardship_amount
-    - hardship_start_date
-    - hardship_end_date
-    - payment_plan_start_date
-    - hardship_length
-    - hardship_dpd
-    - hardship_loan_status
-    - orig_projected_additional_accrued_interest
-    - hardship_payoff_balance_amount
-    - hardship_last_payment_amount
-    - debt_settlement_flag
-    - debt_settlement_flag_date
-    - settlement_status
-    - settlement_date
-    - settlement_amount
-    - settlement_percentage
-    - settlement_term
-  # Provider-aware: include lender-derived pricing/scoring fields
   features:
     # Loan/application
     - loan_amnt
@@ -61,7 +26,6 @@ data:
     - delinq_2yrs
     - pub_rec
     - inq_last_6mths
-    # inq_last_12m has ~41% missingness; drop by default (can re-enable after testing)
     - open_acc
     - total_acc
     - revol_bal
@@ -100,9 +64,6 @@ split:
   test_size: 0.2
   random_state: 42
 
-oversampling:
-  enabled: true
-
 model:
   layers: [256, 128, 64, 32]
   dropout: [0.4, 0.3, 0.2, 0.2]
@@ -112,7 +73,3 @@ model:
   batch_size: 128
   val_split: 0.2
   early_stopping_patience: 3
-
-output:
-  runs_root: local_runs
-  model_filename: loan_default_model.pt

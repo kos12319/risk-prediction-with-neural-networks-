@@ -6,7 +6,7 @@ PY := $(VENV)/bin/python
 PIP := $(VENV)/bin/pip
 PIP_COMPILE := $(VENV)/bin/pip-compile
 PIP_SYNC := $(VENV)/bin/pip-sync
-AUTOML_CONFIG ?= configs/h2o_automl.yaml
+AUTOML_CONFIG ?= configs/h2o/automl.yaml
 
 # Detect architecture to avoid forcing OPENBLAS_CORETYPE on non-ARM Macs (causes OMP SHM errors)
 MACHINE := $(shell uname -m)
@@ -27,7 +27,7 @@ help:
 	@echo "Targets:"
 	@echo "  venv           Create .venv with Python (prefers python3.12) and install requirements"
 	@echo "  install        Alias for venv"
-	@echo "  train          Run training (CONFIG=path, NOTES=\"what changed\", PULL=true to download W&B files)"
+	@echo "  train          Run PyTorch training (CONFIG=path, NOTES=\"what changed\", PULL=true)"
 	@echo "  automl-h2o     Run H2O AutoML training (AUTOML_CONFIG=path, NOTES=..., PULL=true)"
 	@echo "  cpu-train      Run training on CPU with minimal threads (CONFIG=..., PULL=true)"
 	@echo "  select         Run feature selection (CONFIG=..., METHOD=mi|l1)"
@@ -60,12 +60,12 @@ venv: $(VENV)/bin/activate
 
 install: venv
 
-# Usage: make train CONFIG=configs/default.yaml
+# Usage: make train CONFIG=configs/default.yaml (PyTorch backend only; use automl-h2o for H2O AutoML)
 CONFIG ?= configs/default.yaml
 train: venv
-	$(SAFE_ENV) $(PY) -m src.cli.train --config $(CONFIG) $(if $(NOTES),--notes "$(NOTES)",) $(if $(PULL),--pull,)
+	$(SAFE_ENV) $(PY) -m src.cli train --config $(CONFIG) $(if $(NOTES),--notes "$(NOTES)",) $(if $(PULL),--pull,)
 
-# Usage: make automl-h2o [AUTOML_CONFIG=configs/h2o_automl.yaml]
+# Usage: make automl-h2o [AUTOML_CONFIG=configs/h2o/automl.yaml]
 automl-h2o: venv
 	$(SAFE_ENV) $(PY) -m src.cli.automl_h2o --config $(AUTOML_CONFIG) $(if $(NOTES),--notes "$(NOTES)",) $(if $(PULL),--pull,)
 

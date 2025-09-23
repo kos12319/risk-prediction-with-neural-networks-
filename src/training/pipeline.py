@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import logging
 import time
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Sequence
 import sys
 import json as _json
 import hashlib
 import os
+import copy
 
 # Apply safe env as early as possible to avoid BLAS/Accelerate crashes on import
 try:
@@ -35,8 +37,8 @@ import pandas as pd
 import yaml
 
 from src.data.load import LoadConfig, load_and_prepare
-from src.data.split import train_val_test_split
-from src.eval.binary import evaluate_binary_classification
+from src.data.split import SplitResult, TemporalFold, train_val_test_split, time_based_kfold_splits
+from src.eval.binary import BinaryEvaluationResult, evaluate_binary_classification
 from src.eval.metrics import (
     plot_learning_curves,
     plot_pr_curve,
@@ -57,6 +59,19 @@ import platform
 
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class TrainingRunResult:
+    """Bundle summary for a single training/evaluation run (fold or holdout)."""
+
+    run_id: str
+    evaluation: BinaryEvaluationResult
+    metrics: Dict[str, Any]
+    confusion: Dict[str, Any]
+    model_path: Path
+    durations: Dict[str, float]
+    fold_meta: Optional[Dict[str, Any]] = None
 
 
 def _collect_system_info() -> Dict[str, Any]:
@@ -227,6 +242,492 @@ def _collect_env_metadata() -> Dict[str, Any]:
     return info
 
 
+def _run_cv_fold(
+    *,
+    fold: TemporalFold,
+    cfg: Dict[str, Any],
+    df: pd.DataFrame,
+    feature_inputs: Sequence[str],
+    data_cfg: Dict[str, Any],
+    split_cfg: Dict[str, Any],
+    model_cfg: Dict[str, Any],
+    os_cfg: Dict[str, Any],
+    eval_cfg: Dict[str, Any],
+    training_cfg: Dict[str, Any],
+    tracking_cfg: Dict[str, Any],
+    out_cfg: Dict[str, Any],
+    artifact_mgr: ArtifactManager,
+    random_state: int,
+    notes: Optional[str],
+    run_id: str,
+) -> TrainingRunResult:
+    """Train and evaluate a single temporal CV fold."""
+
+    start_time = time.time()
+    split_result = fold.split
+
+    winsor_cfg = data_cfg.get("winsorize") if data_cfg.get("winsorize_enabled", True) else None
+    preprocessing_cfg = cfg.get("preprocessing", {})
+    preproc_result = preprocess_tabular_data(
+        split_result,
+        winsorize_cfg=winsor_cfg,
+        preprocessing_cfg=preprocessing_cfg,
+    )
+    logger.info(
+        "[CV fold %s] Preprocessing complete | train=%s | val=%s | test=%s",
+        fold.fold_id,
+        preproc_result.X_train.shape,
+        None if preproc_result.X_val is None else preproc_result.X_val.shape,
+        preproc_result.X_test.shape,
+    )
+
+    resample_result = None
+    if os_cfg.get("enabled", True):
+        resample_result = apply_resampling(
+            preproc_result.X_train,
+            preproc_result.y_train,
+            method=os_cfg.get("method"),
+            random_state=random_state,
+            params=os_cfg.get("params"),
+        )
+        X_train_np = resample_result.X_resampled
+        y_train_np = resample_result.y_resampled
+        logger.info("[CV fold %s] Using resampled training data %s", fold.fold_id, X_train_np.shape)
+    else:
+        X_train_np = preproc_result.X_train
+        y_train_np = preproc_result.y_train
+        logger.info("[CV fold %s] Resampling disabled; train shape %s", fold.fold_id, X_train_np.shape)
+
+    X_val_np = preproc_result.X_val
+    y_val_np = preproc_result.y_val
+    X_test_np = preproc_result.X_test
+    y_test_np = preproc_result.y_test
+
+    feature_names = preproc_result.feature_names
+
+    backend_raw = str(model_cfg.get("backend", "pytorch")).lower()
+    if backend_raw not in {"pytorch", "h2o"}:
+        raise ValueError(f"Unsupported model backend '{backend_raw}' for temporal CV")
+    model_backend = backend_raw
+
+    model_cfg_local = copy.deepcopy(model_cfg)
+    model_filename_cfg = out_cfg.get("model_filename", "loan_default_model.pt")
+    if model_backend == "h2o":
+        base_name = Path(str(model_filename_cfg)).stem or "loan_default_model_h2o"
+        model_filename = f"{base_name}_fold{fold.fold_id:02d}.zip"
+    else:
+        base_name = Path(str(model_filename_cfg)).stem or "loan_default_model"
+        model_filename = f"{base_name}_fold{fold.fold_id:02d}.pt"
+    model_path = artifact_mgr.models_dir / model_filename
+
+    class_weight_cfg = training_cfg.get("class_weight") if model_backend == "pytorch" else None
+    if class_weight_cfg is not None:
+        cw_resolved = None
+        if isinstance(class_weight_cfg, str) and class_weight_cfg.lower() == "auto":
+            n = float(len(y_train_np))
+            n1 = float((y_train_np == 1).sum())
+            n0 = n - n1
+            w0 = n / (2.0 * max(n0, 1.0))
+            w1 = n / (2.0 * max(n1, 1.0))
+            cw_resolved = {0: w0, 1: w1}
+        elif isinstance(class_weight_cfg, dict):
+            try:
+                cw_resolved = {int(k): float(v) for k, v in class_weight_cfg.items()}
+            except Exception:
+                cw_resolved = None
+        if cw_resolved is not None:
+            model_cfg_local = dict(model_cfg_local)
+            model_cfg_local["_class_weight"] = cw_resolved
+
+    clear_wandb_hooks()
+    fold_seed = int(random_state + fold.fold_id)
+    set_seed(fold_seed)
+    logger.info("[CV fold %s] Random seed set to %d", fold.fold_id, fold_seed)
+
+    pos_label_cfg = eval_cfg.get("pos_label", 1)
+    if isinstance(pos_label_cfg, str):
+        pos_label_cfg = 0 if str(pos_label_cfg).lower() in {"default", "charged off", "charged_off"} else 1
+    pos_label_int = int(pos_label_cfg)
+
+    train_start = time.time()
+    if model_backend == "pytorch":
+        result, history_obj = train_pytorch(
+            X_train_np,
+            y_train_np,
+            X_val_np,
+            y_val_np,
+            X_test_np,
+            y_test_np,
+            model_cfg_local,
+            model_path,
+            fold_seed,
+            pos_label_int,
+        )
+        if isinstance(result, dict):
+            result["model_path"] = model_path.as_posix()
+    else:
+        automl_cfg = cfg.get("automl", {})
+        result, history_obj = train_h2o(
+            X_train_np,
+            y_train_np,
+            X_val_np,
+            y_val_np,
+            X_test_np,
+            y_test_np,
+            feature_names,
+            data_cfg["target_col"],
+            automl_cfg,
+            model_path,
+            artifact_mgr.run_dir,
+            run_id,
+            pos_label_int,
+        )
+        model_path = Path(result.get("model_path", model_path.as_posix()))
+
+    train_end = time.time()
+
+    y_prob = np.asarray(result.get("y_prob")) if isinstance(result, dict) else np.asarray(result)
+    prob_label_raw = 1
+    if isinstance(result, dict):
+        prob_label_raw = result.get("y_prob_label", 1)
+
+    y_true_pos_test = (y_test_np.astype(int) == pos_label_int).astype(int)
+    y_prob_pos_test = _align_probabilities(y_prob, prob_label_raw, pos_label_int)
+
+    y_true_pos_val = None
+    y_prob_pos_val = None
+    if y_val_np is not None and len(y_val_np) > 0:
+        y_true_pos_val = (y_val_np.astype(int) == pos_label_int).astype(int)
+        val_buf = result.get("y_prob_val") if isinstance(result, dict) else None
+        if val_buf is not None:
+            y_prob_pos_val = _align_probabilities(val_buf, prob_label_raw, pos_label_int)
+
+    evaluation = evaluate_binary_classification(
+        y_true=y_true_pos_test,
+        y_prob=y_prob_pos_test,
+        threshold_cfg=eval_cfg.get("threshold", {}),
+        y_true_val=y_true_pos_val,
+        y_prob_val=y_prob_pos_val,
+        pos_label=pos_label_int,
+    )
+    metrics = evaluation.metrics
+    confusion = evaluation.confusion
+
+    figures_dir = artifact_mgr.figures_dir
+    run_dir = artifact_mgr.run_dir
+    save_metrics(metrics, artifact_mgr.metrics_path)
+    artifact_mgr.save_confusion(confusion)
+    plot_learning_curves(history_obj, figures_dir / "learning_curves.png")
+    plot_roc_curve(evaluation.y_true, evaluation.y_prob, figures_dir / "roc_curve.png", point=(confusion["fpr"], confusion["tpr"]))
+    plot_pr_curve(evaluation.y_true, evaluation.y_prob, figures_dir / "pr_curve.png", point=(confusion["precision"], confusion["recall"]))
+
+    try:
+        fpr, tpr, thr_roc = evaluation.roc_points
+        with open(run_dir / "roc_points.csv", "w", encoding="utf-8") as f:
+            f.write("threshold,fpr,tpr\n")
+            for idx in range(len(fpr)):
+                threshold_val = "" if idx == 0 else float(thr_roc[idx - 1])
+                f.write(f"{threshold_val},{float(fpr[idx])},{float(tpr[idx])}\n")
+        precision, recall, thr_pr = evaluation.pr_points
+        with open(run_dir / "pr_points.csv", "w", encoding="utf-8") as f:
+            f.write("threshold,precision,recall\n")
+            if len(precision) > 0:
+                f.write(f",{float(precision[0])},{float(recall[0])}\n")
+            for idx in range(1, len(precision)):
+                threshold_val = "" if idx - 1 >= len(thr_pr) else float(thr_pr[idx - 1])
+                f.write(f"{threshold_val},{float(precision[idx])},{float(recall[idx])}\n")
+        import numpy as _np
+        from src.eval.metrics import confusion_metrics_at_threshold as _cm_thr
+
+        thr_grid = _np.linspace(0.0, 1.0, 101)
+        with open(run_dir / "threshold_metrics.csv", "w", encoding="utf-8") as f:
+            f.write("threshold,precision,recall,tpr,fpr,specificity,f1\n")
+            y_true_eval = _np.asarray(evaluation.y_true).astype(int)
+            y_prob_eval = _np.asarray(evaluation.y_prob)
+            for th in thr_grid:
+                metrics_at_th = _cm_thr(y_true_eval, y_prob_eval, float(th))
+                prec_v = float(metrics_at_th.get("precision", 0.0))
+                rec_v = float(metrics_at_th.get("recall", 0.0))
+                tpr_v = float(metrics_at_th.get("tpr", 0.0))
+                fpr_v = float(metrics_at_th.get("fpr", 0.0))
+                spec_v = 1.0 - fpr_v
+                f1_v = (2 * prec_v * rec_v) / (prec_v + rec_v + 1e-12)
+                f.write(f"{th:.4f},{prec_v:.6f},{rec_v:.6f},{tpr_v:.6f},{fpr_v:.6f},{spec_v:.6f},{f1_v:.6f}\n")
+    except Exception:
+        pass
+
+    artifact_mgr.stage_run_artifacts(
+        model_path,
+        figure_names=["learning_curves.png", "roc_curve.png", "pr_curve.png"],
+    )
+
+    try:
+        features_manifest = {
+            "numerical_features": list(preproc_result.numerical_features),
+            "categorical_features": list(preproc_result.categorical_features),
+            "feature_inputs": list(feature_inputs),
+            "encoded_feature_names": list(feature_names),
+        }
+        with open(run_dir / "features.json", "w", encoding="utf-8") as f:
+            _json.dump(features_manifest, f, indent=2)
+    except Exception:
+        pass
+
+    try:
+        win = {
+            "fold": fold.fold_id,
+            "train_range": fold.train_range,
+            "val_range": fold.val_range,
+            "test_range": fold.test_range,
+            "meta": fold.metadata,
+        }
+        with open(run_dir / "fold_metadata.json", "w", encoding="utf-8") as f:
+            _json.dump(win, f, indent=2)
+    except Exception:
+        pass
+
+    try:
+        manifest: Dict[str, Any] = {
+            "fold": fold.fold_id,
+            "train_rows": int(len(split_result.train_df)),
+            "val_rows": int(len(split_result.val_df)) if split_result.val_df is not None else 0,
+            "test_rows": int(len(split_result.test_df)),
+            "class_counts": {
+                "train": split_result.y_train.value_counts().astype(int).to_dict(),
+                "test": split_result.y_test.value_counts().astype(int).to_dict(),
+            },
+        }
+        if split_result.val_df is not None and split_result.y_val is not None:
+            manifest["class_counts"]["val"] = split_result.y_val.value_counts().astype(int).to_dict()
+        time_col = split_cfg.get("time_col", "issue_d")
+        if time_col in df.columns:
+            def _fmt_range(frame: Optional[pd.DataFrame]):
+                if frame is None or frame.empty or time_col not in frame.columns:
+                    return {"min": None, "max": None}
+                series = pd.to_datetime(frame[time_col], errors="coerce").dropna()
+                if series.empty:
+                    return {"min": None, "max": None}
+                return {"min": str(series.min().date()), "max": str(series.max().date())}
+
+            manifest["date_ranges"] = {
+                "train": _fmt_range(split_result.train_df),
+                "val": _fmt_range(split_result.val_df) if split_result.val_df is not None else {"min": None, "max": None},
+                "test": _fmt_range(split_result.test_df),
+            }
+        with open(run_dir / "data_manifest.json", "w", encoding="utf-8") as f:
+            _json.dump(manifest, f, indent=2)
+    except Exception:
+        pass
+
+    eval_end = time.time()
+
+    durations = {
+        "preprocess": train_start - start_time,
+        "train": train_end - train_start,
+        "eval": eval_end - train_end,
+        "total": eval_end - start_time,
+    }
+
+    summary = [
+        f"# Temporal CV Fold {fold.fold_id} — {run_id}",
+        "",
+        f"Backend: {model_backend}",
+        f"Model path: {model_path.name}",
+        "",
+        "## Metrics",
+        f"- ROC AUC: {metrics.get('roc_auc'):.3f}",
+        f"- Average Precision: {metrics.get('average_precision'):.3f}",
+        f"- Threshold: {evaluation.threshold:.4f}",
+        f"- Precision: {confusion['precision']:.3f}",
+        f"- Recall: {confusion['recall']:.3f}",
+        "",
+        "## Durations (s)",
+        f"- Preprocess: {durations['preprocess']:.2f}",
+        f"- Train: {durations['train']:.2f}",
+        f"- Eval: {durations['eval']:.2f}",
+        f"- Total: {durations['total']:.2f}",
+        "",
+        "## Notes",
+        notes.strip() if notes else "(no notes)",
+    ]
+    try:
+        with open(run_dir / "README.md", "w", encoding="utf-8") as f:
+            f.write("\n".join(summary))
+    except Exception:
+        pass
+
+    return TrainingRunResult(
+        run_id=run_id,
+        evaluation=evaluation,
+        metrics=metrics,
+        confusion=confusion,
+        model_path=model_path,
+        durations=durations,
+        fold_meta={"fold_id": fold.fold_id, **fold.metadata},
+    )
+
+
+def _run_temporal_cv(
+    *,
+    cfg: Dict[str, Any],
+    df: pd.DataFrame,
+    feature_inputs: Sequence[str],
+    data_cfg: Dict[str, Any],
+    split_cfg: Dict[str, Any],
+    model_cfg: Dict[str, Any],
+    os_cfg: Dict[str, Any],
+    eval_cfg: Dict[str, Any],
+    training_cfg: Dict[str, Any],
+    tracking_cfg: Dict[str, Any],
+    out_cfg: Dict[str, Any],
+    artifact_mgr: ArtifactManager,
+    run_id: str,
+    notes: Optional[str],
+) -> List[TrainingRunResult]:
+    cv_cfg = split_cfg.get("cv", {}) or {}
+    n_folds = int(cv_cfg.get("n_folds", 0))
+    if n_folds < 2:
+        raise ValueError("Temporal CV requires 'n_folds' >= 2 when enabled.")
+
+    time_col = split_cfg.get("time_col", "issue_d")
+    folds = time_based_kfold_splits(
+        df,
+        feature_inputs,
+        data_cfg["target_col"],
+        time_col=time_col,
+        n_folds=n_folds,
+        initial_train_fraction=float(cv_cfg.get("initial_train_fraction", 0.4)),
+        validation_fraction=float(cv_cfg.get("validation_fraction", model_cfg.get("val_split", 0.2))),
+        gap=int(cv_cfg.get("gap", 0)),
+        mode=str(cv_cfg.get("mode", "expanding")),
+        shuffle_within_folds=bool(cv_cfg.get("shuffle_within_folds", False)),
+        random_state=int(split_cfg.get("random_state", 42)),
+    )
+
+    folds_root = artifact_mgr.run_dir / "folds"
+    fold_models_root = artifact_mgr.models_dir / "folds"
+    fold_reports_root = artifact_mgr.reports_dir / "folds"
+    fold_figures_root = artifact_mgr.figures_dir / "folds"
+
+    results: List[TrainingRunResult] = []
+    fold_records: List[Dict[str, Any]] = []
+    random_state = int(split_cfg.get("random_state", 42))
+
+    for fold in folds:
+        fold_name = f"fold_{fold.fold_id:02d}"
+        fold_mgr = ArtifactManager(
+            run_dir=folds_root / fold_name,
+            models_dir=fold_models_root / fold_name,
+            reports_dir=fold_reports_root / fold_name,
+            figures_dir=fold_figures_root / fold_name,
+            single_run_mode=True,
+        )
+        fold_run_id = f"{run_id}_{fold_name}"
+        fold_result = _run_cv_fold(
+            fold=fold,
+            cfg=cfg,
+            df=df,
+            feature_inputs=feature_inputs,
+            data_cfg=data_cfg,
+            split_cfg=split_cfg,
+            model_cfg=model_cfg,
+            os_cfg=os_cfg,
+            eval_cfg=eval_cfg,
+            training_cfg=training_cfg,
+            tracking_cfg=tracking_cfg,
+            out_cfg=out_cfg,
+            artifact_mgr=fold_mgr,
+            random_state=random_state,
+            notes=notes,
+            run_id=fold_run_id,
+        )
+        results.append(fold_result)
+        fold_record = {
+            "fold_id": fold.fold_id,
+            "run_id": fold_run_id,
+            "metrics": fold_result.metrics,
+            "confusion": fold_result.confusion,
+            "threshold": fold_result.evaluation.threshold,
+            "durations": fold_result.durations,
+            "train_range": fold.train_range,
+            "val_range": fold.val_range,
+            "test_range": fold.test_range,
+            "metadata": fold_result.fold_meta,
+        }
+        fold_records.append(fold_record)
+
+    roc_aucs = [float(r.metrics.get("roc_auc", float("nan"))) for r in results]
+    ap_scores = [float(r.metrics.get("average_precision", float("nan"))) for r in results]
+    thresholds = [float(r.evaluation.threshold) for r in results]
+    confusion_sums = {k: 0.0 for k in ("tp", "tn", "fp", "fn")}
+    total_test = 0
+    for res in results:
+        meta = res.fold_meta or {}
+        n_test = int(meta.get("n_test", 0))
+        total_test += n_test
+        for key in confusion_sums:
+            confusion_sums[key] += float(res.confusion.get(key, 0.0))
+
+    aggregate = {
+        "n_folds": len(results),
+        "roc_auc_mean": float(np.nanmean(roc_aucs)) if roc_aucs else None,
+        "roc_auc_std": float(np.nanstd(roc_aucs, ddof=1)) if len(roc_aucs) > 1 else 0.0,
+        "average_precision_mean": float(np.nanmean(ap_scores)) if ap_scores else None,
+        "average_precision_std": float(np.nanstd(ap_scores, ddof=1)) if len(ap_scores) > 1 else 0.0,
+        "threshold_mean": float(np.nanmean(thresholds)) if thresholds else None,
+        "threshold_std": float(np.nanstd(thresholds, ddof=1)) if len(thresholds) > 1 else 0.0,
+        "total_test_rows": total_test,
+        "confusion_sum": {k: float(v) for k, v in confusion_sums.items()},
+    }
+
+    cv_report = {
+        "folds": fold_records,
+        "aggregate": aggregate,
+    }
+
+    try:
+        with open(artifact_mgr.reports_dir / "cv_metrics.json", "w", encoding="utf-8") as f:
+            _json.dump(cv_report, f, indent=2)
+    except Exception:
+        pass
+
+    try:
+        summary_lines = [
+            f"# Temporal Cross-Validation Summary — {run_id}",
+            "",
+            f"Folds: {aggregate['n_folds']}",
+        ]
+        if aggregate.get("roc_auc_mean") is not None:
+            summary_lines.append(
+                f"ROC AUC (mean±std): {aggregate['roc_auc_mean']:.3f} ± {aggregate['roc_auc_std']:.3f}"
+            )
+        if aggregate.get("average_precision_mean") is not None:
+            summary_lines.append(
+                f"Average Precision (mean±std): {aggregate['average_precision_mean']:.3f} ± {aggregate['average_precision_std']:.3f}"
+            )
+        if aggregate.get("threshold_mean") is not None:
+            summary_lines.append(
+                f"Threshold (mean±std): {aggregate['threshold_mean']:.4f} ± {aggregate['threshold_std']:.4f}"
+            )
+        summary_lines.extend(["", "## Fold Metrics"])
+        for rec in fold_records:
+            summary_lines.append(
+                f"- Fold {rec['fold_id']:02d}: ROC AUC={rec['metrics'].get('roc_auc'):.3f}, AP={rec['metrics'].get('average_precision'):.3f}, Threshold={rec['threshold']:.4f}"
+            )
+        if notes:
+            summary_lines.extend(["", "## Notes", notes.strip()])
+        with open(artifact_mgr.run_dir / "README.md", "w", encoding="utf-8") as f:
+            f.write("\n".join(summary_lines))
+    except Exception:
+        pass
+
+    return {
+        "results": results,
+        "fold_records": fold_records,
+        "aggregate": aggregate,
+        "report_path": (artifact_mgr.reports_dir / "cv_metrics.json"),
+        "summary_path": (artifact_mgr.run_dir / "README.md"),
+    }
 def _resolve_torch_device(force_cpu: bool) -> tuple["torch.device", Dict[str, Any]]:
     """Best-effort accelerator selection with CPU fallback."""
     import torch
@@ -397,6 +898,59 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
         time_columns=list(data_cfg.get("parse_dates", [])),
     )
     logger.info("Resolved %d feature columns for modeling", len(feature_inputs))
+
+    cv_cfg = split_cfg.get("cv", {}) or {}
+    cv_enabled = bool(cv_cfg.get("enabled")) and int(cv_cfg.get("n_folds", 0)) >= 2
+    cv_summary_for_return: Optional[Dict[str, Any]] = None
+    if cv_enabled:
+        if str(split_cfg.get("method", "time")).lower() != "time":
+            raise ValueError("Temporal k-fold requires split.method='time'.")
+        logger.info(
+            "Temporal cross-validation enabled | folds=%d | mode=%s",
+            int(cv_cfg.get("n_folds", 0)),
+            cv_cfg.get("mode", "expanding"),
+        )
+        cv_output = _run_temporal_cv(
+            cfg=cfg,
+            df=df,
+            feature_inputs=feature_inputs,
+            data_cfg=data_cfg,
+            split_cfg=split_cfg,
+            model_cfg=model_cfg,
+            os_cfg=os_cfg,
+            eval_cfg=eval_cfg,
+            training_cfg=training_cfg,
+            tracking_cfg=tracking_cfg,
+            out_cfg=out_cfg,
+            artifact_mgr=artifact_mgr,
+            run_id=run_id,
+            notes=notes,
+        )
+        elapsed = time.time() - t0
+        fold_summaries = [
+            {
+                "fold_id": res.fold_meta.get("fold_id") if res.fold_meta else None,
+                "run_id": res.run_id,
+                "metrics": res.metrics,
+                "confusion": res.confusion,
+                "threshold": float(res.evaluation.threshold),
+                "durations": res.durations,
+            }
+            for res in cv_output["results"]
+        ]
+        cv_summary = {
+            "cv_metrics_path": Path(cv_output["report_path"]).as_posix(),
+            "run_dir": run_dir.as_posix(),
+            "n_folds": len(cv_output["results"]),
+            "backend": model_cfg.get("backend", "pytorch"),
+            "elapsed_sec": elapsed,
+            "folds": fold_summaries,
+            "aggregate": cv_output.get("aggregate"),
+        }
+        if not bool(cv_cfg.get("train_full_after", False)):
+            return cv_summary
+        cv_summary_for_return = cv_summary
+        logger.info("Temporal CV complete; proceeding to full-data training as requested.")
 
     # Split into train/val/test with consistent objects
     t_split_start = time.time()
@@ -1198,6 +1752,12 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
                 if model_backend == "h2o":
                     try:
                         lb_path_str = result.get("leaderboard_path") if isinstance(result, dict) else None
+                        extra_lb_paths = []
+                        if isinstance(result, dict):
+                            for suffix in ["extra", "test"]:
+                                maybe_path = Path(run_dir) / f"h2o_leaderboard_{suffix}.csv"
+                                if maybe_path.exists():
+                                    extra_lb_paths.append(maybe_path)
                         if lb_path_str:
                             lb_path = Path(lb_path_str)
                             if lb_path.suffix == ".csv" and lb_path.exists():
@@ -1212,6 +1772,34 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
                             fig_path = figures_dir / f"h2o_leaderboard_{metric}.png"
                             if fig_path.exists():
                                 wandb.log({f"h2o_leaderboard_{metric}": wandb.Image(str(fig_path))})
+
+                        comparison_dir = figures_dir / "comparison"
+                        comparison_images = {
+                            "h2o_leaderboard_roc": comparison_dir / "h2o_leaderboard_roc.png",
+                            "h2o_leaderboard_pr": comparison_dir / "h2o_leaderboard_pr.png",
+                            "h2o_model_correlation": comparison_dir / "h2o_model_correlation.png",
+                            "h2o_varimp_heatmap": comparison_dir / "h2o_varimp_heatmap.png",
+                        }
+                        for key, img_path in comparison_images.items():
+                            if img_path.exists():
+                                wandb.log({key: wandb.Image(str(img_path))})
+
+                        if wandb.run is not None:
+                            artifact = wandb.Artifact(name=f"h2o-comparison-{run_id}", type="analysis")
+                            if lb_path_str:
+                                lb_path = Path(lb_path_str)
+                                if lb_path.exists():
+                                    artifact.add_file(lb_path.as_posix(), name="leaderboard/h2o_leaderboard.csv")
+                            for idx, extra_path in enumerate(extra_lb_paths):
+                                artifact.add_file(extra_path.as_posix(), name=f"leaderboard/extra_{idx}_{extra_path.name}")
+                            for key, img_path in comparison_images.items():
+                                if img_path.exists():
+                                    artifact.add_file(img_path.as_posix(), name=f"figures/{img_path.name}")
+                            base_charts = [figures_dir / f"h2o_leaderboard_{metric}.png" for metric in ["auc", "logloss", "rmse"]]
+                            for chart in base_charts:
+                                if chart.exists():
+                                    artifact.add_file(chart.as_posix(), name=f"figures/{chart.name}")
+                            wandb.log_artifact(artifact)
                     except Exception:
                         pass
                 if dataset_info:
@@ -1428,7 +2016,7 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
     except Exception:
         pass
 
-    return {
+    result_payload = {
         "model_path": (run_dir / model_path.name).as_posix() if not single_run_dir_mode else model_path.as_posix(),
         "metrics_path": (run_dir / "metrics.json").as_posix() if not single_run_dir_mode else (reports_dir / "metrics.json").as_posix(),
         "figures_path": (run_fig_dir / "learning_curves.png").as_posix(),
@@ -1449,3 +2037,6 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
         "wandb_run_url": (wb_url if wandb_enabled else None),
         "leaderboard_path": result.get("leaderboard_path") if isinstance(result, dict) else None,
     }
+    if cv_summary_for_return is not None:
+        result_payload["cv_summary"] = cv_summary_for_return
+    return result_payload

@@ -7,6 +7,7 @@ This guide adds repo‑specific guardrails and conventions that are easy to miss
 ## Makefile‑First Policy
 - Always run workflows via the Makefile. Do not call `python -m src...` directly in routine use.
 - Discover available operations by reading the `Makefile` (and `make help` if present). Do not rely on copied command snippets here.
+- `make train` runs the PyTorch backend; use `make automl-h2o` (with `model.backend: h2o`) for H2O AutoML experiments.
 - If you need a new operation, add a Makefile target rather than introducing bespoke shell commands in docs or scripts.
 - Pass configuration via Makefile variables (see the `Makefile` for supported variables and defaults). Avoid hardcoded flags in ad‑hoc commands.
 - Rationale: Make targets enforce safe environment settings (thread limits, headless plotting) and keep runs reproducible.
@@ -17,6 +18,7 @@ This guide adds repo‑specific guardrails and conventions that are easy to miss
 - Choose threshold on validation using the configured strategy (`fixed|youden_j|f1`); report test metrics at that fixed threshold.
 - Respect `eval.pos_label` (default: 0 = Charged Off). Curves/metrics must reflect the configured positive class.
 - Seed Python, NumPy, PyTorch, and DataLoader workers for reproducibility.
+- Temporal k-fold CV is available via `split.cv` (expanding window). Aggregated metrics live in `reports/cv_metrics.json`; per-fold artifacts write to `run_dir/folds/fold_XX/`. Set `train_full_after: true` to refit on the full dataset after CV.
 
 ## Dataset Context (LendingClub)
 - Dataset: LendingClub consumer installment loans, 2007–2018 vintages.

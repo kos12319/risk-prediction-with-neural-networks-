@@ -10,7 +10,7 @@ from src.utils.logging import setup_logging
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Train credit risk model using the H2O AutoML backend")
-    parser.add_argument("--config", type=str, default="configs/h2o_automl.yaml", help="Path to YAML config")
+    parser.add_argument("--config", type=str, default="configs/h2o/automl.yaml", help="Path to YAML config")
     parser.add_argument(
         "--notes",
         type=str,

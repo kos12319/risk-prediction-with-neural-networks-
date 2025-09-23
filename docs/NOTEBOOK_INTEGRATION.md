@@ -41,7 +41,7 @@ This document explains how the work done in `main.ipynb` has been incorporated i
 
 ## Reproducibility and CLI
 - Config‑driven runs: `python -m src.cli.train --config configs/default.yaml`.
-- Configs support `extends` (e.g., `provider_agnostic.yaml` can inherit from `default.yaml`).
+- Configs support `extends` (e.g., `pytorch/provider_agnostic.yaml` can inherit from `default.yaml`).
 - Artifacts are saved under `models/` and `reports/`.
 
 ## Intentional Differences vs Notebook

@@ -1,4 +1,4 @@
-extends: default
+extends: ../default
 
 # This file reuses the default provider-agnostic features.
 # You can override only what differs from default.

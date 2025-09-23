@@ -1,0 +1,47 @@
+extends: ../default
+
+data:
+  csv_path: data/raw/full/thesis_data_full.csv
+
+split:
+  method: time
+  time_col: issue_d
+  test_size: 0.2
+  random_state: 42
+  stratify: false
+
+model:
+  backend: h2o
+
+automl:
+  max_runtime_secs: 7200
+  max_models: null
+  balance_classes: false
+  seed: 42
+  stopping_metric: AUC
+  sort_metric: AUCPR
+  include_algos: []
+  exclude_algos: []
+  nthreads: 8
+  max_mem_size: 12G
+  export_checkpoints_dir: checkpoints
+  log_dir: h2o_logs
+  leaderboard_extra_columns: ALL
+  leaderboard_make_test: true
+  leaderboard_curve_top_n: 10
+  explanation_plots:
+    model_correlation: true
+    varimp_heatmap: true
+    shap_summary: true
+
+tracking:
+  backend: wandb
+  wandb:
+    enabled: true
+    mode: online
+    project: loan-risk-h2o
+    run_name_template: "{dataset}|{split}|{pos}|h2o[{leader_algo}]|{leader_id}|auc{auc:.3f}"
+    tag_templates:
+      - "backend:{backend}"
+      - "leader_algo:{leader_algo_raw}"
+      - "dataset:{dataset}"

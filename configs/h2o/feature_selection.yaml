@@ -1,4 +1,4 @@
-extends: default
+extends: ../default
 
 data:
   csv_path: data/raw/samples/thesis_data_sample_10k.csv

@@ -139,7 +139,7 @@ Caption: Higher interest rates are associated with higher default, reflecting pr
 
 Modeling guidance
 - Provider‑agnostic runs: continue excluding `grade`, `sub_grade`, and `int_rate` to avoid baking in provider‑specific policy and pricing.
-- Provider‑aware runs: include them (see `configs/provider_aware.yaml`) — they provide strong incremental signal and can materially improve AUC/PR but reduce portability.
+- Provider‑aware runs: include them (see `configs/pytorch/provider_aware.yaml`) — they provide strong incremental signal and can materially improve AUC/PR but reduce portability.
 
 ---
 

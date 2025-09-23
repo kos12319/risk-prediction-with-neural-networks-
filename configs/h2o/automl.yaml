@@ -1,4 +1,4 @@
-extends: default
+extends: ../default
 
 data:
   csv_path: data/raw/samples/thesis_data_sample_10k.csv
@@ -7,7 +7,7 @@ model:
   backend: h2o
 
 automl:
-  max_runtime_secs: 120
+  max_runtime_secs: 60
   max_models: null
   balance_classes: false
   seed: 42
@@ -19,6 +19,12 @@ automl:
   max_mem_size: null
   export_checkpoints_dir: null
   log_dir: null
+  leaderboard_extra_columns: ALL
+  leaderboard_make_test: true
+  leaderboard_curve_top_n: 5
+  explanation_plots:
+    model_correlation: true
+    varimp_heatmap: true
 
 tracking:
   backend: wandb

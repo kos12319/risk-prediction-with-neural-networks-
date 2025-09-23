@@ -1,4 +1,4 @@
-extends: default
+extends: ../default
 
 data:
   winsorize_enabled: false
@@ -6,12 +6,12 @@ data:
     - addr_state
     - term
     - home_ownership
+    - emp_length
     - verification_status
     - dti
     - purpose
-    - emp_length
-    - total_bc_limit
+    - inq_last_6mths
+    - loan_amnt
     - fico_range_high
     - fico_range_low
-    - loan_amnt
-    - bc_open_to_buy
+    - revol_bal

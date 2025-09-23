@@ -26,7 +26,10 @@
       - `thesis_data_sample_100k.csv` (gitignored) and `thesis_data_sample_100k.zip` (LFS‑tracked)
   - `processed/` — optional cached splits (ignored by git)
 - `local_runs/` (gitignored) — per‑run folders with all artifacts
-- `configs/` — YAML configs; `default.yaml` is the main one
+- `configs/`
+  - `default.yaml` — base config shared by all backends
+  - `pytorch/` — PyTorch variants (feature subsets, provider-specific tweaks)
+  - `h2o/` — H2O AutoML presets
 - `src/`
   - `data/` — loading, cleaning, splitting
   - `features/` — preprocessing and feature engineering
@@ -77,7 +80,8 @@
    - Apple Silicon: set VECLIB/OMP env already handled; use `make cpu-train` if you hit BLAS thread errors.
 2) Choose a config and set dataset path:
    - Provider-agnostic (default): `configs/default.yaml` (excludes int_rate/grade/sub_grade/installment and funded_amnt)
-   - Provider-aware: `configs/provider_aware.yaml` (includes pricing/scoring fields)
+   - Provider-aware: `configs/pytorch/provider_aware.yaml` (includes pricing/scoring fields)
+   - More PyTorch presets live under `configs/pytorch/` (feature subsets, weighting, full dataset)
    - Set `data.csv_path` to a CSV (e.g., `data/raw/samples/thesis_data_sample_10k.csv` or `data/raw/full/thesis_data_full.csv`)
    - Outlier handling is configured via `data.winsorize`; toggle with `data.winsorize_enabled` (default true). Listed numeric features are winsorized (quantile/absolute caps) on the training split before scaling.
 3) Login to W&B from env (optional, needed for downloads):
@@ -87,16 +91,26 @@
    # optional: export WANDB_PROJECT=loan-risk-mlp
    make wandb-login
    ```
-4) Train the model:
+4) Train the model (PyTorch backend; use `make automl-h2o` for H2O AutoML):
    ```bash
-   make train CONFIG=configs/default.yaml             # just train
-   make train CONFIG=configs/default.yaml PULL=true   # train and download W&B files
+   make train CONFIG=configs/default.yaml             # PyTorch training run
+   make train CONFIG=configs/default.yaml PULL=true   # PyTorch + download W&B files
    # On Linux/WSL or constrained envs, use CPU-only helper:
-   make cpu-train CONFIG=configs/default.yaml         # CPU with minimal threads
-   # Kick off H2O AutoML (defaults to configs/h2o_automl.yaml when AUTOML_CONFIG unset)
-   make automl-h2o                                    # run AutoML pipeline
-   make automl-h2o AUTOML_CONFIG=configs/h2o_automl.yaml NOTES="grid search"  # custom config
+   make cpu-train CONFIG=configs/default.yaml         # PyTorch on CPU with minimal threads
+   # Kick off H2O AutoML (defaults to configs/h2o/automl.yaml when AUTOML_CONFIG unset)
+   make automl-h2o                                    # H2O AutoML pipeline
+   make automl-h2o AUTOML_CONFIG=configs/h2o/automl.yaml NOTES="grid search"  # custom config
    ```
+
+## Temporal Cross-Validation
+- Enable time-aware CV by setting `split.cv.enabled: true` and `split.cv.n_folds` (≥2). The splitter uses an expanding window: the first chunk of data (`split.cv.initial_train_fraction`) seeds the training window, and each fold holds out the next contiguous time block as test data while carving validation from the tail of the training period.
+- Additional knobs:
+  - `split.cv.mode`: currently `expanding` (default); other modes are rejected until implemented.
+  - `split.cv.validation_fraction`: fraction of each fold's training window reserved for validation/threshold selection.
+  - `split.cv.gap`: optional row gap between train and test segments to guard against near-term leakage.
+  - `split.cv.shuffle_within_folds`: when `true`, shuffles the already time-ordered train/val/test subsets (disabled by default).
+- Set `split.cv.train_full_after: true` to automatically fit a final model on the full dataset after CV completes (using the standard single-split pipeline). The final run artifacts live alongside the fold outputs, and the CLI return payload includes both `cv_summary` and final-metric details.
+- Artifacts for each fold are written under `run_dir/folds/fold_XX/` with the usual metrics, curves, and manifests. Aggregated metrics and per-fold summaries are saved to `reports/cv_metrics.json` alongside a top-level `README.md` summarizing means/standard deviations. Both the PyTorch (`make train`) and H2O AutoML (`make automl-h2o`) backends honor the cross-validation configuration.
 5) Download runs from W&B (to a separate history folder):
    ```bash
    # Pull a specific run (requires a run_id); resolves entity/project from config/env
@@ -121,8 +135,10 @@
   - W&B: `wandb.json` with `{id, path, url}`; optional `wandb/` with downloaded files/artifacts (when `PULL=true` or via `pull-run`)
 
 ## H2O AutoML
-- Switch the backend by setting `model.backend: h2o` in your YAML (see `configs/h2o_automl.yaml` for a ready-to-run example that extends the default config).
+- Switch the backend by setting `model.backend: h2o` in your YAML (see `configs/h2o/automl.yaml` for a ready-to-run example that extends the default config).
+- Additional AutoML presets live under `configs/h2o/` (e.g., `feature_selection.yaml` for GBM/XGBoost-only sweeps).
 - Configure AutoML behaviour via the `automl` block: `max_runtime_secs`, `max_models`, `balance_classes`, `include_algos`/`exclude_algos`, `seed`, `nthreads`, `max_mem_size`, and optional `export_checkpoints_dir` and `log_dir`. All inputs are respected by the `make automl-h2o` target.
+- On Apple Silicon laptops with 16 GB unified memory the full ~1.5 GB LendingClub CSV fits comfortably; set `automl.max_mem_size` to roughly `8g-10g` so the JVM has headroom while leaving space for macOS and Python. On smaller machines, keep the sample CSV or downsample to avoid garbage-collection churn.
 - Preprocessing, train/val/test splits, oversampling, threshold selection, and metric computation follow the same pipeline as the neural-network backend—only the estimator swaps to H2O AutoML under the hood.
 - AutoML runs emit the standard artifact set plus an `h2o_leaderboard.csv` and a zipped H2O model (`loan_default_model.zip` by default) inside the run folder for portability.
 - Use `AUTOML_CONFIG=...` with `make automl-h2o` to point at alternate configs (e.g., shorter runtimes for smoke tests or vendor-specific feature sets).
@@ -154,7 +170,7 @@
   - `job_type`/`job_type_template`, `tags`/`tag_templates`, `ignore_globs`, `log_artifacts`
 - Login via env: set `WANDB_API_KEY` and `WANDB_ENTITY`, then `make wandb-login` or just train (trainer auto‑logins if key is present). Optional `WANDB_PROJECT` overrides config.
 - Download W&B data to local folder:
-  - After training: `make train CONFIG=configs/default.yaml PULL=true` → `local_runs/<run_id>/wandb/`
+  - After PyTorch training: `make train CONFIG=configs/default.yaml PULL=true` → `local_runs/<run_id>/wandb/`
   - Any time: `make pull-run RUN=entity/project/run_id` → `wandb-history/<run_id>/`
 - Logged in W&B: per‑epoch loss/val_loss/val_auc/lr/time, final metrics (incl. confusion), env+git metadata, requirements snapshot, figures, interactive confusion matrix panel; key files and model are logged as artifacts.
 
@@ -171,7 +187,7 @@
 - Pull W&B run: `python -m src.cli.wandb_pull --run ENTITY/PROJECT/RUN_ID [--target DIR] [--config CONFIG]`
 
 ## Makefile Targets
-- `make train CONFIG=... [PULL=true] [NOTES=...]`
+- `make train CONFIG=... [PULL=true] [NOTES=...]` (PyTorch backend)
 - `make automl-h2o [AUTOML_CONFIG=... PULL=true NOTES=...]`
 - `make cpu-train CONFIG=... [PULL=true] [NOTES=...]`
 - `make wandb-login`

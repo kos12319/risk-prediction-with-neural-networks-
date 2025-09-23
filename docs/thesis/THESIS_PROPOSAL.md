@@ -11,19 +11,21 @@ This document reframes the project as a rigorous, MSc‑level thesis platform. I
   3. Utility‑aligned threshold selection and partial ROC in business‑relevant FPR ranges.
   4. Comparative study of deep tabular models vs gradient boosting under both regimes.
 
-Dataset note: LendingClub consumer installment loans (2007–2018). The accepted-loans file contains funded applications with final outcomes; rejected-loans file has limited covariates for declined applications. Labels are derived from final statuses (Charged Off vs Fully Paid) with attention to right‑censoring. Features used for prediction remain strictly origination-time; all post-event fields (payments, recoveries, last_* dates, hardship/settlement) are excluded end-to-end.
+Dataset note: LendingClub consumer installment loans (2007–2018). The accepted-loans file contains funded applications with final outcomes; rejected-loans file has limited covariates for declined applications. Labels are derived from final statuses (Charged Off vs Fully Paid) with attention to right-censoring. Features used for prediction remain strictly origination-time; all post-event fields (payments, recoveries, last_* dates, hardship/settlement) are excluded end-to-end.
 
 ## Research Questions & Hypotheses
 - **RQ1**: How does excluding provider-specific fields affect out-of-time generalization and calibration?
   - **H1**: Provider-aware models score higher in-distribution but exhibit larger calibration drift; provider-agnostic models generalize more consistently.
 - **RQ2**: Can a time-stable subset (15–30 features) maintain ≥95% of full-feature AUC while reducing drift sensitivity?
   - **H2**: Temporal stability selection (MI+L1 ensemble across forward-chaining folds) yields compact subsets with minimal AUC loss, improved calibration stability, and lower PSI sensitivity.
-- **RQ3**: How do BCE vs focal loss behave in calibration, and can post-hoc methods recover calibration?
+- **RQ3 (secondary)**: How do BCE vs focal loss behave in calibration, and can post-hoc methods recover calibration?
   - **H3**: Focal boosts recall but harms calibration; Platt/Isotonic/Temperature scaling restore Brier/ECE to competitive levels.
-- **RQ4**: Do utility-based thresholds outperform generic choices (Youden/F1) under base-rate shift?
+- **RQ4 (secondary)**: Do utility-based thresholds outperform generic choices (Youden/F1) under base-rate shift?
   - **H4**: Thresholds optimized for expected utility on validation maintain superior expected value on unseen test sets, especially when prevalence shifts.
 - **RQ5**: Under what conditions do deep tabular networks match GBDTs on this task?
   - **H5**: MLPs with residual blocks and categorical embeddings close the gap to gradient boosting, particularly with provider-aware features; embeddings are crucial in the agnostic setting.
+- **RQ6**: Can neural architectures autonomously discover high-value feature subsets or transformations that rival manually engineered pipelines?
+  - **H6**: Embedded feature selection or learned feature transformations within neural networks produce compact, utility-aligned representations without external selection heuristics, retaining competitive performance.
 
 ## Methodology & Invariants
 - **Splitting**: Time-based train/test by `issue_d`; carve validation from the training period only. Oversampling, if any, applies to the training subset; the validation/test splits remain untouched.

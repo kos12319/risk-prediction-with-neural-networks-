@@ -114,6 +114,15 @@ split:
   time_col: issue_d
   test_size: 0.2
   random_state: 42
+  cv:
+    enabled: false
+    n_folds: 0
+    mode: expanding          # expanding | rolling (rolling pending implementation)
+    initial_train_fraction: 0.4
+    validation_fraction: 0.2
+    gap: 0
+    shuffle_within_folds: false
+    train_full_after: false
 
 oversampling:
   enabled: true          # applies to training split only
