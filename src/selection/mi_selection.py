@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Mapping, Optional, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,6 +22,7 @@ def _evaluate_subset(
     test_df: pd.DataFrame,
     feature_inputs: List[str],
     target_col: str,
+    winsorize_cfg: Optional[Mapping[str, Mapping[str, float]]] = None,
 ) -> float:
     X_train = train_df[feature_inputs]
     y_train = train_df[target_col]
@@ -29,7 +30,7 @@ def _evaluate_subset(
     y_test = test_df[target_col]
 
     num_cols, cat_cols = identify_feature_types(X_train)
-    preproc = build_preprocessor(num_cols, cat_cols)
+    preproc = build_preprocessor(num_cols, cat_cols, winsorize_cfg)
     Xtr = preproc.fit_transform(X_train)
     Xte = preproc.transform(X_test)
 
@@ -54,6 +55,7 @@ def run_mi_selection(
     target_coverage: float = 0.99,
     max_features: int | None = None,
     outdir: Path | None = None,
+    winsorize_cfg: Optional[Mapping[str, Mapping[str, float]]] = None,
 ) -> Dict:
     # Filter features by missingness threshold
     miss_rate = df[features].isna().mean()
@@ -72,13 +74,13 @@ def run_mi_selection(
         test_df = pd.concat([X_test, y_test], axis=1)
 
     # Full-set reference AUC (single split)
-    auc_full = _evaluate_subset(train_df, test_df, keep_features, target_col)
+    auc_full = _evaluate_subset(train_df, test_df, keep_features, target_col, winsorize_cfg)
 
     # Fit preprocessor on keep_features to compute MI on encoded design
     X_train = train_df[keep_features]
     y_train = train_df[target_col]
     num_cols, cat_cols = identify_feature_types(X_train)
-    preproc = build_preprocessor(num_cols, cat_cols)
+    preproc = build_preprocessor(num_cols, cat_cols, winsorize_cfg)
     Xtr = preproc.fit_transform(X_train)
 
     mi = mutual_info_classif(Xtr, y_train, random_state=random_state, discrete_features="auto")
@@ -95,7 +97,7 @@ def run_mi_selection(
 
     for idx, (feat, score) in enumerate(ranking):
         selected.append(feat)
-        auc = _evaluate_subset(train_df, test_df, selected, target_col)
+        auc = _evaluate_subset(train_df, test_df, selected, target_col, winsorize_cfg)
         curve_steps.append({"k": len(selected), "feature": feat, "auc": auc})
         if auc >= target_auc:
             break

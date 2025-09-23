@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import logging
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import numpy as np
 import pandas as pd
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -58,7 +62,9 @@ def load_and_prepare(cfg: LoadConfig) -> pd.DataFrame:
     usecols = list(dict.fromkeys(list(cfg.features) + list(cfg.parse_dates) + [cfg.target_col]))
 
     # Read
+    logger.info("Loading dataset from %s", cfg.csv_path)
     df = pd.read_csv(cfg.csv_path, usecols=lambda c: (c in usecols), low_memory=False)
+    logger.info("Loaded %d rows and %d columns", df.shape[0], df.shape[1])
 
     # Target filter and map
     if cfg.target_col not in df.columns:
@@ -68,6 +74,7 @@ def load_and_prepare(cfg: LoadConfig) -> pd.DataFrame:
     valid_targets = set(cfg.target_mapping.keys())
     df = df[df[cfg.target_col].isin(valid_targets)].copy()
     df[cfg.target_col] = df[cfg.target_col].map(cfg.target_mapping)
+    logger.info("Filtered targets to %d rows", df.shape[0])
 
     # Parse date columns if present
     for col in cfg.parse_dates:
@@ -94,5 +101,8 @@ def load_and_prepare(cfg: LoadConfig) -> pd.DataFrame:
         drops = [c for c in cfg.leakage_cols if c in df.columns]
         if drops:
             df = df.drop(columns=drops)
+            logger.debug("Dropped leakage columns: %s", ", ".join(drops))
 
-    return df.reset_index(drop=True)
+    prepared = df.reset_index(drop=True)
+    logger.info("Prepared dataset with %d rows and %d columns", prepared.shape[0], prepared.shape[1])
+    return prepared

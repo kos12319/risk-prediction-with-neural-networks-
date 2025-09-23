@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Mapping, Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -20,6 +20,7 @@ def _evaluate_subset(
     test_df: pd.DataFrame,
     feature_inputs: List[str],
     target_col: str,
+    winsorize_cfg: Optional[Mapping[str, Mapping[str, float]]] = None,
 ) -> float:
     X_train = train_df[feature_inputs]
     y_train = train_df[target_col]
@@ -27,7 +28,7 @@ def _evaluate_subset(
     y_test = test_df[target_col]
 
     num_cols, cat_cols = identify_feature_types(X_train)
-    preproc = build_preprocessor(num_cols, cat_cols)
+    preproc = build_preprocessor(num_cols, cat_cols, winsorize_cfg)
     Xtr = preproc.fit_transform(X_train)
     Xte = preproc.transform(X_test)
 
@@ -50,6 +51,7 @@ def run_l1_selection(
     C: float = 0.1,
     max_features: int | None = None,
     outdir: Path | None = None,
+    winsorize_cfg: Optional[Mapping[str, Mapping[str, float]]] = None,
 ) -> Dict:
     # Filter features by missingness
     miss_rate = df[features].isna().mean()
@@ -68,13 +70,13 @@ def run_l1_selection(
         test_df = pd.concat([X_test, y_test], axis=1)
 
     # Full-set reference AUC
-    auc_full = _evaluate_subset(train_df, test_df, keep_features, target_col)
+    auc_full = _evaluate_subset(train_df, test_df, keep_features, target_col, winsorize_cfg)
 
     # Fit L1 logistic on encoded design for sparsity
     X_train = train_df[keep_features]
     y_train = train_df[target_col]
     num_cols, cat_cols = identify_feature_types(X_train)
-    preproc = build_preprocessor(num_cols, cat_cols)
+    preproc = build_preprocessor(num_cols, cat_cols, winsorize_cfg)
     Xtr = preproc.fit_transform(X_train)
 
     clf = LogisticRegression(
@@ -95,7 +97,7 @@ def run_l1_selection(
 
     for feat, score in ranking:
         selected.append(feat)
-        auc = _evaluate_subset(train_df, test_df, selected, target_col)
+        auc = _evaluate_subset(train_df, test_df, selected, target_col, winsorize_cfg)
         curve_steps.append({"k": len(selected), "feature": feat, "auc": auc})
         if auc >= target_auc:
             break
@@ -136,4 +138,3 @@ def run_l1_selection(
                 f.write(f"{ftr},{sc}\n")
 
     return results
-

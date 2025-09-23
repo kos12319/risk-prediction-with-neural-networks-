@@ -1,5 +1,5 @@
 data:
-  csv_path: data/raw/samples/thesis_data_sample_10k.csv
+  csv_path: data/raw/samples/thesis_data_sample_1k.csv
   target_col: loan_status
   target_mapping:
     'Charged Off': 0
@@ -91,8 +91,26 @@ data:
     - issue_d
     - earliest_cr_line
 
+  winsorize_enabled: true
+  winsorize:
+    annual_inc:
+      lower_quantile: 0.01
+      upper_quantile: 0.995
+    dti:
+      lower_value: 0.0
+      upper_quantile: 0.995
+    revol_util:
+      lower_value: 0.0
+      upper_quantile: 0.995
+    income_to_loan_ratio:
+      lower_value: 0.0
+      upper_quantile: 0.995
+    fico_spread:
+      lower_value: 0.0
+      upper_quantile: 0.99
+
 split:
-  method: time           # time | random
+  method: random           # time | random
   time_col: issue_d
   test_size: 0.2
   random_state: 42
@@ -100,8 +118,22 @@ split:
 oversampling:
   enabled: true          # applies to training split only
   method: random_over_sampler
+  params: {}
+
+preprocessing:
+  categorical_encoder: one_hot   # options: one_hot | target
+  sparse_threshold: 0.3
+  numerical:
+    imputer: median              # median | mean | most_frequent | constant
+    scaler: standard             # standard | minmax | robust | none
+  categorical:
+    imputer: most_frequent       # most_frequent | constant
+    encoder_params:
+      handle_unknown: ignore
 
 model:
+  backend: pytorch
+  architecture: mlp
   layers: [256, 128, 64, 32]
   dropout: [0.4, 0.3, 0.2, 0.2]
   batchnorm: true
@@ -115,6 +147,27 @@ model:
   batch_size: 128
   val_split: 0.2
   early_stopping_patience: 10
+
+automl:
+  backend: h2o
+  max_runtime_secs: 900
+  max_models: null
+  stopping_metric: "AUTO"
+  project_name: null
+  balance_classes: false
+  max_after_balance_size: 5.0
+  seed: 42
+  nfolds: 0  # keep 0 to rely on explicit validation split
+  keep_cross_validation_models: false
+  keep_cross_validation_predictions: false
+  keep_cross_validation_fold_assignment: false
+  exclude_algos: []
+  include_algos: []
+  sort_metric: "AUTO"
+  nthreads: -1
+  max_mem_size: null
+  export_checkpoints_dir: null
+  log_dir: null
 
 output:
   runs_root: local_runs   # single gitignored folder where each run writes all artifacts

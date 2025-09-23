@@ -32,7 +32,7 @@ Assumptions and invariants
 ## Class Balance Over Time
 Default base rates shift materially across vintages — essential context for calibration and thresholding.
 
-![Positive rate by year](exploration/figures/class_balance_over_time.png)
+![Positive rate by year](figures/class_balance_over_time.png)
 Caption: Default rate rises into 2016–2017 (~23%) and falls in 2018 (~15–16%), consistent with changing portfolio mix and right‑censoring for recent vintages.
 
 Implications
@@ -66,7 +66,7 @@ Notes
 ## Missingness and Leakage
 Large blocks of near‑100% missingness indicate non‑origination operational fields (hardship/settlement/next payment). These are also post‑event and therefore leaky.
 
-![Top missingness (rate)](exploration/figures/missingness_top.png)
+![Top missingness (rate)](figures/missingness_top.png)
 Caption: `next_pymnt_d` and nearly all `hardship_*` / `settlement_*` fields have ≈96–100% missingness. These should be dropped for origination‑time modeling.
 
 Action
@@ -78,13 +78,13 @@ Action
 ## Numeric Distributions (Origination Focus)
 Spot skew/outliers and visualize class separation to guide transforms and caps.
 
-![FICO average by class](exploration/figures/hist_fico_avg_orig.png)
+![FICO average by class](figures/hist_fico_avg_orig.png)
 Caption: Charged‑off loans are shifted toward lower FICO; strong anti‑correlation with default risk.
 
-![DTI by class](exploration/figures/hist_dti_orig.png)
+![DTI by class](figures/hist_dti_orig.png)
 Caption: Heavy right tail with values up to 999 and a sentinel −1. Treat −1 as missing; cap top tail (e.g., 99) and consider log/robust scaling downstream.
 
-![Loan amount by class](exploration/figures/hist_loan_amnt_orig.png)
+![Loan amount by class](figures/hist_loan_amnt_orig.png)
 Caption: Primary origination bands $5k–$25k; weak marginal separation but interacts with income/term.
 
 Data quality
@@ -97,16 +97,16 @@ Data quality
 ## Categorical Profiles (Origination Focus)
 Understand portfolio composition and per‑level risk.
 
-![Purpose counts and default rate](exploration/figures/cat_purpose_orig.png)
+![Purpose counts and default rate](figures/cat_purpose_orig.png)
 Caption: Volume dominated by debt_consolidation and credit_card. Higher default seen in small_business, moving; lowest in educational volume (small) and car.
 
-![Home ownership counts and default rate](exploration/figures/cat_home_ownership_orig.png)
+![Home ownership counts and default rate](figures/cat_home_ownership_orig.png)
 Caption: RENT tends to be riskier than MORTGAGE; OWN in between.
 
-![Term counts and default rate](exploration/figures/cat_term_orig.png)
+![Term counts and default rate](figures/cat_term_orig.png)
 Caption: 60‑month loans show ~33% default vs ~15–16% for 36‑month — a major driver.
 
-![State counts and default rate](exploration/figures/cat_addr_state_orig.png)
+![State counts and default rate](figures/cat_addr_state_orig.png)
 Caption: Volume concentrated in CA/NY/TX/FL; default rates vary within a narrow band (~18–21%) with outliers.
 
 Encoding guidance
@@ -121,20 +121,20 @@ This section brings credit scores and LendingClub’s own grading scheme into fo
 ### FICO Credit Scores (included in origination view)
 We explicitly examined FICO averages (and low/high ranges) — see the earlier histogram:
 
-![FICO average by class](exploration/figures/hist_fico_avg_orig.png)
+![FICO average by class](figures/hist_fico_avg_orig.png)
 Caption: Lower FICO associates with higher default probability. FICO_* features are among the strongest origination‑time predictors (negative correlation around −0.13).
 
 ### LendingClub Grade and Sub‑grade (analyzed; excluded by default)
 
-![Grade — counts and default rate](exploration/figures/cat_grade_orig.png)
+![Grade — counts and default rate](figures/cat_grade_orig.png)
 Caption: Default rate increases monotonically from A → G, matching risk expectations. Volume is concentrated in B–D grades.
 
-![Sub‑grade — counts and default rate](exploration/figures/cat_sub_grade_orig.png)
+![Sub‑grade — counts and default rate](figures/cat_sub_grade_orig.png)
 Caption: Within each grade, higher sub‑grades (e.g., C5 vs C1) trend to higher default rates. The pattern is smooth and strongly informative.
 
 ### Interest Rate (analyzed; excluded by default)
 
-![Interest rate by class](exploration/figures/hist_int_rate_orig.png)
+![Interest rate by class](figures/hist_int_rate_orig.png)
 Caption: Higher interest rates are associated with higher default, reflecting pricing for risk.
 
 Modeling guidance
@@ -145,10 +145,10 @@ Modeling guidance
 
 ### Other Provider‑Aware Fields (analyzed; excluded by default)
 
-![Installment by class](exploration/figures/hist_installment_orig.png)
+![Installment by class](figures/hist_installment_orig.png)
 Caption: Higher scheduled installment payments tend to correlate with higher default risk, partly capturing loan size/term interactions.
 
-![Funded amount by class](exploration/figures/hist_funded_amnt_orig.png)
+![Funded amount by class](figures/hist_funded_amnt_orig.png)
 Caption: Larger funded amounts show slightly higher default probability in the tail. The effect is modest on a marginal basis but interacts with income and term.
 
 Note: These fields (installment, funded_amnt) are informative but encode provider pricing and loan design; include them only in the provider‑aware configuration when portability is not a requirement.
@@ -187,13 +187,13 @@ Portability vs accuracy
 ### Correlation (Origination‑Only Numeric)
 Linear associations with the configured positive class (Charged Off).
 
-![Top |corr| with target (origination only)](exploration/figures/top_corr_numeric_orig.png)
+![Top |corr| with target (origination only)](figures/top_corr_numeric_orig.png)
 Caption: FICO measures (avg/low/high) are the strongest anti‑correlates (~−0.13). DTI and utilization are positively associated; credit‑depth/limit features add incremental signal.
 
 ### Correlation (All Numeric — Demonstrating Leakage)
 Included only to expose leakage; do not use these features for modeling at origination.
 
-![Top |corr| with target (all features)](exploration/figures/top_corr_numeric.png)
+![Top |corr| with target (all features)](figures/top_corr_numeric.png)
 Caption: Payments/recoveries/last payment amount dominate. These encode outcomes and must be excluded.
 
 ### Mutual Information
@@ -206,12 +206,12 @@ Non‑linear dependency ranking (sampled 200k rows for tractability).
 ## Temporal Drift (PSI)
 Population Stability Index comparing early (≤2016‑06) vs late (≥2016‑07) cohorts. >0.25 indicates large drift.
 
-![Top PSI numeric](exploration/figures/psi_numeric_top.png)
-![Top PSI numeric (origination-only)](exploration/figures/psi_numeric_top_orig.png)
+![Top PSI numeric](figures/psi_numeric_top.png)
+![Top PSI numeric (origination-only)](figures/psi_numeric_top_orig.png)
 Caption: Credit‑depth features (counts/limits/balances) shift substantially across time, reflecting portfolio and macro changes.
 
-![Top PSI categorical](exploration/figures/psi_categorical_top.png)
-![Top PSI categorical (origination-only)](exploration/figures/psi_categorical_top_orig.png)
+![Top PSI categorical](figures/psi_categorical_top.png)
+![Top PSI categorical (origination-only)](figures/psi_categorical_top_orig.png)
 Caption: `last_pymnt_d` and `last_credit_pull_d` show extreme PSI (and are leaky). Among origination‑time fields, `purpose` shows modest drift; others are relatively stable.
 
 Implications
@@ -239,4 +239,4 @@ Rationale: These fields reflect outcomes after origination and produce unrealist
 ---
 
 ## Notes on Reproducibility
-Numbers and plots reflect the full accepted‑loans dataset (2007–2018). If the underlying CSV or feature list changes, regenerate figures and copy them into `docs/exploration/figures/` to keep this document self‑contained.
+Numbers and plots reflect the full accepted‑loans dataset (2007–2018). If the underlying CSV or feature list changes, regenerate figures and copy them into `docs/figures/` to keep this document self‑contained.

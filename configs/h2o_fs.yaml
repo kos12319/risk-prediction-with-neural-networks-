@@ -1,0 +1,33 @@
+extends: default
+
+data:
+  csv_path: data/raw/samples/thesis_data_sample_10k.csv
+  winsorize_enabled: false
+
+model:
+  backend: h2o
+
+automl:
+  max_runtime_secs: 600
+  max_models: null
+  balance_classes: false
+  seed: 42
+  stopping_metric: AUC
+  sort_metric: AUCPR
+  include_algos:
+    - GBM
+    - XGBoost
+  nthreads: -1
+  max_mem_size: null
+  export_checkpoints_dir: null
+  log_dir: null
+
+tracking:
+  backend: wandb
+  wandb:
+    enabled: true
+    mode: online
+    run_name_template: "{dataset}|{split}|{pos}|h2o[{leader_algo}]|{leader_id}|auc{auc:.3f}"
+    tag_templates:
+      - "backend:{backend}"
+      - "leader_algo:{leader_algo_raw}"

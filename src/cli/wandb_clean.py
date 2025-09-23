@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import List
 
 from src.training.wandb_sync import login_from_env
-from src.training.train_nn import _load_config_with_extends  # reuse config loader
+from src.training.pipeline import load_config_with_extends  # reuse config loader
 
 
 def main():
@@ -23,7 +23,7 @@ def main():
     login_from_env()
 
     # Resolve defaults
-    cfg = _load_config_with_extends(Path(args.config))
+    cfg = load_config_with_extends(Path(args.config))
     tracking_cfg = cfg.get("tracking", {})
     wb_cfg = tracking_cfg.get("wandb", {})
     entity = args.entity or os.environ.get("WANDB_ENTITY") or os.environ.get("WB_ENTITY") or wb_cfg.get("entity")

@@ -76,9 +76,10 @@
    - CPU-only environments: if Torch wheel resolution fails or attempts CUDA, install a CPU wheel explicitly (e.g., pip install torch==2.2.2 --index-url https://download.pytorch.org/whl/cpu) before syncing other deps.
    - Apple Silicon: set VECLIB/OMP env already handled; use `make cpu-train` if you hit BLAS thread errors.
 2) Choose a config and set dataset path:
-   - Provider‑agnostic (default): `configs/default.yaml` (excludes int_rate/grade/sub_grade/installment and funded_amnt)
-   - Provider‑aware: `configs/provider_aware.yaml` (includes pricing/scoring fields)
+   - Provider-agnostic (default): `configs/default.yaml` (excludes int_rate/grade/sub_grade/installment and funded_amnt)
+   - Provider-aware: `configs/provider_aware.yaml` (includes pricing/scoring fields)
    - Set `data.csv_path` to a CSV (e.g., `data/raw/samples/thesis_data_sample_10k.csv` or `data/raw/full/thesis_data_full.csv`)
+   - Outlier handling is configured via `data.winsorize`; toggle with `data.winsorize_enabled` (default true). Listed numeric features are winsorized (quantile/absolute caps) on the training split before scaling.
 3) Login to W&B from env (optional, needed for downloads):
    ```bash
    export WANDB_API_KEY=...    # required to pull/download
@@ -92,6 +93,9 @@
    make train CONFIG=configs/default.yaml PULL=true   # train and download W&B files
    # On Linux/WSL or constrained envs, use CPU-only helper:
    make cpu-train CONFIG=configs/default.yaml         # CPU with minimal threads
+   # Kick off H2O AutoML (defaults to configs/h2o_automl.yaml when AUTOML_CONFIG unset)
+   make automl-h2o                                    # run AutoML pipeline
+   make automl-h2o AUTOML_CONFIG=configs/h2o_automl.yaml NOTES="grid search"  # custom config
    ```
 5) Download runs from W&B (to a separate history folder):
    ```bash
@@ -108,13 +112,20 @@
 ## Artifacts
 - Location: `local_runs/run_YYYYMMDD_HHMMSS/`
 - Files:
-  - Model: `loan_default_model.pt`
+- Model: `loan_default_model.pt` (PyTorch) or `loan_default_model.zip` (H2O AutoML)
   - Metrics: `metrics.json` (ROC AUC, AP, threshold, classification report)
   - Confusion: `confusion.json` (TP/FP/TN/FN, precision/recall/specificity)
   - Curves: `figures/learning_curves.png`, `figures/roc_curve.png`, `figures/pr_curve.png`
   - Sweeps: `roc_points.csv`, `pr_points.csv`
   - Provenance: `config_resolved.yaml`, `features.json`, `data_manifest.json`, `requirements.freeze.txt`, `training.log`
   - W&B: `wandb.json` with `{id, path, url}`; optional `wandb/` with downloaded files/artifacts (when `PULL=true` or via `pull-run`)
+
+## H2O AutoML
+- Switch the backend by setting `model.backend: h2o` in your YAML (see `configs/h2o_automl.yaml` for a ready-to-run example that extends the default config).
+- Configure AutoML behaviour via the `automl` block: `max_runtime_secs`, `max_models`, `balance_classes`, `include_algos`/`exclude_algos`, `seed`, `nthreads`, `max_mem_size`, and optional `export_checkpoints_dir` and `log_dir`. All inputs are respected by the `make automl-h2o` target.
+- Preprocessing, train/val/test splits, oversampling, threshold selection, and metric computation follow the same pipeline as the neural-network backend—only the estimator swaps to H2O AutoML under the hood.
+- AutoML runs emit the standard artifact set plus an `h2o_leaderboard.csv` and a zipped H2O model (`loan_default_model.zip` by default) inside the run folder for portability.
+- Use `AUTOML_CONFIG=...` with `make automl-h2o` to point at alternate configs (e.g., shorter runtimes for smoke tests or vendor-specific feature sets).
 
 ## Feature Selection
 - How to run (two options):
@@ -133,7 +144,7 @@
   1) Open `reports/selection/<method>/*_results.json`
   2) Copy `selected_features` into `data.features` in your YAML config (or create a new config variant)
   3) Train with that config and compare to the full set
-- Details and method rationale: see `docs/FEATURE_SELECTION.md`.
+- Details and method rationale: see `docs/feature_selection/FEATURE_SELECTION.md`.
 
 ## Experiment Tracking (W&B)
 - Enable in config: `tracking.backend: wandb`; `tracking.wandb.enabled: true`.
@@ -161,6 +172,7 @@
 
 ## Makefile Targets
 - `make train CONFIG=... [PULL=true] [NOTES=...]`
+- `make automl-h2o [AUTOML_CONFIG=... PULL=true NOTES=...]`
 - `make cpu-train CONFIG=... [PULL=true] [NOTES=...]`
 - `make wandb-login`
 - `make pull-run RUN=entity/project/run_id` — saves to `wandb-history/<run_id>/`

@@ -1,0 +1,17 @@
+extends: default
+
+data:
+  winsorize_enabled: false
+  features:
+    - addr_state
+    - term
+    - home_ownership
+    - emp_length
+    - verification_status
+    - dti
+    - purpose
+    - inq_last_6mths
+    - loan_amnt
+    - fico_range_high
+    - fico_range_low
+    - revol_bal

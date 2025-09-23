@@ -9,6 +9,7 @@ from typing import Any, Dict
 import yaml
 
 from src.cli._bootstrap import apply_safe_env
+from src.utils.logging import setup_logging
 
 
 def main() -> None:
@@ -25,9 +26,10 @@ def main() -> None:
 
     # Apply safe env before importing heavy libs (NumPy/Torch)
     apply_safe_env()
+    setup_logging()
 
     # Import after env is set
-    from src.training.train_nn import train_from_config  # type: ignore
+    from src.training.pipeline import train_from_config  # type: ignore
 
     base_cfg_path = Path(args.config).resolve()
     if not base_cfg_path.exists():

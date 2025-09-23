@@ -6,6 +6,7 @@ PY := $(VENV)/bin/python
 PIP := $(VENV)/bin/pip
 PIP_COMPILE := $(VENV)/bin/pip-compile
 PIP_SYNC := $(VENV)/bin/pip-sync
+AUTOML_CONFIG ?= configs/h2o_automl.yaml
 
 # Detect architecture to avoid forcing OPENBLAS_CORETYPE on non-ARM Macs (causes OMP SHM errors)
 MACHINE := $(shell uname -m)
@@ -18,7 +19,7 @@ else
   SAFE_ENV := $(SAFE_BASE)
 endif
 
-.PHONY: help venv install train select clean clean-venv deps-tools deps-compile deps-sync \
+.PHONY: help venv install train automl-h2o select clean clean-venv deps-tools deps-compile deps-sync \
 	clean-cloud-history clean-wandb-local clean-local-history clean-local-runs clean-all-local \
 	marker-install marker-pdf
 
@@ -27,6 +28,7 @@ help:
 	@echo "  venv           Create .venv with Python (prefers python3.12) and install requirements"
 	@echo "  install        Alias for venv"
 	@echo "  train          Run training (CONFIG=path, NOTES=\"what changed\", PULL=true to download W&B files)"
+	@echo "  automl-h2o     Run H2O AutoML training (AUTOML_CONFIG=path, NOTES=..., PULL=true)"
 	@echo "  cpu-train      Run training on CPU with minimal threads (CONFIG=..., PULL=true)"
 	@echo "  select         Run feature selection (CONFIG=..., METHOD=mi|l1)"
 	@echo "  dict           Generate column dictionary (CONFIG=..., CSV optional)"
@@ -62,6 +64,10 @@ install: venv
 CONFIG ?= configs/default.yaml
 train: venv
 	$(SAFE_ENV) $(PY) -m src.cli.train --config $(CONFIG) $(if $(NOTES),--notes "$(NOTES)",) $(if $(PULL),--pull,)
+
+# Usage: make automl-h2o [AUTOML_CONFIG=configs/h2o_automl.yaml]
+automl-h2o: venv
+	$(SAFE_ENV) $(PY) -m src.cli.automl_h2o --config $(AUTOML_CONFIG) $(if $(NOTES),--notes "$(NOTES)",) $(if $(PULL),--pull,)
 
 # CPU-only training helper (good for Linux/WSL/CI)
 cpu-train: venv

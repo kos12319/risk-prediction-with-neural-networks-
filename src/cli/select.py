@@ -78,6 +78,8 @@ def main():
 
     max_features = args.max_features if args.max_features and args.max_features > 0 else None
 
+    winsor_cfg = data_cfg.get("winsorize") if data_cfg.get("winsorize_enabled", True) else None
+
     common_kwargs = dict(
         df=df,
         features=features,
@@ -90,6 +92,7 @@ def main():
         target_coverage=args.target_coverage,
         max_features=max_features,
         outdir=outdir,
+        winsorize_cfg=winsor_cfg,
     )
 
     if args.method == "mi":

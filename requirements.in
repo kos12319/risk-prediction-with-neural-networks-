@@ -2,6 +2,8 @@ numpy
 pandas
 scikit-learn
 imbalanced-learn
+h2o
+pytest
 PyYAML
 matplotlib
 # Use latest torch build available (Apple Silicon wheels ship with Metal / ANE support)

@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 from src.training.wandb_sync import login_from_env, download_run
-from src.training.train_nn import _load_config_with_extends  # reuse config loader
+from src.training.pipeline import load_config_with_extends  # reuse config loader
 
 
 def main():
@@ -21,7 +21,7 @@ def main():
     login_from_env()
 
     # Load config to resolve defaults
-    cfg = _load_config_with_extends(Path(args.config))
+    cfg = load_config_with_extends(Path(args.config))
     tracking_cfg = cfg.get("tracking", {})
     wb_cfg = tracking_cfg.get("wandb", {})
     default_entity = os.environ.get("WANDB_ENTITY") or os.environ.get("WB_ENTITY") or wb_cfg.get("entity")
