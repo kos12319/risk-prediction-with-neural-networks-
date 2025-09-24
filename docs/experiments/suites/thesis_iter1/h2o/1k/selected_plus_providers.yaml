@@ -1,0 +1,28 @@
+extends: ../../../../../../configs/h2o/automl
+
+data:
+  csv_path: data/raw/samples/thesis_data_sample_1k.csv
+  # Selected features — L1 best batch + provider pricing/scoring
+  features:
+    - addr_state
+    - term
+    - home_ownership
+    - emp_length
+    - verification_status
+    - dti
+    - purpose
+    - inq_last_6mths
+    - loan_amnt
+    - fico_range_high
+    - fico_range_low
+    - revol_bal
+    - int_rate
+    - grade
+    - sub_grade
+    - installment
+
+automl:
+  max_runtime_secs: 600
+  leaderboard_extra_columns: ALL
+  leaderboard_make_test: true
+  leaderboard_curve_top_n: 5

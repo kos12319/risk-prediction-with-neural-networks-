@@ -37,7 +37,7 @@
   - `eval/` — metrics and plots
   - `training/` — training orchestration
   - `cli/` — command‑line entry points
-- `notebooks/` — exploratory notebooks
+- `docs/exploration/` — exploratory notebooks and reports
 
 ## Local Artifacts
 - All new runs save to `local_runs/run_YYYYMMDD_HHMMSS/` (gitignored).
@@ -46,7 +46,22 @@
 
 ## Documentation
 - Agent Guide: `AGENTS.md`
-- ADRs: `docs/ADRs/`
+- ADRs: `docs/architecture/ADRs/` (legacy index at `docs/ADRs/`)
+
+## Docs & Architecture Governance
+- Single-source flow:
+  - Decisions (ADRs): `docs/architecture/ADRs/` (accepted, proposed, rejected).
+  - Changes (Journal): `docs/architecture/journal/`.
+  - Compiled spec (generated): `docs/architecture/PLATFORM_SPEC.md`.
+- Commands:
+  - Create entry: `make docs-journal-new TITLE="<title>" [TAGS="..."] [ADRS="0001,0013"]`
+  - Build spec: `make docs`
+  - Clean spec: `make clean-docs`
+- Policy (must-follow for architecture changes):
+  - Introduce or modify architecture only alongside an ADR (proposed→accepted) under `docs/architecture/ADRs/`.
+  - Log the change with a dated Journal entry referencing the ADR(s).
+  - Keep docs Makefile-first; examples should use `make` targets, not raw `python -m`.
+  - The compiled spec is gitignored; rebuild with `make docs` when needed.
 - Pain Points: `docs/PAIN_POINTS.md`
 - Data dictionary: `docs/data/COLUMN_DICTIONARY.md`
 - Regenerate column dictionary:
@@ -139,6 +154,8 @@
 - Additional AutoML presets live under `configs/h2o/` (e.g., `feature_selection.yaml` for GBM/XGBoost-only sweeps).
 - Configure AutoML behaviour via the `automl` block: `progress` (set `true` to re-enable the CLI progress bar), `log_level` (defaults to `WARN` on the JVM side), `suppress_dependency_warnings` (hides repetitive `H2ODependencyWarning` chatter by default), `max_runtime_secs`, `max_models`, `balance_classes`, `include_algos`/`exclude_algos`, `seed`, `nthreads`, `max_mem_size`, and optional `export_checkpoints_dir` and `log_dir`. All inputs are respected by the `make automl-h2o` target.
 - On Apple Silicon laptops with 16 GB unified memory the full ~1.5 GB LendingClub CSV fits comfortably; set `automl.max_mem_size` to roughly `8g-10g` so the JVM has headroom while leaving space for macOS and Python. On smaller machines, keep the sample CSV or downsample to avoid garbage-collection churn.
+- H2O's XGBoost backend requires native binaries that are only shipped for select platforms (primarily 64-bit Linux). If logs report `XGBoost is not available; skipping it`, expect AutoML to proceed without XGBoost models; use a supported Linux environment or custom H2O build if those learners are required.
+- Leaderboard charts now use human-friendly model labels (algorithm + short ID) in both PNG exports and comparison curves. A Pareto-front scatter (`figures/comparison/h2o_pareto_front.png`) and CSV (`h2o_pareto_front.csv`) are emitted when AutoML finishes to highlight accuracy vs latency trade-offs; toggle via `explanation_plots.pareto_front`.
 - Preprocessing, train/val/test splits, oversampling, threshold selection, and metric computation follow the same pipeline as the neural-network backend—only the estimator swaps to H2O AutoML under the hood.
 - AutoML runs emit the standard artifact set plus an `h2o_leaderboard.csv` and a zipped H2O model (`loan_default_model.zip` by default) inside the run folder for portability.
 - Use `AUTOML_CONFIG=...` with `make automl-h2o` to point at alternate configs (e.g., shorter runtimes for smoke tests or vendor-specific feature sets).
@@ -151,13 +168,14 @@
     python -m src.cli.select --config configs/default.yaml --method mi
     python -m src.cli.select --config configs/default.yaml --method l1
     ```
-- Optional flags (direct invocation): `--target_coverage 0.99 --missingness_threshold 0.5 --max_features 50 --outdir reports/selection`
-- Outputs under `reports/selection/<method>/`:
+- Optional flags (direct invocation): `--target_coverage 0.99 --missingness_threshold 0.5 --max_features 50 --outdir selection_runs --run-name my_selector`
+- Outputs under `selection_runs/run_<timestamp>_select/<method>/`:
   - `*_results.json` — selected_features, full_AUC, incremental steps
   - `*_ranking.csv` — full ranking with scores
   - `*_auc_curve.png` — AUC vs number of features
+- Run root also contains `config_resolved.yaml` and `summary.json` for provenance.
 - Apply the subset:
-  1) Open `reports/selection/<method>/*_results.json`
+  1) Open `selection_runs/run_<timestamp>_select/<method>/*_results.json`
   2) Copy `selected_features` into `data.features` in your YAML config (or create a new config variant)
   3) Train with that config and compare to the full set
 - Details and method rationale: see `docs/feature_selection/FEATURE_SELECTION.md`.
@@ -196,7 +214,7 @@
 - `make clean-local-runs` — removes `local_runs/` only
 - `make clean-wandb-local` — removes `./wandb` (local SDK logs/cache)
 - `make clean-local-history` — removes `./wandb-history` (downloaded run histories)
-- `make clean-all-local` — removes `local_runs/`, `./wandb`, and `./wandb-history`
+- `make clean-all-local` — removes `local_runs/`, `selection_runs/`, `./wandb`, and `./wandb-history`
 - `make clean-cloud-history FORCE=1` — deletes all runs (and logged artifacts) from the configured W&B project
 
 ## Optional: PDF → Markdown Conversion

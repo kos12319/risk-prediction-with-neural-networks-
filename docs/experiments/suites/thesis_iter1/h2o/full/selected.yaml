@@ -1,0 +1,17 @@
+extends: ../../../../../../configs/h2o/full_dataset
+
+data:
+  # Selected features — L1 (independent) best batch from 10k report
+  features:
+    - addr_state
+    - term
+    - home_ownership
+    - emp_length
+    - verification_status
+    - dti
+    - purpose
+    - inq_last_6mths
+    - loan_amnt
+    - fico_range_high
+    - fico_range_low
+    - revol_bal

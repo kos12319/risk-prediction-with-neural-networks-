@@ -84,7 +84,7 @@ def main() -> None:
         help="Run feature selection (mi or l1) and save artifacts",
         description=(
             "Ranks features and builds a compact subset targetting a fraction of full AUC. "
-            "Artifacts (ranking/results/curves) are saved under reports/selection/<method>/."
+            "Artifacts (ranking/results/curves) are saved under selection_runs/run_<timestamp>_select/<method>/."
         ),
         formatter_class=argparse.RawTextHelpFormatter,
         add_help=False,

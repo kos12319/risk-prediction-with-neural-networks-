@@ -110,6 +110,15 @@ class Winsorizer(BaseEstimator, TransformerMixin):
             return df
         return df.to_numpy()
 
+    def get_feature_names_out(self, input_features=None):  # type: ignore[override]
+        if input_features is None:
+            if self.columns_:
+                return np.asarray(self.columns_, dtype=object)
+            raise ValueError(
+                "Winsorizer is not fitted yet; provide input_features or call fit before get_feature_names_out."
+            )
+        return np.asarray(list(input_features), dtype=object)
+
     def _to_dataframe(self, X: pd.DataFrame | np.ndarray) -> Tuple[pd.DataFrame, str]:
         if isinstance(X, pd.DataFrame):
             return X.copy(), "dataframe"

@@ -57,12 +57,14 @@ Notes:
   - `--target_coverage 0.98` to relax required coverage.
   - `--missingness_threshold 0.5` to drop high‑missing features up front.
   - `--max_features 50` to cap size.
-  - `--outdir reports/selection` for artifacts location.
+  - `--outdir selection_runs` to point at a custom root for artifacts.
+  - `--run-name my_selector` to force a specific run folder name.
 
-Artifacts are saved under `reports/selection/<method>/`:
+Artifacts are saved under `selection_runs/run_<timestamp>_select/<method>/`:
 - `*_results.json`: selected feature list, full AUC, incremental steps.
 - `*_ranking.csv`: full ranking of features with scores.
 - `*_auc_curve.png`: AUC vs number of selected features (with full and target lines).
+- The run root stores `config_resolved.yaml` and `summary.json` for provenance.
 
 ## Applying the Result
 1) Open the saved JSON and copy `selected_features`.
@@ -72,7 +74,7 @@ Artifacts are saved under `reports/selection/<method>/`:
 ## Reproducibility
 - Time split and preprocessing match training.
 - Random seeds set through sklearn APIs; keep `split.random_state` fixed for repeatability.
-- Selection does not use W&B; all outputs are local files under `reports/selection/`.
+- Selection does not use W&B; all outputs are local files under `selection_runs/`.
 
 ## Extensions (optional improvements)
 - Validation‑based stopping: pick K on a validation slice within the training period, then report test once.
@@ -91,7 +93,7 @@ This plan captures the agreed direction for expanding feature selection into a c
 
 ### Current Baseline (as of 2025-09)
 - CLI exposes only mutual information and sparse logistic selectors that evaluate subsets with a logistic baseline (`src/cli/select.py`, `src/selection/mi_selection.py`, `src/selection/l1_selection.py`).
-- Selection artefacts live in method-specific folders with inconsistent schema (`reports/selection/mi`, `reports/selection/l1/`).
+- Selection artefacts live in timestamped run folders with consistent method subdirectories (`selection_runs/run_<timestamp>_select/mi`, `.../l1/`).
 - Engineered features (`credit_history_length`, `income_to_loan_ratio`, `fico_avg`, `fico_spread`) are generated during data loading and passed to training, but selectors currently ignore them because they filter strictly to `data.features` from YAML.
 - Neural networks consume fixed subsets but do not influence subset discovery beyond post-hoc W&B metrics and SHAP exports.
 

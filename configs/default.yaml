@@ -110,7 +110,7 @@ data:
       upper_quantile: 0.99
 
 split:
-  method: random           # time | random
+  method: time             # time | random
   time_col: issue_d
   test_size: 0.2
   random_state: 42
@@ -203,7 +203,7 @@ tracking:
     run_name: null           # optional explicit name
     run_name_template: "{dataset}|{split}|{pos}|mlp[{layers}]|nf{nf}|auc{auc:.3f}"  # used if run_name is null
     group: null              # optional W&B group
-    group_template: "{dataset}|{split}|{pos}"   # used if group is null
+    group_template: "{dataset}|{split}|{pos}|{backend}"   # used if group is null
     job_type: train          # optional W&B job_type (e.g., train, eval)
     job_type_template: null  # optional template if job_type is null
     tags: []                 # static tags to add to each run
@@ -211,6 +211,7 @@ tracking:
       - "dataset:{dataset}"
       - "split:{split}"
       - "pos:{pos}"
+      - "backend:{backend}"
       - "nf:{nf}"
       - "auc:{auc:.3f}"
     log_artifacts: true      # upload key run artifacts

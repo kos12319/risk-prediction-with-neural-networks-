@@ -18,18 +18,18 @@ Each subset was trained with the standard PyTorch MLP backend (`layers=[256,128,
 ### MI (15 features)
 `addr_state`, `term`, `verification_status`, `purpose`, `emp_length`, `home_ownership`, `fico_range_low`, `dti`, `fico_range_high`, `num_rev_tl_bal_gt_0`, `tot_hi_cred_lim`, `num_bc_sats`, `loan_amnt`, `total_bc_limit`, `bc_open_to_buy`
 
-Artifacts: `reports/selection/mi/` (ranking, curve, results JSON)
+Artifacts: `selection_runs/run_<timestamp>_select/mi/` (ranking, curve, results JSON)
 
 ### L1 Logistic (independent, 12 features)
 `addr_state`, `term`, `home_ownership`, `emp_length`, `verification_status`, `dti`, `purpose`, `inq_last_6mths`, `loan_amnt`, `fico_range_high`, `fico_range_low`, `revol_bal`
 
-Artifacts: `reports/selection/l1/`
+Artifacts: `selection_runs/run_<timestamp>_select/l1/`
 
 ### L1-on-MI (chained, 12 features)
 Applied L1 logistic to the MI shortlist. Resulting subset:
 `addr_state`, `term`, `home_ownership`, `verification_status`, `dti`, `purpose`, `emp_length`, `total_bc_limit`, `fico_range_high`, `fico_range_low`, `loan_amnt`, `bc_open_to_buy`
 
-Artifacts: `reports/selection/l1/` (re-run with `CONFIG=configs/pytorch/default_mi_subset.yaml`)
+Artifacts: `selection_runs/run_<timestamp>_select/l1/` (re-run with `CONFIG=configs/pytorch/default_mi_subset.yaml`)
 
 ## Training Outcomes
 

@@ -37,6 +37,9 @@ wandb/**
 wandb-history/**
 docs/thesis/bibliography/papers_md/**
 
+# Generated docs
+docs/architecture/PLATFORM_SPEC.md
+
 # Legacy artifact folders (no longer used)
 reports/**
 models/**

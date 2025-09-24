@@ -4,7 +4,7 @@ This memo captures engineering-side proposals that keep the codebase in lockstep
 
 ## Time-Split Guardrails
 - Enforce `split.method: time` as the resolved default for thesis runs, adding config validation and pytest checks to flag accidental stratified splits.
-- Surface the behavior in documentation next to ADR 0001 (`docs/ADRs/accepted/0001-time-based-split.md`).
+- Surface the behavior in documentation next to ADR 0001 (`docs/architecture/ADRs/accepted/0001-time-based-split.md`).
 
 ## Temporal Stability Selection
 - Extend `src/cli/select.py` with forward/expanding-window CV so MI/L1 rankings aggregate across folds.
@@ -22,7 +22,7 @@ This memo captures engineering-side proposals that keep the codebase in lockstep
 - Integrate LightGBM/XGBoost/CatBoost via the model registry and Make targets, enabling the neural-vs-boosting comparison in **RQ5/H5**.
 
 ## Experiment Ledger
-- Implement the append-only run index proposed in ADR 0012 (`docs/ADRs/proposed/0012-run-ledger.md`) to centralize run metadata, thresholds, and metrics for thesis tables.
+- Implement the append-only run index proposed in ADR 0012 (`docs/architecture/ADRs/proposed/0012-run-ledger.md`) to centralize run metadata, thresholds, and metrics for thesis tables.
 
 ## Provider-Regime Automation
 - Provide paired configs/scripts that batch-run provider-agnostic vs provider-aware setups so **RQ1/H1** comparisons remain reproducible.
@@ -35,4 +35,3 @@ This memo captures engineering-side proposals that keep the codebase in lockstep
 
 ## Transformer-Assisted Selection (Exploratory)
 - Prototype an attention-guided feature selector that complements MI/L1 rankings, addressing the open gap documented in `docs/thesis/from the previous reports lets explore one of the.md`.
-

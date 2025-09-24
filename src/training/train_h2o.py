@@ -218,6 +218,46 @@ def train_h2o(
             figures_dir = run_dir / "figures"
             figures_dir.mkdir(parents=True, exist_ok=True)
             lb_plot_df = leaderboard_frames.get("test", leaderboard_df).copy()
+
+            def _shorten_model_id(model_id: str) -> str:
+                if not isinstance(model_id, str):
+                    return str(model_id)
+                if "_AutoML" in model_id:
+                    return model_id.split("_AutoML", 1)[0]
+                return model_id
+
+            def _build_label_map(*frames: Optional[pd.DataFrame]) -> Dict[str, str]:
+                label_map: Dict[str, str] = {}
+                seen_labels: Dict[str, int] = {}
+                for frame in frames:
+                    if frame is None or "model_id" not in frame.columns:
+                        continue
+                    reset = frame.reset_index(drop=True)
+                    for rank, row in reset.iterrows():
+                        model_id = row.get("model_id")
+                        if not isinstance(model_id, str):
+                            model_id = str(model_id)
+                        if not model_id or model_id in label_map:
+                            continue
+                        algo = None
+                        for key in ("algo", "model_type", "model_category"):
+                            if key in row and pd.notna(row[key]):
+                                algo = str(row[key]).strip()
+                                break
+                        short_id = _shorten_model_id(model_id)
+                        base_label = algo if algo else short_id
+                        label = f"{rank + 1}. {base_label}"
+                        if short_id not in base_label:
+                            label = f"{label} [{short_id}]"
+                        if label in seen_labels:
+                            seen_labels[label] += 1
+                            label = f"{label} #{seen_labels[label]}"
+                        else:
+                            seen_labels[label] = 1
+                        label_map[model_id] = label
+                return label_map
+
+            label_map = _build_label_map(leaderboard_df, leaderboard_frames.get("test"), leaderboard_frames.get("extra"))
             for col in lb_plot_df.columns:
                 try:
                     lb_plot_df[col] = pd.to_numeric(lb_plot_df[col])
@@ -236,11 +276,12 @@ def train_h2o(
                 if vals.isna().all():
                     continue
                 order = vals.sort_values(ascending=not higher_is_better)
+                order.index = [label_map.get(str(idx), str(idx)) for idx in order.index]
                 fig, ax = plt.subplots(figsize=(10, 6))
                 order.plot(kind="barh", ax=ax, color="#1f77b4")
                 ax.invert_yaxis()
                 ax.set_xlabel(metric.upper())
-                ax.set_ylabel("Model ID")
+                ax.set_ylabel("Model")
                 ax.set_title(title)
                 plt.tight_layout()
                 fig_path = figures_dir / f"h2o_leaderboard_{metric}.png"
@@ -286,8 +327,8 @@ def train_h2o(
             except Exception:
                 curves_top_n = 5
 
-            roc_curves: List[Tuple[str, np.ndarray, np.ndarray]] = []
-            pr_curves: List[Tuple[str, np.ndarray, np.ndarray]] = []
+            roc_curves: List[Tuple[str, str, np.ndarray, np.ndarray]] = []
+            pr_curves: List[Tuple[str, str, np.ndarray, np.ndarray]] = []
 
             source_lb_for_curves = leaderboard_frames.get("test", leaderboard_df)
             if curves_top_n > 0 and "model_id" in source_lb_for_curves.columns:
@@ -299,8 +340,9 @@ def train_h2o(
                         probs_candidate, candidate_idx, _ = extract_probabilities(preds_candidate, pos_idx_default)
                         fpr, tpr, _ = roc_curve(y_true_test_bin, probs_candidate)
                         precision, recall, _ = precision_recall_curve(y_true_test_bin, probs_candidate)
-                        roc_curves.append((model_id, fpr, tpr))
-                        pr_curves.append((model_id, recall, precision))
+                        label = label_map.get(model_id, model_id)
+                        roc_curves.append((model_id, label, fpr, tpr))
+                        pr_curves.append((model_id, label, recall, precision))
                         # Update default index for downstream use if column choice changed
                         pos_idx_default = candidate_idx
                     except Exception:
@@ -308,8 +350,8 @@ def train_h2o(
 
             if roc_curves:
                 fig, ax = plt.subplots(figsize=(8, 6))
-                for model_id, fpr, tpr in roc_curves:
-                    ax.plot(fpr, tpr, label=model_id)
+                for _, label, fpr, tpr in roc_curves:
+                    ax.plot(fpr, tpr, label=label)
                 ax.plot([0, 1], [0, 1], linestyle="--", color="#888888", linewidth=1)
                 ax.set_xlabel("False Positive Rate")
                 ax.set_ylabel("True Positive Rate")
@@ -326,8 +368,8 @@ def train_h2o(
                 fig, ax = plt.subplots(figsize=(8, 6))
                 baseline = y_true_test_bin.mean() if y_true_test_bin.size else 0.0
                 ax.hlines(baseline, 0, 1, linestyle="--", color="#888888", linewidth=1, label="Baseline")
-                for model_id, recall, precision in pr_curves:
-                    ax.plot(recall, precision, label=model_id)
+                for _, label, recall, precision in pr_curves:
+                    ax.plot(recall, precision, label=label)
                 ax.set_xlabel("Recall")
                 ax.set_ylabel("Precision")
                 ax.set_title("H2O Leaderboard — Precision-Recall Curves (Test)")
@@ -357,6 +399,38 @@ def train_h2o(
                     aml.varimp_heatmap(save_plot_path=heat_path.as_posix())
                 except Exception as exc:
                     logger.warning("Failed to generate variable importance heatmap: %s", exc)
+            pareto_cfg = explanation_plots_cfg.get("pareto_front", True)
+            if pareto_cfg:
+                pareto_args: Dict[str, Any] = {}
+                if isinstance(pareto_cfg, dict):
+                    for key in ("x_metric", "y_metric"):
+                        if key in pareto_cfg and pareto_cfg[key] is not None:
+                            pareto_args[key] = pareto_cfg[key]
+                try:
+                    pareto_result = aml.pareto_front(test_frame=test_hf, **pareto_args)
+                    pareto_dir = figures_dir / "comparison"
+                    pareto_dir.mkdir(parents=True, exist_ok=True)
+                    pareto_fig = None
+                    try:
+                        pareto_fig = pareto_result.figure()
+                    except Exception:
+                        pareto_fig = None
+                    if pareto_fig is not None:
+                        pareto_path = pareto_dir / "h2o_pareto_front.png"
+                        pareto_fig.savefig(pareto_path, dpi=150)
+                        plt.close(pareto_fig)
+                    pareto_frame = getattr(pareto_result, "pareto_front", None)
+                    if pareto_frame is None:
+                        pareto_frame = getattr(pareto_result, "frame", None)
+                    if pareto_frame is not None:
+                        try:
+                            pareto_df = pareto_frame.as_data_frame()
+                            pareto_csv = run_dir / "h2o_pareto_front.csv"
+                            pareto_df.to_csv(pareto_csv, index=False)
+                        except Exception:
+                            pass
+                except Exception as exc:
+                    logger.warning("Failed to generate H2O Pareto front plot: %s", exc)
         except Exception:
             pass
 

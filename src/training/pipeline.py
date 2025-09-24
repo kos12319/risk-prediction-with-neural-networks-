@@ -847,9 +847,40 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
     # Determine single-run output directory strategy
     run_id = time.strftime("run_%Y%m%d_%H%M%S")
     single_run_dir_mode = bool(out_cfg.get("runs_root"))
+
+    # Render a backend-aware group name for both local runs and W&B
+    csv_base_init = Path(str(data_cfg.get("csv_path", ""))).stem
+    split_method_init = split_cfg.get("method", "time")
+    pos_label_init = eval_cfg.get("pos_label", 1)
+    if isinstance(pos_label_init, str):
+        pos_label_init = 0 if str(pos_label_init).lower() in {"default", "charged off", "charged_off"} else 1
+    pos_tok_init = "co" if int(pos_label_init) == 0 else "fp"
+    backend_tok_init = str(model_cfg.get("backend", "pytorch")).lower()
+    try:
+        sha_init = _collect_env_metadata().get("git", {}).get("commit")
+    except Exception:
+        sha_init = None
+    ctx_init = {
+        "dataset": csv_base_init,
+        "split": split_method_init,
+        "pos": pos_tok_init,
+        "backend": backend_tok_init,
+        "sha": sha_init or "",
+    }
+    tracking_cfg = cfg.get("tracking", {})
+    wb_cfg_local = tracking_cfg.get("wandb", {}) if isinstance(tracking_cfg, dict) else {}
+    default_group_local = f"{csv_base_init}|{split_method_init}|{pos_tok_init}|{backend_tok_init}"
+    try:
+        tmpl_local = wb_cfg_local.get("group_template") if isinstance(wb_cfg_local, dict) else None
+        group_name_for_local = (
+            str(tmpl_local).format(**ctx_init) if tmpl_local else default_group_local
+        )
+    except Exception:
+        group_name_for_local = default_group_local
+
     if single_run_dir_mode:
         runs_root = Path(out_cfg["runs_root"]).resolve()
-        run_dir = runs_root / run_id
+        run_dir = runs_root / group_name_for_local / run_id
         models_dir = run_dir
         reports_dir = run_dir
         figures_dir = run_dir / "figures"
@@ -858,7 +889,7 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
         reports_dir = Path(out_cfg["reports_dir"]).resolve()
         figures_dir = Path(out_cfg["figures_dir"]).resolve()
         runs_root = Path(out_cfg.get("runs_root", reports_dir / "runs")).resolve()
-        run_dir = runs_root / run_id
+        run_dir = runs_root / group_name_for_local / run_id
 
     logger.info("Resolved run directories | run_id=%s | run_dir=%s", run_id, run_dir)
 
@@ -1072,7 +1103,7 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
             if isinstance(pos_label_init, str):
                 pos_label_init = 0 if str(pos_label_init).lower() in {"default", "charged off", "charged_off"} else 1
             pos_tok_init = "co" if int(pos_label_init) == 0 else "fp"
-            default_group = f"{csv_base_init}|{split_method_init}|{pos_tok_init}"
+            default_group = f"{csv_base_init}|{split_method_init}|{pos_tok_init}|{backend_tok_init}"
             # Template context available pre-training
             try:
                 sha_init = _collect_env_metadata().get("git", {}).get("commit")
@@ -1082,6 +1113,7 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
                 "dataset": csv_base_init,
                 "split": split_method_init,
                 "pos": pos_tok_init,
+                "backend": backend_tok_init,
                 "sha": sha_init or "",
             }
             # Render group/job_type from templates if provided
@@ -1779,6 +1811,7 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
                             "h2o_leaderboard_pr": comparison_dir / "h2o_leaderboard_pr.png",
                             "h2o_model_correlation": comparison_dir / "h2o_model_correlation.png",
                             "h2o_varimp_heatmap": comparison_dir / "h2o_varimp_heatmap.png",
+                            "h2o_pareto_front": comparison_dir / "h2o_pareto_front.png",
                         }
                         for key, img_path in comparison_images.items():
                             if img_path.exists():
@@ -1799,6 +1832,9 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
                             for chart in base_charts:
                                 if chart.exists():
                                     artifact.add_file(chart.as_posix(), name=f"figures/{chart.name}")
+                            pareto_csv = Path(run_dir) / "h2o_pareto_front.csv"
+                            if pareto_csv.exists():
+                                artifact.add_file(pareto_csv.as_posix(), name="leaderboard/h2o_pareto_front.csv")
                             wandb.log_artifact(artifact)
                     except Exception:
                         pass

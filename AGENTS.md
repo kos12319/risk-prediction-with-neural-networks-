@@ -59,5 +59,5 @@ This guide adds repo‑specific guardrails and conventions that are easy to miss
 ## If You’re Lost
 - Read README.md (Quick Start, Makefile Targets).
 - If data is missing, `git lfs pull`, then update `data.csv_path` to a sample CSV under `data/raw/samples/`.
-- See `docs/ADRs/` (time split rationale and proposals) and `docs/PAIN_POINTS.md`.
+- See `docs/architecture/ADRs/` (time split rationale and proposals) and `docs/PAIN_POINTS.md`.
 - Ask for clarification before changing evaluation protocols or data handling.

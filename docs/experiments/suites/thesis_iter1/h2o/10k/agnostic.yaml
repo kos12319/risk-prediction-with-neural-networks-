@@ -1,0 +1,7 @@
+extends: ../../../../../../configs/h2o/automl
+
+automl:
+  max_runtime_secs: 1800
+  leaderboard_extra_columns: ALL
+  leaderboard_make_test: true
+  leaderboard_curve_top_n: 8

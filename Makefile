@@ -19,9 +19,10 @@ else
   SAFE_ENV := $(SAFE_BASE)
 endif
 
+
 .PHONY: help venv install train automl-h2o select clean clean-venv deps-tools deps-compile deps-sync \
-	clean-cloud-history clean-wandb-local clean-local-history clean-local-runs clean-all-local \
-	marker-install marker-pdf
+	clean-cloud-history clean-wandb-local clean-local-history clean-local-runs clean-selection-runs clean-all-local \
+	marker-install marker-pdf docs docs-canon docs-journal-new clean-docs
 
 help:
 	@echo "Targets:"
@@ -39,15 +40,20 @@ help:
 	@echo "  pull-all       Download all W&B runs into ./wandb-history/<run_id> (ENTITY/PROJECT from env/config)"
 	@echo "  clean-cloud-history Delete all W&B runs (and logged artifacts) for project (ENTITY/PROJECT from env/config; FORCE=1)"
 	@echo "  clean-local-runs Remove local run folders (local_runs/)"
+	@echo "  clean-selection-runs Remove feature selection runs (selection_runs/)"
 	@echo "  clean-wandb-local Remove local W&B folder (./wandb)"
 	@echo "  clean-local-history Remove W&B history folder (./wandb-history)"
-	@echo "  clean-all-local  Remove local_runs/, ./wandb, and ./wandb-history"
+	@echo "  clean-all-local  Remove local_runs/, selection_runs/, ./wandb, and ./wandb-history"
 	@echo "  clean-venv     Remove the .venv folder"
 	@echo "  deps-tools     Install pip-tools into the venv"
 	@echo "  deps-compile   Compile requirements.in -> requirements.txt (pinned)"
 	@echo "  deps-sync      Sync venv to requirements.txt (exact)"
 	@echo "  marker-install Install optional marker-pdf tooling"
 	@echo "  marker-pdf     Convert a PDF to Markdown (MARKER_PAPER=... [MARKER_PAGE_RANGE=... MARKER_OUTDIR=...])"
+	@echo "  docs           Build platform docs (compiled spec)"
+	@echo "  docs-canon     Build docs/architecture/PLATFORM_SPEC.md from ADRs + Journal"
+	@echo "  docs-journal-new  Create a new Journal entry (TITLE=..., [TAGS=...], [ADRS=...])"
+	@echo "  clean-docs     Remove generated docs (compiled spec)"
 
 $(VENV)/bin/activate: requirements.txt
 	@echo "Using Python: $(PYTHON_BIN)"
@@ -138,7 +144,12 @@ clean-wandb-local:
 clean-local-history:
 	rm -rf wandb-history
 
-clean-all-local: clean-local-runs clean-wandb-local clean-local-history
+clean-selection-runs:
+	@if [ -d selection_runs ]; then \
+	  find selection_runs -mindepth 1 ! -name '.gitignore' -exec rm -rf {} +; \
+	fi
+
+clean-all-local: clean-local-runs clean-selection-runs clean-wandb-local clean-local-history
 
 
 # Dependency management via pip-tools
@@ -161,3 +172,85 @@ marker-install: venv
 marker-pdf: marker-install
 	@if [ -z "$(MARKER_PAPER)" ]; then echo "Set MARKER_PAPER=path/to/file.pdf"; exit 1; fi
 	$(VENV)/bin/marker_single $(MARKER_PAPER) --output_dir $(MARKER_OUTDIR) $(if $(MARKER_PAGE_RANGE),--page_range $(MARKER_PAGE_RANGE),)
+
+
+# -----------------------------------------------------------------------------
+# Docs helpers — Canon and Journal (Makefile-first)
+# -----------------------------------------------------------------------------
+
+JOURNAL_DIR ?= docs/architecture/journal
+CANON_OUT ?= docs/architecture/PLATFORM_SPEC.md
+
+docs: docs-canon
+
+
+docs-canon:
+	@echo "Building $(CANON_OUT) from ADRs + Journal..."
+	@mkdir -p docs/architecture
+	@echo "# Platform Specification (Generated)" > $(CANON_OUT)
+	@echo >> $(CANON_OUT)
+	@echo "- Generated: $$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $(CANON_OUT)
+	@echo "- Source: docs/architecture/ADRs + $$(basename $(JOURNAL_DIR))" >> $(CANON_OUT)
+	@echo >> $(CANON_OUT)
+	@echo "## How to update" >> $(CANON_OUT)
+	@echo "- Write ADRs under docs/architecture/ADRs (accepted/proposed)." >> $(CANON_OUT)
+	@echo "- Add change entries under $(JOURNAL_DIR) (use make docs-journal-new)." >> $(CANON_OUT)
+	@echo "- Rebuild with: make docs-canon" >> $(CANON_OUT)
+	@echo >> $(CANON_OUT)
+	@echo "---" >> $(CANON_OUT)
+	@echo >> $(CANON_OUT)
+	@echo "## Decisions — Accepted" >> $(CANON_OUT)
+	@for f in $$(ls -1 docs/architecture/ADRs/accepted/*.md 2>/dev/null | sort); do \
+	  { echo; echo "### $$(basename $$f)"; echo; cat "$$f"; echo; echo "---"; } >> $(CANON_OUT); \
+	done
+	@echo >> $(CANON_OUT)
+	@echo "## Decisions — Proposed" >> $(CANON_OUT)
+	@for f in $$(ls -1 docs/architecture/ADRs/proposed/*.md 2>/dev/null | sort); do \
+	  { echo; echo "### $$(basename $$f)"; echo; cat "$$f"; echo; echo "---"; } >> $(CANON_OUT); \
+	done
+	@echo >> $(CANON_OUT)
+	@echo "## Change & Decision Journal" >> $(CANON_OUT)
+	@for f in $$(ls -1 $(JOURNAL_DIR)/*.md 2>/dev/null | sort -r); do \
+	  { echo; echo "### $$(basename $$f)"; echo; cat "$$f"; echo; echo "---"; } >> $(CANON_OUT); \
+	done
+	@echo "Wrote $(CANON_OUT)"
+
+clean-docs:
+	rm -f $(CANON_OUT)
+
+TITLE ?=
+TAGS ?=
+ADRS ?=
+
+docs-journal-new:
+	@if [ -z "$(TITLE)" ]; then echo "Set TITLE=short-title (e.g., TITLE=Adopt temporal CV for selection)"; exit 1; fi
+	@mkdir -p $(JOURNAL_DIR)
+	@slug=$$(echo "$(TITLE)" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+|-+$$//g'); \
+	file="$(JOURNAL_DIR)/$$(date +%Y-%m-%d)-$${slug}.md"; \
+	{
+	  echo "# $(TITLE)"; \
+	  echo; \
+	  echo "- Date: $$(date +%Y-%m-%d)"; \
+	  echo "- Status: planned"; \
+	  if [ -n "$(TAGS)" ]; then echo "- Tags: $(TAGS)"; fi; \
+	  echo; \
+	  echo "## Summary"; \
+	  echo "<one to three sentences about what changed and why>."; \
+	  echo; \
+	  if [ -n "$(ADRS)" ]; then \
+	    echo "## ADRs"; \
+	    IFS=','; for a in $(ADRS); do \
+	      an=$$(echo $$a | sed -E 's/^0*([0-9]+)/\1/'); \
+	      printf -- "- %s — see docs/ADRs (search for %s)\n" "$$a" "$$a"; \
+	    done; \
+	    echo; \
+	  fi; \
+	  echo "## Impact"; \
+	  echo "- configs: (list keys)"; \
+	  echo "- Make: (list targets)"; \
+	  echo "- code: (paths e.g., src/... )"; \
+	  echo; \
+	  echo "## Next"; \
+	  echo "- (optional follow-ups)"; \
+	} > "$$file"; \
+	printf "Created %s\n" "$$file"
