@@ -7,6 +7,9 @@ model:
   backend: h2o
 
 automl:
+  progress: false
+  log_level: WARN
+  suppress_dependency_warnings: true
   max_runtime_secs: 60
   max_models: null
   balance_classes: false

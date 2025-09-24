@@ -137,7 +137,7 @@
 ## H2O AutoML
 - Switch the backend by setting `model.backend: h2o` in your YAML (see `configs/h2o/automl.yaml` for a ready-to-run example that extends the default config).
 - Additional AutoML presets live under `configs/h2o/` (e.g., `feature_selection.yaml` for GBM/XGBoost-only sweeps).
-- Configure AutoML behaviour via the `automl` block: `max_runtime_secs`, `max_models`, `balance_classes`, `include_algos`/`exclude_algos`, `seed`, `nthreads`, `max_mem_size`, and optional `export_checkpoints_dir` and `log_dir`. All inputs are respected by the `make automl-h2o` target.
+- Configure AutoML behaviour via the `automl` block: `progress` (set `true` to re-enable the CLI progress bar), `log_level` (defaults to `WARN` on the JVM side), `suppress_dependency_warnings` (hides repetitive `H2ODependencyWarning` chatter by default), `max_runtime_secs`, `max_models`, `balance_classes`, `include_algos`/`exclude_algos`, `seed`, `nthreads`, `max_mem_size`, and optional `export_checkpoints_dir` and `log_dir`. All inputs are respected by the `make automl-h2o` target.
 - On Apple Silicon laptops with 16 GB unified memory the full ~1.5 GB LendingClub CSV fits comfortably; set `automl.max_mem_size` to roughly `8g-10g` so the JVM has headroom while leaving space for macOS and Python. On smaller machines, keep the sample CSV or downsample to avoid garbage-collection churn.
 - Preprocessing, train/val/test splits, oversampling, threshold selection, and metric computation follow the same pipeline as the neural-network backend—only the estimator swaps to H2O AutoML under the hood.
 - AutoML runs emit the standard artifact set plus an `h2o_leaderboard.csv` and a zipped H2O model (`loan_default_model.zip` by default) inside the run folder for portability.

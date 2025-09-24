@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import shutil
+import warnings
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -33,6 +34,10 @@ def train_h2o(
     import matplotlib.pyplot as plt
     from sklearn.metrics import precision_recall_curve, roc_curve
     from h2o.automl import H2OAutoML
+    try:
+        from h2o.exceptions import H2ODependencyWarning  # type: ignore
+    except Exception:  # pragma: no cover - older h2o versions
+        H2ODependencyWarning = None  # type: ignore
 
     feature_list = [str(f) for f in feature_names] if len(feature_names) else [f"feature_{i}" for i in range(X_train_np.shape[1])]
 
@@ -76,10 +81,36 @@ def train_h2o(
         default_log_dir.mkdir(parents=True, exist_ok=True)
         init_kwargs["log_dir"] = default_log_dir.as_posix()
 
+    log_level_cfg = automl_cfg.get("log_level")
+    allowed_levels = {"TRACE", "DEBUG", "INFO", "WARN", "ERRR", "FATA"}
+    if log_level_cfg:
+        level_val = str(log_level_cfg).upper()
+        if level_val not in allowed_levels:
+            logger.warning("Unsupported H2O log level '%s'; falling back to WARN", level_val)
+            init_kwargs["log_level"] = "WARN"
+        else:
+            init_kwargs["log_level"] = level_val
+    else:
+        init_kwargs["log_level"] = "WARN"
+
     logger.info("Connecting to H2O with args=%s", init_kwargs)
     conn = h2o.init(**init_kwargs)
     try:
         h2o.remove_all()
+
+        try:
+            if bool(automl_cfg.get("progress", False)):
+                h2o.show_progress()
+            else:
+                h2o.no_progress()
+        except Exception as exc:
+            logger.warning("Failed to toggle H2O progress display: %s", exc)
+
+        if bool(automl_cfg.get("suppress_dependency_warnings", True)) and H2ODependencyWarning is not None:
+            try:
+                warnings.filterwarnings("ignore", category=H2ODependencyWarning)
+            except Exception:
+                pass
 
         train_hf = h2o.H2OFrame(train_df)
         val_hf = h2o.H2OFrame(val_df) if val_df is not None else None
