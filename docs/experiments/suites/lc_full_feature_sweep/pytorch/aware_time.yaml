@@ -1,0 +1,7 @@
+extends: ../../../../configs/pytorch/provider_aware
+
+data:
+  csv_path: data/raw/full/thesis_data_full.csv
+
+# provider_aware already sets time-based split; keep defaults
+

@@ -2,6 +2,7 @@ numpy
 pandas
 scikit-learn
 imbalanced-learn
+--find-links https://h2o-release.s3.amazonaws.com/h2o/latest_stable_Py.html
 h2o
 pytest
 PyYAML

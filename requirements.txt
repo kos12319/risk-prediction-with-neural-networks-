@@ -4,6 +4,8 @@
 #
 #    pip-compile --cert=None --client-cert=None --index-url=None --output-file=requirements.txt --pip-args=None requirements.in
 #
+--find-links https://h2o-release.s3.amazonaws.com/h2o/latest_stable_Py.html
+
 annotated-types==0.7.0
     # via pydantic
 certifi==2025.8.3

@@ -1,0 +1,18 @@
+extends: ../../../../configs/h2o/full_dataset
+
+data:
+  # L1 logistic subset from docs/feature_selection/2025-09-23_10k_selection_report.md
+  features:
+    - addr_state
+    - term
+    - home_ownership
+    - emp_length
+    - verification_status
+    - dti
+    - purpose
+    - inq_last_6mths
+    - loan_amnt
+    - fico_range_high
+    - fico_range_low
+    - revol_bal
+

@@ -1,0 +1,11 @@
+extends: ../../../../configs/pytorch/default_mi_subset
+
+data:
+  csv_path: data/raw/full/thesis_data_full.csv
+
+split:
+  method: time
+  time_col: issue_d
+  test_size: 0.2
+  random_state: 42
+

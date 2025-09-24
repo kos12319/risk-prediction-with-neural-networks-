@@ -1,0 +1,8 @@
+extends: ../../../../configs/pytorch/default_full
+
+split:
+  method: time
+  time_col: issue_d
+  test_size: 0.2
+  random_state: 42
+

@@ -1,0 +1,10 @@
+extends: ../../../../configs/pytorch/provider_aware
+
+data:
+  csv_path: data/raw/full/thesis_data_full.csv
+
+split:
+  method: random
+  test_size: 0.2
+  random_state: 42
+

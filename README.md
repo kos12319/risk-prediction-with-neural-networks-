@@ -216,6 +216,7 @@
 - This repo uses pip-tools with a two-file setup:
   - `requirements.in` — human-edited top-level deps (loose pins allowed)
   - `requirements.txt` — compiled, fully pinned lockfile
+  - Note on H2O: we pin the H2O Python package and also include a find-links source for the latest stable H2O releases. See the top of `requirements.in` and `requirements.txt` for `--find-links https://h2o-release.s3.amazonaws.com/h2o/latest_stable_Py.html`. This ensures the Python client and the bundled backend jar are kept in sync with H2O’s stable channel during installs.
 - Typical workflow:
   - Edit `requirements.in`
   - Install tools: `make deps-tools`

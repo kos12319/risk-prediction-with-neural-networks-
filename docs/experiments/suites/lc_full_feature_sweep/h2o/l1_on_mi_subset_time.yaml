@@ -1,0 +1,18 @@
+extends: ../../../../configs/h2o/full_dataset
+
+data:
+  # L1-on-MI subset from docs/feature_selection/2025-09-23_10k_selection_report.md
+  features:
+    - addr_state
+    - term
+    - home_ownership
+    - verification_status
+    - dti
+    - purpose
+    - emp_length
+    - total_bc_limit
+    - fico_range_high
+    - fico_range_low
+    - loan_amnt
+    - bc_open_to_buy
+

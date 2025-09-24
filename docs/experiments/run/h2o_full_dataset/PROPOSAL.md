@@ -11,6 +11,10 @@
 - Capture a leaderboard with extended diagnostics (test-set scores, curve data) and SHAP-style summaries for interpretability.
 - Produce artifacts suitable for later comparison against PyTorch baselines, including W&B logs, H2O checkpoints, and evaluation reports.
 
+## Next Run Notes
+- The prior attempt hit the AutoML runtime cap before deep learning grids converged and cancelled several GBM sweeps. Bump `automl.max_runtime_secs` to at least 14,400 (4h) or relax it to `0` when compute allows so late-stage models finish.
+- Install the `xgboost` Python wheel (or add the optional system dependency) ahead of launch so H2O can include XGBoost models rather than skipping them at startup.
+
 ## Configuration
 - Config path: `configs/h2o/full_dataset.yaml`
 - Key settings:
