@@ -14,7 +14,7 @@ def main():
     parser = argparse.ArgumentParser(description="Delete W&B runs and their logged artifacts for a project")
     parser.add_argument("--entity", default=None, help="W&B entity/org (falls back to env/config)")
     parser.add_argument("--project", default=None, help="W&B project (falls back to env/config)")
-    parser.add_argument("--config", default="configs/default.yaml", help="Config path to resolve defaults")
+    parser.add_argument("--config", default="configs/pytorch_default.yaml", help="Config path to resolve defaults")
     parser.add_argument("--runs-only", action="store_true", help="Delete runs only, keep artifacts")
     parser.add_argument("--yes", action="store_true", help="Confirm deletion without prompt")
     args = parser.parse_args()

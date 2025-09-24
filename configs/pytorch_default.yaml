@@ -201,7 +201,7 @@ tracking:
     entity: null             # optional W&B entity/org
     mode: online             # online | offline | disabled
     run_name: null           # optional explicit name
-    run_name_template: "{dataset}|{split}|{pos}|mlp[{layers}]|nf{nf}|auc{auc:.3f}"  # used if run_name is null
+    run_name_template: "{dataset}|{split}|{pos}|mlp[{layers}]|nc{nc}|auc{auc:.3f}"  # used if run_name is null
     group: null              # optional W&B group
     group_template: "{dataset}|{split}|{pos}|{backend}"   # used if group is null
     job_type: train          # optional W&B job_type (e.g., train, eval)
@@ -212,7 +212,7 @@ tracking:
       - "split:{split}"
       - "pos:{pos}"
       - "backend:{backend}"
-      - "nf:{nf}"
+      - "nc:{nc}"
       - "auc:{auc:.3f}"
     log_artifacts: true      # upload key run artifacts
     ignore_globs:            # reduce uploads; keeps metrics/figures/config only

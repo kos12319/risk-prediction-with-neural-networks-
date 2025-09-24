@@ -29,16 +29,30 @@ def save_metrics(metrics: Dict, path: str | Path):
 
 
 def plot_learning_curves(history, out_path: str | Path):
+    """Save learning curves when history is available.
+
+    For non-epoch backends (e.g., H2O AutoML), the history is empty. In that case
+    we still save a small annotated figure so downstream docs don’t show a blank
+    chart.
+    """
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)
     plt.figure(figsize=(10, 6))
-    if "loss" in history.history:
+    has_tr = bool(history.history.get("loss"))
+    has_va = bool(history.history.get("val_loss"))
+    if has_tr:
         plt.plot(history.history["loss"], label="Training Loss")
-    if "val_loss" in history.history:
+    if has_va:
         plt.plot(history.history["val_loss"], label="Validation Loss")
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
     plt.title("Learning Curves")
-    plt.legend()
+    if has_tr or has_va:
+        plt.legend()
+    else:
+        # Annotate that curves are not applicable for this backend
+        plt.text(0.5, 0.5, "N/A for this backend (no per-epoch history)",
+                 ha="center", va="center", transform=plt.gca().transAxes,
+                 fontsize=11, color="#555555")
     plt.tight_layout()
     plt.savefig(out_path)
     plt.close()

@@ -12,7 +12,7 @@ from src.training.pipeline import load_config_with_extends  # reuse config loade
 def main():
     parser = argparse.ArgumentParser(description="Download W&B run files into ./wandb/<run_id> using the W&B Python API")
     parser.add_argument("--run", required=True, help="Run selector: entity/project/run_id | project/run_id | run_id")
-    parser.add_argument("--config", default="configs/default.yaml", help="Config to resolve defaults (entity/project)")
+    parser.add_argument("--config", default="configs/pytorch_default.yaml", help="Config to resolve defaults (entity/project)")
     parser.add_argument("--force", action="store_true", help="Overwrite existing contents in the target folder (default: overwrite)")
     parser.add_argument("--skip-existing", action="store_true", help="Skip existing files instead of overwriting")
     args = parser.parse_args()

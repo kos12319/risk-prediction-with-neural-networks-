@@ -791,6 +791,77 @@ def _deep_merge(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any
     return out
 
 
+_TRUE_SET = {"1", "true", "yes", "on", "enabled"}
+_FALSE_SET = {"0", "false", "no", "off", "disabled"}
+
+
+def _env_flag(name: str) -> Optional[bool]:
+    raw = os.environ.get(name)
+    if raw is None or not str(raw).strip():
+        return None
+    val = str(raw).strip().lower()
+    if val in _TRUE_SET:
+        return True
+    if val in _FALSE_SET:
+        return False
+    logger.warning("Ignoring invalid boolean override %s=%r", name, raw)
+    return None
+
+
+def _env_float(name: str) -> Optional[float]:
+    raw = os.environ.get(name)
+    if raw is None or not str(raw).strip():
+        return None
+    try:
+        return float(str(raw).strip())
+    except ValueError:
+        logger.warning("Ignoring invalid float override %s=%r", name, raw)
+        return None
+
+
+def _env_float_list(name: str) -> Optional[List[float]]:
+    raw = os.environ.get(name)
+    if raw is None or not str(raw).strip():
+        return None
+    try:
+        parts = [seg.strip() for seg in str(raw).replace(";", ",").split(",") if seg.strip()]
+        if not parts:
+            return []
+        return [float(seg) for seg in parts]
+    except ValueError:
+        logger.warning("Ignoring invalid float list override %s=%r", name, raw)
+        return None
+
+
+def _apply_env_overrides(cfg: Dict[str, Any]) -> None:
+    os_cfg = cfg.setdefault("oversampling", {})
+    os_enabled = _env_flag("PIPELINE_OVERSAMPLING_ENABLED")
+    if os_enabled is not None:
+        os_cfg["enabled"] = os_enabled
+        logger.info("Overriding oversampling.enabled via PIPELINE_OVERSAMPLING_ENABLED=%s", os_enabled)
+    os_method = os.environ.get("PIPELINE_OVERSAMPLING_METHOD")
+    if os_method:
+        os_cfg["method"] = os_method
+        logger.info("Overriding oversampling.method via PIPELINE_OVERSAMPLING_METHOD=%s", os_method)
+
+    automl_cfg = cfg.setdefault("automl", {})
+    balance_flag = _env_flag("H2O_BALANCE_CLASSES")
+    if balance_flag is not None:
+        automl_cfg["balance_classes"] = balance_flag
+        logger.info("Overriding H2O balance_classes via H2O_BALANCE_CLASSES=%s", balance_flag)
+    max_after = _env_float("H2O_MAX_AFTER_BALANCE_SIZE")
+    if max_after is not None:
+        automl_cfg["max_after_balance_size"] = max_after
+        logger.info(
+            "Overriding H2O max_after_balance_size via H2O_MAX_AFTER_BALANCE_SIZE=%s",
+            max_after,
+        )
+    class_factors = _env_float_list("H2O_CLASS_SAMPLING_FACTORS")
+    if class_factors is not None:
+        automl_cfg["class_sampling_factors"] = class_factors
+        logger.info("Overriding H2O class_sampling_factors via H2O_CLASS_SAMPLING_FACTORS")
+
+
 def _file_sha256(path: Path, chunk_size: int = 1024 * 1024) -> str:
     h = hashlib.sha256()
     with open(path, "rb") as f:
@@ -832,6 +903,7 @@ def load_config_with_extends(cfg_path: Path) -> Dict[str, Any]:
 def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
     cfg_path = Path(cfg_path)
     cfg = load_config_with_extends(cfg_path)
+    _apply_env_overrides(cfg)
     logger.info("Starting training pipeline | config=%s", cfg_path)
 
     data_cfg = cfg["data"]
@@ -890,6 +962,18 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
         figures_dir = Path(out_cfg["figures_dir"]).resolve()
         runs_root = Path(out_cfg.get("runs_root", reports_dir / "runs")).resolve()
         run_dir = runs_root / group_name_for_local / run_id
+
+    # Ensure uniqueness if multiple runs start within the same second
+    try:
+        if run_dir.exists():
+            base = run_id
+            idx = 1
+            while run_dir.exists():
+                run_id = f"{base}_{idx:02d}"
+                run_dir = runs_root / group_name_for_local / run_id
+                idx += 1
+    except Exception:
+        pass
 
     logger.info("Resolved run directories | run_id=%s | run_dir=%s", run_id, run_dir)
 
@@ -1550,34 +1634,7 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
     except Exception:
         pass
 
-    # Save history CSV
-    try:
-        import csv as _csv
-        hist_csv = run_dir / "history.csv"
-        with open(hist_csv, "w", newline="", encoding="utf-8") as hf:
-            writer = _csv.writer(hf)
-            writer.writerow(["epoch", "loss", "val_loss"])
-            tr = history_obj.history.get("loss", [])
-            va = history_obj.history.get("val_loss", [])
-            for i in range(max(len(tr), len(va))):
-                l = tr[i] if i < len(tr) else ""
-                vl = va[i] if i < len(va) else ""
-                writer.writerow([i + 1, l, vl])
-    except Exception:
-        pass
-    # Save verbose training log (per-epoch)
-    try:
-        ep_stats = result.get("epoch_stats") if isinstance(result, dict) else None
-        if ep_stats:
-            log_path = run_dir / "training.log"
-            with open(log_path, "w", encoding="utf-8") as lf:
-                lf.write("epoch,loss,val_loss,val_auc,lr,time_sec\n")
-                for s in ep_stats:
-                    lf.write(
-                        f"{s.get('epoch')},{s.get('loss')},{s.get('val_loss')},{s.get('val_auc')},{s.get('lr')},{s.get('time_sec')}\n"
-                    )
-    except Exception:
-        pass
+    # Omit writing per-epoch history/stats files to the run directory
     # Compute model size for summary table
     try:
         _model_size = int((run_dir / model_path.name).stat().st_size)
@@ -1665,6 +1722,8 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
     ]
     if model_backend == "h2o":
         artifacts_section.append("- H2O leaderboard: `h2o_leaderboard.csv`")
+        artifacts_section.append("- Per-family feature importance: `figures/comparison/per_family_varimp/`, CSVs under `varimp_per_family/`")
+        artifacts_section.append("- Leader partial dependence: `figures/explanations/partial_dependence/`, CSVs under `partial_dependence/`")
     artifacts_section.extend([
         "",
         "## Notes",
@@ -1817,6 +1876,32 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
                             if img_path.exists():
                                 wandb.log({key: wandb.Image(str(img_path))})
 
+                        per_family_entries = []
+                        partial_entries = []
+                        if isinstance(result, dict):
+                            per_family_entries = result.get("per_family_varimp") or []
+                            partial_entries = result.get("partial_dependence") or []
+
+                        for entry in per_family_entries:
+                            plot_path = entry.get("plot_path")
+                            if not plot_path:
+                                continue
+                            path_obj = Path(plot_path)
+                            if not path_obj.exists():
+                                continue
+                            algo_label = str(entry.get("algo", "family")).replace(" ", "_") or "family"
+                            wandb.log({f"h2o_varimp_{algo_label}": wandb.Image(str(path_obj))})
+
+                        for entry in partial_entries:
+                            plot_path = entry.get("plot_path")
+                            if not plot_path:
+                                continue
+                            path_obj = Path(plot_path)
+                            if not path_obj.exists():
+                                continue
+                            feature_label = str(entry.get("feature", "feature")).replace(" ", "_") or "feature"
+                            wandb.log({f"h2o_partial_{feature_label}": wandb.Image(str(path_obj))})
+
                         if wandb.run is not None:
                             artifact = wandb.Artifact(name=f"h2o-comparison-{run_id}", type="analysis")
                             if lb_path_str:
@@ -1835,6 +1920,22 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
                             pareto_csv = Path(run_dir) / "h2o_pareto_front.csv"
                             if pareto_csv.exists():
                                 artifact.add_file(pareto_csv.as_posix(), name="leaderboard/h2o_pareto_front.csv")
+                            for entry in per_family_entries:
+                                csv_path = entry.get("csv_path")
+                                plot_path = entry.get("plot_path")
+                                algo_label = str(entry.get("algo", "family")).replace(" ", "_") or "family"
+                                if csv_path and Path(csv_path).exists():
+                                    artifact.add_file(str(csv_path), name=f"leaderboard/varimp_per_family/{algo_label}.csv")
+                                if plot_path and Path(plot_path).exists():
+                                    artifact.add_file(str(plot_path), name=f"figures/per_family_varimp/{Path(plot_path).name}")
+                            for entry in partial_entries:
+                                csv_path = entry.get("csv_path")
+                                plot_path = entry.get("plot_path")
+                                feature_label = str(entry.get("feature", "feature")).replace(" ", "_") or "feature"
+                                if csv_path and Path(csv_path).exists():
+                                    artifact.add_file(str(csv_path), name=f"analysis/partial_dependence/{feature_label}.csv")
+                                if plot_path and Path(plot_path).exists():
+                                    artifact.add_file(str(plot_path), name=f"figures/partial_dependence/{Path(plot_path).name}")
                             wandb.log_artifact(artifact)
                     except Exception:
                         pass
@@ -1900,7 +2001,10 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
                 csv_base = Path(str(data_cfg.get("csv_path", ""))).stem
                 split_method = split_cfg.get("method", "time")
                 pos_tok = "co" if int(pos_label_cfg) == 0 else "fp"
+                # Encoded feature count (post-preprocessing)
                 nf = int(X_train_np.shape[1])
+                # Raw column count used as inputs (pre-encoding)
+                nc = int(len(feature_inputs))
                 auc = float(metrics.get("roc_auc", float("nan")))
                 backend_tok = str(model_backend)
                 layers_val = model_cfg.get("layers") if model_backend == "pytorch" else None
@@ -1931,6 +2035,7 @@ def train_from_config(cfg_path: str | Path, notes: Optional[str] = None):
                     "pos": pos_tok,
                     "layers": layers_str,
                     "nf": nf,
+                    "nc": nc,
                     "auc": auc,
                     "sha": sha or "",
                     "run_id": run_id,

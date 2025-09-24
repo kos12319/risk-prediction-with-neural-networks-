@@ -19,7 +19,7 @@ def main() -> None:
     parser.add_argument(
         "--config",
         type=str,
-        default="configs/default.yaml",
+        default="configs/pytorch_default.yaml",
         help="Path to YAML config (will be extended by a temporary override)",
     )
     args = parser.parse_args()

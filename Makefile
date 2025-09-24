@@ -6,7 +6,11 @@ PY := $(VENV)/bin/python
 PIP := $(VENV)/bin/pip
 PIP_COMPILE := $(VENV)/bin/pip-compile
 PIP_SYNC := $(VENV)/bin/pip-sync
-AUTOML_CONFIG ?= configs/h2o/automl.yaml
+AUTOML_CONFIG ?= configs/default_automl.yaml
+H2O_BALANCE ?= 1
+H2O_OVERSAMPLING ?= 0
+H2O_MAX_AFTER_BALANCE ?=
+H2O_CLASS_SAMPLING_FACTORS ?=
 
 # Detect architecture to avoid forcing OPENBLAS_CORETYPE on non-ARM Macs (causes OMP SHM errors)
 MACHINE := $(shell uname -m)
@@ -22,7 +26,7 @@ endif
 
 .PHONY: help venv install train automl-h2o select clean clean-venv deps-tools deps-compile deps-sync \
 	clean-cloud-history clean-wandb-local clean-local-history clean-local-runs clean-selection-runs clean-all-local \
-	marker-install marker-pdf docs docs-canon docs-journal-new clean-docs
+	marker-install marker-pdf docs docs-canon docs-journal-new clean-docs refresh-h2o-figures
 
 help:
 	@echo "Targets:"
@@ -66,14 +70,52 @@ venv: $(VENV)/bin/activate
 
 install: venv
 
-# Usage: make train CONFIG=configs/default.yaml (PyTorch backend only; use automl-h2o for H2O AutoML)
-CONFIG ?= configs/default.yaml
+# Usage: make train CONFIG=configs/pytorch_default.yaml (PyTorch backend only; use automl-h2o for H2O AutoML)
+CONFIG ?= configs/pytorch_default.yaml
 train: venv
-	$(SAFE_ENV) $(PY) -m src.cli train --config $(CONFIG) $(if $(NOTES),--notes "$(NOTES)",) $(if $(PULL),--pull,)
+	@mkdir -p local_runs
+	@echo "Starting PyTorch training in a background shell."; \
+	$(SAFE_ENV) $(PY) -m src.cli train --config $(CONFIG) $(if $(NOTES),--notes "$(NOTES)",) $(if $(PULL),--pull,) & \
+	PID=$$!; \
+	trap 'echo "Interrupt received; stopping PyTorch training (PID $$PID)..."; kill $$PID 2>/dev/null; wait $$PID; exit 130' INT TERM; \
+	echo "PyTorch training started (PID $$PID). Waiting for completion..."; \
+	if wait $$PID; then \
+	  trap - INT TERM; \
+	  echo "PyTorch training finished successfully."; \
+	else \
+	  STATUS=$$?; \
+	  trap - INT TERM; \
+	  echo "PyTorch training failed with exit code $$STATUS."; \
+	  exit $$STATUS; \
+	fi
 
-# Usage: make automl-h2o [AUTOML_CONFIG=configs/h2o/automl.yaml]
+# Usage: make automl-h2o [AUTOML_CONFIG=configs/default_automl.yaml]
 automl-h2o: venv
-	$(SAFE_ENV) $(PY) -m src.cli.automl_h2o --config $(AUTOML_CONFIG) $(if $(NOTES),--notes "$(NOTES)",) $(if $(PULL),--pull,)
+	@mkdir -p local_runs
+	@echo "Starting H2O AutoML training in a background shell."; \
+	H2O_BALANCE_CLASSES=$(H2O_BALANCE) \
+	PIPELINE_OVERSAMPLING_ENABLED=$(H2O_OVERSAMPLING) \
+	H2O_MAX_AFTER_BALANCE_SIZE=$(H2O_MAX_AFTER_BALANCE) \
+	H2O_CLASS_SAMPLING_FACTORS=$(H2O_CLASS_SAMPLING_FACTORS) \
+	$(SAFE_ENV) $(PY) -m src.cli.automl_h2o --config $(AUTOML_CONFIG) $(if $(NOTES),--notes "$(NOTES)",) $(if $(PULL),--pull,) & \
+	PID=$$!; \
+	trap 'echo "Interrupt received; stopping H2O AutoML training (PID $$PID)..."; kill $$PID 2>/dev/null; wait $$PID; exit 130' INT TERM; \
+	echo "H2O AutoML training started (PID $$PID). Waiting for completion..."; \
+	if wait $$PID; then \
+	  trap - INT TERM; \
+	  echo "H2O AutoML training finished successfully."; \
+	else \
+	  STATUS=$$?; \
+	  trap - INT TERM; \
+	  echo "H2O AutoML training failed with exit code $$STATUS."; \
+	  exit $$STATUS; \
+	fi
+
+# Usage: make refresh-h2o-figures RUN_DIR=local_runs/<...>/run_<timestamp>
+RUN_DIR ?=
+refresh-h2o-figures: venv
+	@if [ -z "$(RUN_DIR)" ]; then echo "Set RUN_DIR=path/to/run_dir (containing h2o_leaderboard.csv)"; exit 1; fi
+	$(SAFE_ENV) $(PY) -m src.cli.refresh_h2o_figures --run-dir "$(RUN_DIR)"
 
 # CPU-only training helper (good for Linux/WSL/CI)
 cpu-train: venv
@@ -87,22 +129,22 @@ cpu-train: venv
 	MPLBACKEND=Agg \
 	$(PY) -m src.cli.train --config $(CONFIG) --cpu $(if $(NOTES),--notes "$(NOTES)",) $(if $(PULL),--pull,)
 
-# Usage: make select CONFIG=configs/default.yaml METHOD=mi
+# Usage: make select CONFIG=configs/pytorch_default.yaml METHOD=mi
 METHOD ?= mi
 select: venv
 	$(PY) -m src.cli.select --config $(CONFIG) --method $(METHOD)
 
-# Usage: make dict CONFIG=configs/default.yaml CSV=data/raw/samples/first_10k_rows.csv
+# Usage: make dict CONFIG=configs/pytorch_default.yaml CSV=data/raw/samples/first_10k_rows.csv
 CSV ?=
 dict: venv
 	$(PY) -m src.cli.gen_column_dict --config $(CONFIG) $(if $(CSV),--csv $(CSV),)
 
-# Usage: make explore CONFIG=configs/default.yaml [CSV=data/raw/full/thesis_data_full.csv]
+# Usage: make explore CONFIG=configs/pytorch_default.yaml [CSV=data/raw/full/thesis_data_full.csv]
 CSV ?=
 explore: venv
 	$(SAFE_ENV) $(PY) -m src.cli.explore --config $(CONFIG) $(if $(CSV),--csv $(CSV),)
 
-# Usage: make dryrun CONFIG=configs/default.yaml
+# Usage: make dryrun CONFIG=configs/pytorch_default.yaml
 dryrun: venv
 	$(SAFE_ENV) $(PY) -m src.cli.dryrun --config $(CONFIG)
 
@@ -117,7 +159,7 @@ pull-run: venv
 	@if [ -z "$(RUN)" ]; then echo "Set RUN=entity/project/run_id | project/run_id | run_id (use pull-all to sync a project)"; exit 1; fi
 	$(PY) -m src.cli.wandb_pull --run $(RUN) --config $(CONFIG) $(if $(FORCE),--force,)
 
-# Usage: make pull-all [ENTITY=...] [PROJECT=...] [CONFIG=configs/default.yaml]
+# Usage: make pull-all [ENTITY=...] [PROJECT=...] [CONFIG=configs/pytorch_default.yaml]
 ENTITY ?=
 PROJECT ?=
 FORCE ?=

@@ -1,4 +1,4 @@
-extends: ../default
+extends: pytorch_default
 
 # Provider-aware: include lender-derived pricing/scoring fields on top of the default feature set.
 

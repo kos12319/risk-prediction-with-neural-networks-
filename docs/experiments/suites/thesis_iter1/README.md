@@ -18,9 +18,14 @@ Makefile-first commands (examples):
 - `make automl-h2o AUTOML_CONFIG=docs/experiments/suites/thesis_iter1/h2o/1k/aware.yaml`
 - `make automl-h2o AUTOML_CONFIG=docs/experiments/suites/thesis_iter1/h2o/1k/selected_plus_providers.yaml`
 
+Helper scripts (from repo root):
+- 1k: `./docs/experiments/suites/thesis_iter1/run_1k_sweep.sh [-n "notes"] [--pull]`
+- 10k: `./docs/experiments/suites/thesis_iter1/run_10k_sweep.sh [-n "notes"] [--pull]`
+- 100k: `./docs/experiments/suites/thesis_iter1/run_100k_sweep.sh [-n "notes"] [--pull]`
+- full: `./docs/experiments/suites/thesis_iter1/run_full_sweep.sh [-n "notes"] [--pull]`
+
 3) Scale up (10k, 100k, full) using analogous configs under `h2o/<size>/`.
 
 Notes:
 - Ensure dataset paths exist locally (see README about LFS and samples). The 100k CSV may need to be unzipped to `data/raw/samples/thesis_data_sample_100k.csv`.
 - For stability: keep time-based split and `eval.pos_label: 0` across all runs.
-

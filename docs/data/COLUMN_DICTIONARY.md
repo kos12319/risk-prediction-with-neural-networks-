@@ -4,7 +4,7 @@ This dictionary is generated from a sample of the unzipped dataset (`data/raw/sa
 
 - Type is inferred from pandas dtypes with date parsing per config, and marked `unknown` when non-null coverage < 5%.
 - Missing % is the fraction of rows with null/empty values (0.0–100.0).
-- Leaks Target = Yes if the column is listed under `data.leakage_cols` in `configs/default.yaml` (post‑origination information).
+- Leaks Target = Yes if the column is listed under `data.leakage_cols` in `configs/pytorch_default.yaml` (post‑origination information).
 - Values: ranges for numeric/date; top categories for strings (up to 10).
 
 | Column | Type | Missing % | Leaks Target | Description | Values |

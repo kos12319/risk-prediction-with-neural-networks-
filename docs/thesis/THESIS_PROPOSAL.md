@@ -61,6 +61,10 @@ Each experiment yields artifacts in `local_runs/` (metrics, curves, config snaps
 - Offers room for advanced extensions (survival modeling, reject inference, fairness, conformal calibration) if scope and time permit.
 
 ## Next Steps
+### Current Iteration
+- See docs/thesis/THESIS_PROPOSAL_ITERATION_1.md for the first iteration plan focused on feature set optimization with H2O.
+- Experiment configs live under docs/experiments/suites/thesis_iter1/ (1k, 10k, 100k, full; agnostic/selected/aware/selected_plus_providers).
+
 1. Finalize the experiment calendar and resource plan (compute budget, expected runtime per config).
 2. Prioritize feature stability and calibration experiments to produce early thesis figures.
 3. Decide on optional extensions (e.g., reject inference, survival) based on available time after core deliverables.

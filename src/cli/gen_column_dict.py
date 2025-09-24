@@ -95,7 +95,7 @@ def generate_column_dictionary(
         f"This dictionary is generated from a sample of the unzipped dataset (`{csv_path.as_posix()}`).\n\n"
         "- Type is inferred from pandas dtypes with date parsing per config, and marked `unknown` when non-null coverage < 5%.\n"
         "- Missing % is the fraction of rows with null/empty values (0.0–100.0).\n"
-        "- Leaks Target = Yes if the column is listed under `data.leakage_cols` in `configs/default.yaml` (post‑origination information).\n"
+        "- Leaks Target = Yes if the column is listed under `data.leakage_cols` in `configs/pytorch_default.yaml` (post‑origination information).\n"
         "- Values: ranges for numeric/date; top categories for strings (up to 10).\n\n"
         "| Column | Type | Missing % | Leaks Target | Description | Values |\n"
         "|---|---:|---:|---:|---|---|\n"
@@ -150,7 +150,7 @@ def generate_column_dictionary(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate a column dictionary Markdown table from a CSV")
-    parser.add_argument("--config", type=str, default="configs/default.yaml", help="Path to YAML config with data settings")
+    parser.add_argument("--config", type=str, default="configs/pytorch_default.yaml", help="Path to YAML config with data settings")
     parser.add_argument("--csv", type=str, default="", help="Override CSV path (else uses config data.csv_path)")
     parser.add_argument("--out", type=str, default="docs/data/COLUMN_DICTIONARY.md", help="Output Markdown path")
     parser.add_argument("--rows", type=int, default=5000, help="Sample row count (0 = all)")

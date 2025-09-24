@@ -57,7 +57,7 @@ data:
     - earliest_cr_line
 
 automl:
-  max_runtime_secs: 600
+  max_runtime_secs: 0  # disable time budget for reruns
   leaderboard_extra_columns: ALL
   leaderboard_make_test: true
   leaderboard_curve_top_n: 5

@@ -37,7 +37,7 @@ def main():
     parser.add_argument("--entity", default=None, help="W&B entity/org (falls back to WANDB_ENTITY)")
     parser.add_argument("--project", default=None, help="W&B project (falls back to WANDB_PROJECT or config tracking.wandb.project)")
     parser.add_argument("--target-root", default=None, help="Root directory for downloads (defaults to output.runs_root from config)")
-    parser.add_argument("--config", default="configs/default.yaml", help="Config path to resolve defaults")
+    parser.add_argument("--config", default="configs/pytorch_default.yaml", help="Config path to resolve defaults")
     parser.add_argument(
         "--skip-existing",
         action="store_true",

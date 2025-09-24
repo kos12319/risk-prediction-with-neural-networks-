@@ -278,7 +278,7 @@ def _compute_psi_categorical(df: pd.DataFrame, cat_cols: List[str], early_mask: 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Explore dataset: class balance, missingness, distributions, MI")
-    parser.add_argument("--config", type=str, default="configs/default.yaml", help="Path to YAML config")
+    parser.add_argument("--config", type=str, default="configs/pytorch_default.yaml", help="Path to YAML config")
     parser.add_argument("--csv", type=str, default=None, help="Optional CSV override (defaults to config data.csv_path)")
     args = parser.parse_args()
 

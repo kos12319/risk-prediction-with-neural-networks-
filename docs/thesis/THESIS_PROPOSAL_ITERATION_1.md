@@ -36,8 +36,8 @@
 - Selection on 1k via `make select` (MI and/or L1); record `selected_features`.
 - H2O AutoML runs with moderate budget (e.g., 600s) to ensure convergence on small data.
 - Commands (Makefile-first):
-  - `make select CONFIG=configs/default.yaml METHOD=mi`
-  - `make select CONFIG=configs/default.yaml METHOD=l1`
+  - `make select CONFIG=configs/pytorch_default.yaml METHOD=mi`
+  - `make select CONFIG=configs/pytorch_default.yaml METHOD=l1`
   - `make automl-h2o AUTOML_CONFIG=docs/experiments/suites/thesis_iter1/h2o/1k/agnostic.yaml`
   - `make automl-h2o AUTOML_CONFIG=docs/experiments/suites/thesis_iter1/h2o/1k/selected.yaml`
   - `make automl-h2o AUTOML_CONFIG=docs/experiments/suites/thesis_iter1/h2o/1k/aware.yaml`
@@ -46,7 +46,7 @@
 ### Scale-up plan
 - 10k: increase AutoML budget (e.g., 1800s) and reuse the same four configs per size.
 - 100k: point `csv_path` to `data/raw/samples/thesis_data_sample_100k.csv` (ensure the file exists locally; see README/LFS notes) and extend budget (e.g., 3600s+).
-- Full: use `configs/h2o/full_dataset.yaml` as base; keep `leaderboard_extra_columns`, test leaderboard, and SHAP/varimp plots enabled.
+- Full: use `configs/default_automl.yaml` as base; keep `leaderboard_extra_columns`, test leaderboard, and SHAP/varimp plots enabled.
 
 ## Success Criteria
 - On 1k and 10k, selected subset reaches ≥98–99% of agnostic AUC/PR with fewer inputs.
@@ -61,4 +61,3 @@
 ## Artefacts & Reporting
 - Each run writes a `local_runs/<id>/` folder with metrics, curves, config snapshot, and H2O leaderboards.
 - Suite-level comparison tables/plots can be generated post hoc from `h2o_leaderboard_test.csv` and `metrics.json` across runs.
-

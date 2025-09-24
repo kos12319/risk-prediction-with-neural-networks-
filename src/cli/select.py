@@ -37,7 +37,7 @@ def load_base_config(cfg_path: str | Path) -> Dict[str, Any]:
 
 def main():
     parser = argparse.ArgumentParser(description="Run feature selection and save ranked subset")
-    parser.add_argument("--config", type=str, default="configs/default.yaml", help="Path to YAML config")
+    parser.add_argument("--config", type=str, default="configs/pytorch_default.yaml", help="Path to YAML config")
     parser.add_argument("--method", type=str, default="mi", choices=["mi", "l1"], help="Selection method")
     parser.add_argument("--target_coverage", type=float, default=0.99, help="Fraction of full AUC to achieve")
     parser.add_argument("--missingness_threshold", type=float, default=0.5, help="Drop columns with missing rate above this")

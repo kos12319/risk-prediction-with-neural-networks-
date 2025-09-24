@@ -1,4 +1,0 @@
-extends: default_full
-
-data:
-  winsorize_enabled: false

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import shutil
 import warnings
 from pathlib import Path
@@ -38,6 +39,77 @@ def train_h2o(
         from h2o.exceptions import H2ODependencyWarning  # type: ignore
     except Exception:  # pragma: no cover - older h2o versions
         H2ODependencyWarning = None  # type: ignore
+
+    def _sanitize_token(value: str, *, default: str = "model") -> str:
+        token = re.sub(r"[^A-Za-z0-9]+", "_", str(value).strip())
+        token = token.strip("_").lower()
+        return token or default
+
+    def _ensure_dir(path: Path) -> Path:
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    def _is_enabled(cfg_entry: Any, *, default: bool = False) -> Tuple[bool, Dict[str, Any]]:
+        if isinstance(cfg_entry, dict):
+            enabled = cfg_entry.get("enabled")
+            if enabled is None:
+                enabled = True
+            return bool(enabled), dict(cfg_entry)
+        if cfg_entry is None:
+            return default, {}
+        return bool(cfg_entry), {}
+
+    def _model_varimp_df(model) -> Optional[pd.DataFrame]:  # type: ignore[no-untyped-def]
+        df: Optional[pd.DataFrame] = None
+        try:
+            vip = model.varimp(use_pandas=True)
+            if vip is not None:
+                df = pd.DataFrame(vip)
+        except Exception:
+            try:
+                vip = model.varimp()
+                if vip:
+                    df = pd.DataFrame(vip, columns=["feature", "relative_importance", "scaled_importance", "percentage"])
+            except Exception:
+                df = None
+        if df is None or df.empty:
+            try:
+                coef = model.coef_norm()
+                if isinstance(coef, dict) and coef:
+                    df = pd.DataFrame(
+                        {
+                            "feature": list(coef.keys()),
+                            "relative_importance": [abs(float(v)) for v in coef.values()],
+                        }
+                    )
+            except Exception:
+                df = None
+        if df is None or df.empty:
+            return None
+        df = df.copy()
+        rename_map: Dict[str, str] = {}
+        if "variable" in df.columns:
+            rename_map["variable"] = "feature"
+        if "relative_importance" not in df.columns:
+            for candidate in ["importance", "scaled_importance", "percentage"]:
+                if candidate in df.columns:
+                    rename_map[candidate] = "relative_importance"
+                    break
+        if rename_map:
+            df.rename(columns=rename_map, inplace=True)
+        if "feature" not in df.columns or "relative_importance" not in df.columns:
+            return None
+        df = df[["feature", "relative_importance"]].dropna()
+        try:
+            df["relative_importance"] = pd.to_numeric(df["relative_importance"], errors="coerce")
+        except Exception:
+            pass
+
+        df = df.dropna(subset=["relative_importance"])
+        if df.empty:
+            return None
+        df = df.sort_values("relative_importance", ascending=False).reset_index(drop=True)
+        return df
 
     feature_list = [str(f) for f in feature_names] if len(feature_names) else [f"feature_{i}" for i in range(X_train_np.shape[1])]
 
@@ -143,6 +215,7 @@ def train_h2o(
             "sort_metric": automl_cfg.get("sort_metric"),
             "balance_classes": automl_cfg.get("balance_classes"),
             "max_after_balance_size": automl_cfg.get("max_after_balance_size"),
+            "class_sampling_factors": automl_cfg.get("class_sampling_factors"),
             "seed": automl_cfg.get("seed"),
             "nfolds": automl_cfg.get("nfolds"),
             "keep_cross_validation_models": automl_cfg.get("keep_cross_validation_models"),
@@ -214,9 +287,187 @@ def train_h2o(
                 except Exception as exc:
                     logger.warning("Failed to persist leaderboard '%s': %s", name, exc)
 
+        figures_dir = run_dir / "figures"
+        figures_dir.mkdir(parents=True, exist_ok=True)
+        per_family_records: List[Dict[str, Any]] = []
+        partial_dependence_records: List[Dict[str, Any]] = []
+        model_varimp_cache: Dict[str, pd.DataFrame] = {}
+
+        explanation_plots_cfg = automl_cfg.get("explanation_plots") or {}
+
+        leader_model_id = getattr(leader, "model_id", None)
+        if leader_model_id and str(leader_model_id) not in model_varimp_cache:
+            leader_varimp_df = _model_varimp_df(leader)
+            if leader_varimp_df is not None:
+                model_varimp_cache[str(leader_model_id)] = leader_varimp_df
+
+        per_family_cfg_raw = explanation_plots_cfg.get("per_family_varimp")
+        per_family_enabled, per_family_cfg = _is_enabled(per_family_cfg_raw)
+        logger.info("Per-family varimp enabled=%s", per_family_enabled)
+        if per_family_enabled:
+            try:
+                plot_dir = _ensure_dir(figures_dir / "comparison" / "per_family_varimp")
+                csv_dir = _ensure_dir(run_dir / "varimp_per_family")
+                top_k = int(per_family_cfg.get("top_k", 20) or 20)
+                source_df = leaderboard_frames.get("test")
+                if source_df is None:
+                    source_df = leaderboard_df
+                group_col = None
+                for candidate in ("algo", "model_type", "model_category"):
+                    if candidate in source_df.columns:
+                        group_col = candidate
+                        break
+                if group_col and "model_id" in source_df.columns:
+                    best_by_group: Dict[str, pd.Series] = {}
+                    for _, row in source_df.iterrows():
+                        algo_val = row.get(group_col)
+                        if pd.isna(algo_val):
+                            algo_val = "unknown"
+                        key = str(algo_val).strip() or "unknown"
+                        if key not in best_by_group:
+                            best_by_group[key] = row
+                    for algo_key, row in best_by_group.items():
+                        model_id = str(row.get("model_id"))
+                        if not model_id:
+                            continue
+                        try:
+                            model_obj = h2o.get_model(model_id)
+                        except Exception:
+                            continue
+                        varimp_df = model_varimp_cache.get(model_id)
+                        if varimp_df is None:
+                            varimp_df = _model_varimp_df(model_obj)
+                            if varimp_df is None:
+                                continue
+                            model_varimp_cache[model_id] = varimp_df
+                        top_df = varimp_df.head(max(top_k, 1)).copy()
+                        if top_df.empty:
+                            continue
+                        algo_token = _sanitize_token(algo_key)
+                        csv_path = csv_dir / f"varimp_{algo_token}.csv"
+                        try:
+                            top_df.to_csv(csv_path, index=False)
+                        except Exception:
+                            csv_path_txt = csv_dir / f"varimp_{algo_token}.txt"
+                            try:
+                                csv_path_txt.write_text(top_df.to_string(index=False), encoding="utf-8")
+                                csv_path = csv_path_txt
+                            except Exception:
+                                continue
+                        plot_path = plot_dir / f"varimp_{algo_token}.png"
+                        try:
+                            fig, ax = plt.subplots(figsize=(8, 5))
+                            plot_df = top_df.iloc[::-1]
+                            ax.barh(plot_df["feature"], plot_df["relative_importance"], color="#1f77b4")
+                            ax.set_title(f"Feature Importance — {algo_key}")
+                            ax.set_xlabel("Relative Importance")
+                            ax.set_ylabel("Feature")
+                            ax.grid(True, axis="x", alpha=0.2)
+                            plt.tight_layout()
+                            fig.savefig(plot_path, dpi=150)
+                            plt.close(fig)
+                        except Exception:
+                            plot_path = None
+                        per_family_records.append(
+                            {
+                                "algo": algo_key,
+                                "model_id": model_id,
+                                "plot_path": plot_path.as_posix() if plot_path and plot_path.exists() else None,
+                                "csv_path": csv_path.as_posix(),
+                            }
+                        )
+                        logger.info(
+                            "Stored per-family varimp for %s | model=%s | features=%d",
+                            algo_key,
+                            model_id,
+                            int(top_df.shape[0]),
+                        )
+            except Exception as exc:
+                logger.warning("Failed to generate per-family varimp artifacts: %s", exc)
+
+        partial_cfg_raw = explanation_plots_cfg.get("partial_dependence")
+        partial_enabled, partial_cfg = _is_enabled(partial_cfg_raw)
+        logger.info("Partial dependence enabled=%s", partial_enabled)
+        if partial_enabled:
+            try:
+                partial_plot_dir = _ensure_dir(figures_dir / "explanations" / "partial_dependence")
+                partial_csv_dir = _ensure_dir(run_dir / "partial_dependence")
+                nbins = int(partial_cfg.get("nbins", 20) or 20)
+                include_na = bool(partial_cfg.get("include_na", False))
+                ice_requested = bool(partial_cfg.get("ice", False))
+                center_requested = bool(partial_cfg.get("center", False))
+                data_choice = str(partial_cfg.get("data", "train")).lower()
+                if data_choice == "validation" and val_hf is not None:
+                    plot_frame = val_hf
+                elif data_choice == "test":
+                    plot_frame = test_hf
+                else:
+                    plot_frame = train_hf
+                features_cfg = partial_cfg.get("features")
+                if features_cfg:
+                    features = [str(f) for f in features_cfg]
+                else:
+                    top_k = int(partial_cfg.get("top_k", 3) or 3)
+                    leader_varimp = model_varimp_cache.get(str(leader_model_id))
+                    if leader_varimp is not None and not leader_varimp.empty:
+                        features = leader_varimp["feature"].head(max(top_k, 1)).tolist()
+                    else:
+                        features = feature_list[: max(top_k, 1)]
+                features = [f for f in features if f in feature_list]
+                if not features:
+                    features = feature_list[:1]
+                for feature in features:
+                    feature_token = _sanitize_token(feature, default="feature")
+                    plot_path = partial_plot_dir / f"partial_{feature_token}.png"
+                    csv_path = partial_csv_dir / f"partial_{feature_token}.csv"
+                    try:
+                        pp_results = leader.partial_plot(
+                            frame=plot_frame,
+                            cols=[feature],
+                            plot=True,
+                            include_na=include_na,
+                            nbins=nbins,
+                            save_plot_path=plot_path.as_posix(),
+                        )
+                    except Exception as exc:
+                        logger.warning("Failed to compute partial dependence for %s: %s", feature, exc)
+                        continue
+                    if ice_requested:
+                        logger.info("ICE overlay requested but not available in H2O partial_plot; generated PDP only for %s", feature)
+                    if center_requested:
+                        logger.info("Centering requested for %s but not supported by H2O partial_plot; returned raw PDP", feature)
+                    table_df = None
+                    try:
+                        if pp_results and isinstance(pp_results, list):
+                            entry = pp_results[0]
+                            table = entry.get("table") if isinstance(entry, dict) else None
+                            if table is not None and hasattr(table, "as_data_frame"):
+                                table_df = table.as_data_frame()
+                    except Exception:
+                        table_df = None
+                    csv_path_final = None
+                    if table_df is not None and not table_df.empty:
+                        try:
+                            table_df.to_csv(csv_path, index=False)
+                            csv_path_final = csv_path
+                        except Exception:
+                            try:
+                                csv_path.write_text(table_df.to_string(index=False), encoding="utf-8")
+                                csv_path_final = csv_path
+                            except Exception:
+                                csv_path_final = None
+                    partial_dependence_records.append(
+                        {
+                            "feature": feature,
+                            "plot_path": plot_path.as_posix() if plot_path.exists() else None,
+                            "csv_path": csv_path_final.as_posix() if csv_path_final and csv_path_final.exists() else None,
+                        }
+                    )
+                    logger.info("Generated partial dependence for %s | csv=%s", feature, bool(csv_path_final))
+            except Exception as exc:
+                logger.warning("Failed to generate partial dependence plots: %s", exc)
+
         try:
-            figures_dir = run_dir / "figures"
-            figures_dir.mkdir(parents=True, exist_ok=True)
             lb_plot_df = leaderboard_frames.get("test", leaderboard_df).copy()
 
             def _shorten_model_id(model_id: str) -> str:
@@ -257,36 +508,143 @@ def train_h2o(
                         label_map[model_id] = label
                 return label_map
 
+            def _normalize_algo_labels(df: pd.DataFrame) -> None:
+                if "model_id" not in df.columns or "algo" not in df.columns:
+                    return
+                try:
+                    model_id_series = df["model_id"].astype(str)
+                except Exception:
+                    return
+                try:
+                    algo_series = df["algo"].astype(str)
+                except Exception:
+                    algo_series = df["algo"]
+                try:
+                    xrt_mask = model_id_series.str.startswith("XRT")
+                    if xrt_mask.any():
+                        algo_series = algo_series.where(~xrt_mask, "XRT")
+                except Exception:
+                    pass
+                df.loc[:, "algo"] = algo_series
+
+            _normalize_algo_labels(lb_plot_df)
+            for frame in leaderboard_frames.values():
+                _normalize_algo_labels(frame)
+
             label_map = _build_label_map(leaderboard_df, leaderboard_frames.get("test"), leaderboard_frames.get("extra"))
             for col in lb_plot_df.columns:
+                if col in {"model_id", "model_category", "algo", "model_type"}:
+                    continue
                 try:
                     lb_plot_df[col] = pd.to_numeric(lb_plot_df[col])
                 except Exception:
                     pass
-            top_models = lb_plot_df.head(10)
-            metrics_to_plot = [
-                ("auc", True, "H2O Leaderboard — AUC"),
-                ("logloss", False, "H2O Leaderboard — Log Loss"),
-                ("rmse", False, "H2O Leaderboard — RMSE"),
-            ]
-            for metric, higher_is_better, title in metrics_to_plot:
-                if metric not in top_models.columns:
-                    continue
-                vals = top_models[metric].astype(float)
-                if vals.isna().all():
-                    continue
-                order = vals.sort_values(ascending=not higher_is_better)
-                order.index = [label_map.get(str(idx), str(idx)) for idx in order.index]
-                fig, ax = plt.subplots(figsize=(10, 6))
-                order.plot(kind="barh", ax=ax, color="#1f77b4")
-                ax.invert_yaxis()
-                ax.set_xlabel(metric.upper())
-                ax.set_ylabel("Model")
-                ax.set_title(title)
-                plt.tight_layout()
-                fig_path = figures_dir / f"h2o_leaderboard_{metric}.png"
-                fig.savefig(fig_path, dpi=150)
-                plt.close(fig)
+            fam_col: Optional[str] = None
+            for c in ("model_category", "algo", "model_type"):
+                if c in lb_plot_df.columns:
+                    fam_col = c
+                    break
+
+            # Produce family-level leaderboard bars (best model per family)
+            # This keeps only the main model families visible in bar charts.
+            try:
+                if fam_col is not None and "model_id" in lb_plot_df.columns:
+                    def _plot_family_leaderboard(metric: str, higher_is_better: bool, title: str) -> None:
+                        if metric not in lb_plot_df.columns:
+                            return
+                        tmp = lb_plot_df[["model_id", fam_col, metric]].dropna().copy()
+                        try:
+                            tmp[metric] = pd.to_numeric(tmp[metric], errors="coerce")
+                        except Exception:
+                            pass
+                        tmp = tmp.dropna(subset=[metric])
+                        if tmp.empty:
+                            return
+                        fam_winners = tmp.sort_values(metric, ascending=not higher_is_better).groupby(fam_col, as_index=False).first()
+                        series = fam_winners.set_index(fam_col)[metric].sort_values(ascending=not higher_is_better)
+                        fig, ax = plt.subplots(figsize=(10, 6))
+                        direction_txt = "higher is better" if higher_is_better else "lower is better"
+                        arrow = "↑" if higher_is_better else "↓"
+                        pretty_metric = "Average Precision (AP)" if metric == "aucpr" else metric.upper()
+                        series.name = f"{pretty_metric} ({direction_txt} {arrow})"
+                        series.plot(kind="barh", ax=ax, color="#1f77b4", legend=True)
+                        ax.invert_yaxis()
+                        ax.set_xlabel(pretty_metric)
+                        ax.set_ylabel("Category")
+                        ax.set_title(title)
+                        ax.legend(loc="lower right", frameon=True)
+                        plt.tight_layout()
+                        suffix = "by_family"
+                        filename = f"h2o_leaderboard_{metric}_{suffix}.png"
+                        fig_path = figures_dir / filename
+                        fig.savefig(fig_path, dpi=150)
+                        plt.close(fig)
+                    _plot_family_leaderboard("aucpr", True, "H2O Leaderboard — Average Precision (by family)")
+            except Exception:
+                pass
+
+            # Extra: best model per category (algo/model_category)
+            category_winners: Optional[pd.DataFrame] = None
+            try:
+                if fam_col is not None and "auc" in lb_plot_df.columns:
+                    # Prefer test leaderboard if available to pick winners
+                    src = leaderboard_frames.get("test", leaderboard_df).copy()
+                    if fam_col not in src.columns:
+                        src = leaderboard_df.copy()
+                    src = src[["model_id", fam_col, "auc"]].dropna()
+                    try:
+                        src["auc"] = pd.to_numeric(src["auc"])
+                    except Exception:
+                        pass
+                    category_winners = src.sort_values("auc", ascending=False).groupby(fam_col, as_index=False).first()
+                    category_winners.index = [label_map.get(str(mid), str(mid)) for mid in category_winners["model_id"]]
+                    fig, ax = plt.subplots(figsize=(10, 6))
+                    category_winners.set_index(fam_col)["auc"].sort_values(ascending=False).plot(kind="barh", ax=ax, color="#2ca02c")
+                    ax.invert_yaxis()
+                    ax.set_xlabel("AUC")
+                    ax.set_ylabel("Category")
+                    ax.set_title("H2O — Best Model per Category (AUC)")
+                    plt.tight_layout()
+                    fig.savefig(figures_dir / "h2o_best_per_category_auc.png", dpi=150)
+                    plt.close(fig)
+            except Exception:
+                pass
+
+            # Full leaderboard chart (all models ranked)
+            try:
+                if "auc" in lb_plot_df.columns:
+                    lb_full = lb_plot_df.copy()
+                    try:
+                        lb_full["auc"] = pd.to_numeric(lb_full["auc"], errors="coerce")
+                    except Exception:
+                        pass
+                    lb_full = lb_full.dropna(subset=["auc"])
+                    total_models = len(lb_full)
+                    plot_top_n = automl_cfg.get("leaderboard_plot_top_n")
+                    if plot_top_n is not None:
+                        try:
+                            plot_top_n = int(plot_top_n)
+                        except Exception:
+                            plot_top_n = None
+                    top_n = min(total_models, plot_top_n) if plot_top_n and plot_top_n > 0 else min(total_models, 20)
+                    lb_full["display_label"] = [label_map.get(str(mid), str(mid)) for mid in lb_full["model_id"]]
+                    lb_full = lb_full.sort_values("auc", ascending=False).head(top_n)
+                    fig_height = max(6.0, 0.4 * len(lb_full))
+                    fig, ax = plt.subplots(figsize=(12, fig_height))
+                    ax.barh(lb_full["display_label"], lb_full["auc"], color="#1f77b4")
+                    ax.invert_yaxis()
+                    ax.set_xlabel("AUC")
+                    ax.set_ylabel("Model")
+                    ax.set_title(f"H2O Leaderboard — AUC (top {len(lb_full)} of {total_models} models)")
+                    auc_max = float(lb_full["auc"].max()) if not lb_full.empty else 1.0
+                    if np.isfinite(auc_max):
+                        ax.set_xlim(0.0, min(1.0, auc_max * 1.01))
+                    ax.grid(True, axis="x", alpha=0.2)
+                    plt.tight_layout()
+                    fig.savefig(figures_dir / "h2o_leaderboard_auc.png", dpi=150)
+                    plt.close(fig)
+            except Exception:
+                pass
 
             # Prepare helper for probability extraction once class levels are known
             levels_raw = train_hf[target_name].levels()
@@ -321,32 +679,56 @@ def train_h2o(
                 return probs, idx, label_raw
 
             y_true_test_bin = (test_df[target_name].astype(int).to_numpy() == int(pos_label)).astype(int)
-            curves_top_n = automl_cfg.get("leaderboard_curve_top_n", 5) or 5
+            # Prefer category-level ROC/PR curves (one best model per family)
+            # Fallback to top-N if categories unavailable
+            curves_top_n = automl_cfg.get("leaderboard_curve_top_n", 0) or 0
             try:
                 curves_top_n = int(curves_top_n)
             except Exception:
-                curves_top_n = 5
+                curves_top_n = 0
 
             roc_curves: List[Tuple[str, str, np.ndarray, np.ndarray]] = []
             pr_curves: List[Tuple[str, str, np.ndarray, np.ndarray]] = []
+            prob_cache: Dict[str, np.ndarray] = {}
 
             source_lb_for_curves = leaderboard_frames.get("test", leaderboard_df)
-            if curves_top_n > 0 and "model_id" in source_lb_for_curves.columns:
+            # Try category winners first
+            cat_col = None
+            for c in ("model_category", "algo", "model_type"):
+                if c in source_lb_for_curves.columns:
+                    cat_col = c
+                    break
+            models_to_plot: List[Tuple[str, str]] = []
+            if cat_col is not None and "auc" in source_lb_for_curves.columns:
+                try:
+                    tmp = source_lb_for_curves[["model_id", cat_col, "auc"]].dropna().copy()
+                    tmp["auc"] = pd.to_numeric(tmp["auc"], errors="coerce")
+                    winners_df = tmp.sort_values("auc", ascending=False).groupby(cat_col, as_index=False).first()
+                    for _, row in winners_df.iterrows():
+                        mid = str(row["model_id"])
+                        family = str(row[cat_col])
+                        label = f"{family} [{_shorten_model_id(mid)}]" if _shorten_model_id(mid) not in family else family
+                        models_to_plot.append((mid, label))
+                except Exception:
+                    models_to_plot = []
+            # If no category winners found, fallback to top-N
+            if not models_to_plot and curves_top_n > 0 and "model_id" in source_lb_for_curves.columns:
                 top_curve_models = source_lb_for_curves.head(curves_top_n)["model_id"].tolist()
-                for model_id in top_curve_models:
-                    try:
-                        candidate = h2o.get_model(model_id)
-                        preds_candidate = candidate.predict(test_hf).as_data_frame()
-                        probs_candidate, candidate_idx, _ = extract_probabilities(preds_candidate, pos_idx_default)
-                        fpr, tpr, _ = roc_curve(y_true_test_bin, probs_candidate)
-                        precision, recall, _ = precision_recall_curve(y_true_test_bin, probs_candidate)
-                        label = label_map.get(model_id, model_id)
-                        roc_curves.append((model_id, label, fpr, tpr))
-                        pr_curves.append((model_id, label, recall, precision))
-                        # Update default index for downstream use if column choice changed
-                        pos_idx_default = candidate_idx
-                    except Exception:
-                        continue
+                models_to_plot = [(m, label_map.get(m, m)) for m in top_curve_models]
+
+            for model_id, label in models_to_plot:
+                try:
+                    candidate = h2o.get_model(model_id)
+                    preds_candidate = candidate.predict(test_hf).as_data_frame()
+                    probs_candidate, candidate_idx, _ = extract_probabilities(preds_candidate, pos_idx_default)
+                    fpr, tpr, _ = roc_curve(y_true_test_bin, probs_candidate)
+                    precision, recall, _ = precision_recall_curve(y_true_test_bin, probs_candidate)
+                    roc_curves.append((model_id, label, fpr, tpr))
+                    pr_curves.append((model_id, label, recall, precision))
+                    prob_cache[model_id] = probs_candidate
+                    pos_idx_default = candidate_idx
+                except Exception:
+                    continue
 
             if roc_curves:
                 fig, ax = plt.subplots(figsize=(8, 6))
@@ -388,7 +770,63 @@ def train_h2o(
                     corr_dir = figures_dir / "comparison"
                     corr_dir.mkdir(parents=True, exist_ok=True)
                     corr_path = corr_dir / "h2o_model_correlation.png"
-                    aml.model_correlation_heatmap(test_hf, save_plot_path=corr_path.as_posix())
+                    corr_models: List[Tuple[str, str]] = []
+                    for mid, label in models_to_plot:
+                        probs = prob_cache.get(mid)
+                        if probs is None or probs.size == 0:
+                            continue
+                        if not np.all(np.isfinite(probs)):
+                            continue
+                        corr_models.append((mid, label))
+                    if len(corr_models) >= 2:
+                        prob_df = pd.DataFrame(
+                            {
+                                lbl: prob_cache[mid]
+                                for mid, lbl in corr_models
+                            }
+                        )
+                        corr_matrix = prob_df.corr(method="pearson").fillna(0.0)
+                        labels = [lbl for _, lbl in corr_models]
+                        if not corr_matrix.empty:
+                            fig_size = max(6.0, 0.7 * len(labels))
+                            fig, ax = plt.subplots(figsize=(fig_size, fig_size))
+                            upper_vals = corr_matrix.to_numpy()[np.triu_indices(len(labels), k=1)]
+                            if upper_vals.size:
+                                vmin = np.nanmin(upper_vals)
+                            else:
+                                vmin = np.nanmin(corr_matrix.to_numpy())
+                            if not np.isfinite(vmin):
+                                vmin = 0.0
+                            vmax = 1.0
+                            if vmin >= vmax:
+                                vmin = vmax - 1e-3
+                            im = ax.imshow(corr_matrix.to_numpy(), cmap="coolwarm", vmin=vmin, vmax=vmax)
+                            ax.set_xticks(range(len(labels)))
+                            ax.set_xticklabels(labels, rotation=45, ha="right")
+                            ax.set_yticks(range(len(labels)))
+                            ax.set_yticklabels(labels)
+                            for i in range(len(labels)):
+                                for j in range(len(labels)):
+                                    ax.text(
+                                        j,
+                                        i,
+                                        f"{corr_matrix.iat[i, j]:.3f}",
+                                        ha="center",
+                                        va="center",
+                                        fontsize=8,
+                                        color="black",
+                                    )
+                            ax.set_title("Model Correlation (per-algorithm representative)")
+                            fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+                            plt.tight_layout()
+                            fig.savefig(corr_path, dpi=150)
+                            plt.close(fig)
+                            corr_csv = run_dir / "h2o_model_correlation.csv"
+                            corr_matrix.to_csv(corr_csv)
+                        else:
+                            aml.model_correlation_heatmap(test_hf, save_plot_path=corr_path.as_posix())
+                    else:
+                        aml.model_correlation_heatmap(test_hf, save_plot_path=corr_path.as_posix())
                 except Exception as exc:
                     logger.warning("Failed to generate model correlation heatmap: %s", exc)
             if explanation_plots_cfg.get("varimp_heatmap", True):
@@ -399,6 +837,100 @@ def train_h2o(
                     aml.varimp_heatmap(save_plot_path=heat_path.as_posix())
                 except Exception as exc:
                     logger.warning("Failed to generate variable importance heatmap: %s", exc)
+            # Extra: varimp heatmap for winners only (one best model per category)
+            try:
+                heat_dir = figures_dir / "comparison"
+                heat_dir.mkdir(parents=True, exist_ok=True)
+                winners_heat_path = heat_dir / "h2o_varimp_heatmap_winners.png"
+                # Determine the category column present on the leaderboard
+                src_lb = leaderboard_frames.get("test", leaderboard_df).copy()
+                cat_col = None
+                for c in ("model_category", "algo", "model_type"):
+                    if c in src_lb.columns:
+                        cat_col = c
+                        break
+                metric_col = "auc" if "auc" in src_lb.columns else None
+                if cat_col is not None and metric_col is not None and "model_id" in src_lb.columns:
+                    # Pick the top model per category by metric
+                    tmp = src_lb[["model_id", cat_col, metric_col]].dropna()
+                    try:
+                        tmp[metric_col] = pd.to_numeric(tmp[metric_col], errors="coerce")
+                    except Exception:
+                        pass
+                    tmp = tmp.dropna(subset=[metric_col])
+                    if not tmp.empty:
+                        winners = tmp.sort_values(metric_col, ascending=False).groupby(cat_col, as_index=False).first()
+                        # Collect normalized varimp vectors for each winner
+                        winner_varimps: Dict[str, pd.Series] = {}
+                        feature_union: List[str] = []
+                        for _, row in winners.iterrows():
+                            model_id = str(row.get("model_id"))
+                            if not model_id:
+                                continue
+                            try:
+                                model_obj = h2o.get_model(model_id)
+                            except Exception:
+                                continue
+                            vip_df = _model_varimp_df(model_obj)
+                            if vip_df is None or vip_df.empty:
+                                continue
+                            s = vip_df.set_index("feature")["relative_importance"].astype(float)
+                            total = float(s.abs().sum()) or 0.0
+                            if total > 0:
+                                s = s / total
+                            # Keep a reasonable number of top features per model
+                            top_k = int(explanation_plots_cfg.get("varimp_top_k", 20) or 20)
+                            s = s.sort_values(ascending=False).head(max(top_k, 1))
+                            winner_varimps[model_id] = s
+                            feature_union.extend(list(s.index))
+                        feature_union = list(dict.fromkeys(feature_union))  # de-dup while preserving order
+                        if winner_varimps and feature_union:
+                            # Build matrix [features x models]
+                            model_ids = list(winner_varimps.keys())
+                            import numpy as _np
+                            mat = _np.zeros((len(feature_union), len(model_ids)), dtype=float)
+                            for j, mid in enumerate(model_ids):
+                                s = winner_varimps[mid]
+                                for i, feat in enumerate(feature_union):
+                                    if feat in s.index:
+                                        try:
+                                            mat[i, j] = float(s.loc[feat])
+                                        except Exception:
+                                            mat[i, j] = 0.0
+                            # Optionally reduce to a global top-N across all winners to keep the plot readable.
+                            # Aggregate per-feature importance across winner models using mean (default) or max.
+                            agg_mode = str(explanation_plots_cfg.get("varimp_winners_sort", "mean")).lower()
+                            if agg_mode not in {"mean", "max"}:
+                                agg_mode = "mean"
+                            scores = mat.mean(axis=1) if agg_mode == "mean" else mat.max(axis=1)
+                            global_top_k = int(explanation_plots_cfg.get("varimp_winners_top_k", 35) or 35)
+                            if global_top_k > 0 and len(feature_union) > global_top_k:
+                                keep_idx = _np.argsort(scores)[::-1][:global_top_k]
+                                keep_idx = _np.sort(keep_idx)  # keep original order within selection for legibility
+                                mat = mat[keep_idx, :]
+                                feature_union = [feature_union[i] for i in keep_idx.tolist()]
+
+                            # Plot with adaptive height to avoid cramped y-labels
+                            row_height = float(explanation_plots_cfg.get("varimp_heatmap_row_height", 0.35) or 0.35)
+                            fig_h = max(6.0, 2.0 + row_height * max(1, len(feature_union)))
+                            fig, ax = plt.subplots(figsize=(12, fig_h))
+                            im = ax.imshow(mat, aspect="auto", cmap="RdYlBu_r")
+                            ax.set_yticks(range(len(feature_union)))
+                            y_fontsize = int(explanation_plots_cfg.get("varimp_heatmap_fontsize", 9) or 9)
+                            ax.set_yticklabels(feature_union, fontsize=y_fontsize)
+                            labels = [label_map.get(mid, mid) for mid in model_ids]
+                            ax.set_xticks(range(len(model_ids)))
+                            ax.set_xticklabels(labels, rotation=45, ha="right", fontsize=8)
+                            ax.set_xlabel("Model (category winners)")
+                            ax.set_ylabel("Feature")
+                            ax.set_title("Variable Importance Heatmap — Winners per Category")
+                            cbar = fig.colorbar(im, ax=ax)
+                            cbar.ax.set_ylabel("Relative importance (normalized)")
+                            fig.tight_layout()
+                            fig.savefig(winners_heat_path, dpi=200)
+                            plt.close(fig)
+            except Exception as exc:
+                logger.warning("Failed to generate winners-only varimp heatmap: %s", exc)
             pareto_cfg = explanation_plots_cfg.get("pareto_front", True)
             if pareto_cfg:
                 pareto_args: Dict[str, Any] = {}
@@ -508,6 +1040,8 @@ def train_h2o(
             "leader_id": getattr(leader, "model_id", None),
             "leader_algo": leader_algo,
             "y_prob_label": prob_label_value,
+            "per_family_varimp": per_family_records,
+            "partial_dependence": partial_dependence_records,
         }
         logger.info(
             "Finished H2O AutoML | leader=%s (%s) | model_path=%s",

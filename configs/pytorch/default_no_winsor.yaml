@@ -1,4 +1,0 @@
-extends: ../default
-
-data:
-  winsorize_enabled: false

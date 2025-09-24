@@ -28,14 +28,14 @@ def main() -> None:
     epilog = (
         "Examples:\n"
         "  Train (from YAML config):\n"
-        "    python -m src.cli train --config configs/default.yaml\n\n"
+        "    python -m src.cli train --config configs/pytorch_default.yaml\n\n"
         "  Dry run (no artifacts):\n"
-        "    python -m src.cli dryrun --config configs/default.yaml\n\n"
+        "    python -m src.cli dryrun --config configs/pytorch_default.yaml\n\n"
         "  Feature selection (mutual information):\n"
-        "    python -m src.cli select --config configs/default.yaml --method mi\n\n"
+        "    python -m src.cli select --config configs/pytorch_default.yaml --method mi\n\n"
         "  Column dictionary from CSV (optionally override csv path):\n"
-        "    python -m src.cli gen-column-dict --config configs/default.yaml\n"
-        "    python -m src.cli gen-column-dict --config configs/default.yaml --csv data/raw/samples/thesis_data_sample_10k.csv\n\n"
+        "    python -m src.cli gen-column-dict --config configs/pytorch_default.yaml\n"
+        "    python -m src.cli gen-column-dict --config configs/pytorch_default.yaml --csv data/raw/samples/thesis_data_sample_10k.csv\n\n"
         "  W&B login and downloads:\n"
         "    export WANDB_API_KEY=...; export WANDB_ENTITY=your_entity\n"
         "    python -m src.cli wandb-login\n"
@@ -43,7 +43,7 @@ def main() -> None:
         "    python -m src.cli pull-all --entity your_entity --project loan-risk-mlp\n\n"
         "Environment:\n"
         "  WANDB_API_KEY, WANDB_ENTITY, WANDB_PROJECT control W&B behavior.\n"
-        "  See configs/default.yaml for training and tracking options."
+        "  See configs/pytorch_default.yaml for training and tracking options."
     )
 
     parser = argparse.ArgumentParser(

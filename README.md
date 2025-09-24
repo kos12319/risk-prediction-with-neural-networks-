@@ -27,9 +27,11 @@
   - `processed/` — optional cached splits (ignored by git)
 - `local_runs/` (gitignored) — per‑run folders with all artifacts
 - `configs/`
-  - `default.yaml` — base config shared by all backends
-  - `pytorch/` — PyTorch variants (feature subsets, provider-specific tweaks)
-  - `h2o/` — H2O AutoML presets
+  - `pytorch_default.yaml` — base config for PyTorch backend
+  - `default_automl.yaml` — base config for H2O AutoML
+  - `provider_agnostic.yaml` — PyTorch with lender-agnostic features
+  - `provider_aware.yaml` — PyTorch including pricing/scoring fields
+  - `pytorch_instances/` and `h2o_instances/` — your local presets (gitignored)
 - `src/`
   - `data/` — loading, cleaning, splitting
   - `features/` — preprocessing and feature engineering
@@ -68,16 +70,16 @@
   ```bash
   make venv
   . .venv/bin/activate
-  python -m src.cli.gen_column_dict --config configs/default.yaml  # or use --csv
+  python -m src.cli.gen_column_dict --config configs/pytorch_default.yaml  # or use --csv
   ```
 
 ## Dry Run
 - End‑to‑end check without persisting files:
   ```bash
-  make dryrun CONFIG=configs/default.yaml
+  make dryrun CONFIG=configs/pytorch_default.yaml
   # or
   . .venv/bin/activate
-  python -m src.cli.dryrun --config configs/default.yaml
+  python -m src.cli.dryrun --config configs/pytorch_default.yaml
   ```
 - Artifacts are written to a temporary directory and deleted after completion. A JSON summary is printed to stdout.
 
@@ -94,9 +96,9 @@
    - CPU-only environments: if Torch wheel resolution fails or attempts CUDA, install a CPU wheel explicitly (e.g., pip install torch==2.2.2 --index-url https://download.pytorch.org/whl/cpu) before syncing other deps.
    - Apple Silicon: set VECLIB/OMP env already handled; use `make cpu-train` if you hit BLAS thread errors.
 2) Choose a config and set dataset path:
-   - Provider-agnostic (default): `configs/default.yaml` (excludes int_rate/grade/sub_grade/installment and funded_amnt)
-   - Provider-aware: `configs/pytorch/provider_aware.yaml` (includes pricing/scoring fields)
-   - More PyTorch presets live under `configs/pytorch/` (feature subsets, weighting, full dataset)
+   - Provider-agnostic (default): `configs/provider_agnostic.yaml` (excludes int_rate/grade/sub_grade/installment and funded_amnt)
+   - Provider-aware: `configs/provider_aware.yaml` (includes pricing/scoring fields)
+   - Put your own variants under `configs/pytorch_instances/` (gitignored)
    - Set `data.csv_path` to a CSV (e.g., `data/raw/samples/thesis_data_sample_10k.csv` or `data/raw/full/thesis_data_full.csv`)
    - Outlier handling is configured via `data.winsorize`; toggle with `data.winsorize_enabled` (default true). Listed numeric features are winsorized (quantile/absolute caps) on the training split before scaling.
 3) Login to W&B from env (optional, needed for downloads):
@@ -108,13 +110,13 @@
    ```
 4) Train the model (PyTorch backend; use `make automl-h2o` for H2O AutoML):
    ```bash
-   make train CONFIG=configs/default.yaml             # PyTorch training run
-   make train CONFIG=configs/default.yaml PULL=true   # PyTorch + download W&B files
+   make train CONFIG=configs/pytorch_default.yaml             # PyTorch training run
+   make train CONFIG=configs/pytorch_default.yaml PULL=true   # PyTorch + download W&B files
    # On Linux/WSL or constrained envs, use CPU-only helper:
-   make cpu-train CONFIG=configs/default.yaml         # PyTorch on CPU with minimal threads
-   # Kick off H2O AutoML (defaults to configs/h2o/automl.yaml when AUTOML_CONFIG unset)
+   make cpu-train CONFIG=configs/pytorch_default.yaml         # PyTorch on CPU with minimal threads
+   # Kick off H2O AutoML (defaults to configs/default_automl.yaml when AUTOML_CONFIG unset)
    make automl-h2o                                    # H2O AutoML pipeline
-   make automl-h2o AUTOML_CONFIG=configs/h2o/automl.yaml NOTES="grid search"  # custom config
+   make automl-h2o AUTOML_CONFIG=configs/default_automl.yaml NOTES="grid search"  # custom config
    ```
 
 ## Temporal Cross-Validation
@@ -150,23 +152,25 @@
   - W&B: `wandb.json` with `{id, path, url}`; optional `wandb/` with downloaded files/artifacts (when `PULL=true` or via `pull-run`)
 
 ## H2O AutoML
-- Switch the backend by setting `model.backend: h2o` in your YAML (see `configs/h2o/automl.yaml` for a ready-to-run example that extends the default config).
-- Additional AutoML presets live under `configs/h2o/` (e.g., `feature_selection.yaml` for GBM/XGBoost-only sweeps).
+- Switch the backend by setting `model.backend: h2o` in your YAML (see `configs/default_automl.yaml` for a ready-to-run example that extends the default config).
+- Put your own AutoML presets under `configs/h2o_instances/` (gitignored).
 - Configure AutoML behaviour via the `automl` block: `progress` (set `true` to re-enable the CLI progress bar), `log_level` (defaults to `WARN` on the JVM side), `suppress_dependency_warnings` (hides repetitive `H2ODependencyWarning` chatter by default), `max_runtime_secs`, `max_models`, `balance_classes`, `include_algos`/`exclude_algos`, `seed`, `nthreads`, `max_mem_size`, and optional `export_checkpoints_dir` and `log_dir`. All inputs are respected by the `make automl-h2o` target.
 - On Apple Silicon laptops with 16 GB unified memory the full ~1.5 GB LendingClub CSV fits comfortably; set `automl.max_mem_size` to roughly `8g-10g` so the JVM has headroom while leaving space for macOS and Python. On smaller machines, keep the sample CSV or downsample to avoid garbage-collection churn.
-- H2O's XGBoost backend requires native binaries that are only shipped for select platforms (primarily 64-bit Linux). If logs report `XGBoost is not available; skipping it`, expect AutoML to proceed without XGBoost models; use a supported Linux environment or custom H2O build if those learners are required.
+- H2O's XGBoost backend is available on recent macOS/Apple Silicon with current H2O releases. If logs report `XGBoost is not available; skipping it`, AutoML will proceed without XGBoost models. To force-disable, set `automl.exclude_algos: ['XGBoost']`. If you hit linker/OpenMP issues, install `libomp` (e.g., via Homebrew) and rerun `make automl-h2o`.
 - Leaderboard charts now use human-friendly model labels (algorithm + short ID) in both PNG exports and comparison curves. A Pareto-front scatter (`figures/comparison/h2o_pareto_front.png`) and CSV (`h2o_pareto_front.csv`) are emitted when AutoML finishes to highlight accuracy vs latency trade-offs; toggle via `explanation_plots.pareto_front`.
+- Feature-importance dashboards now include per-family bar charts (`figures/comparison/per_family_varimp/`) with matching CSVs (`varimp_per_family/`), plus partial dependence plots (PDPs) for the overall leader under `figures/explanations/partial_dependence/`; configure via `explanation_plots.per_family_varimp` and `explanation_plots.partial_dependence` (ICE overlays are not exposed by H2O and are ignored).
+- Winners-only variable-importance heatmap readability: control total rows and label sizing via `explanation_plots.{varimp_top_k,varimp_winners_top_k,varimp_winners_sort,varimp_heatmap_row_height,varimp_heatmap_fontsize}`. This caps the feature list globally across category winners and scales figure height so y-axis labels stay legible.
 - Preprocessing, train/val/test splits, oversampling, threshold selection, and metric computation follow the same pipeline as the neural-network backend—only the estimator swaps to H2O AutoML under the hood.
 - AutoML runs emit the standard artifact set plus an `h2o_leaderboard.csv` and a zipped H2O model (`loan_default_model.zip` by default) inside the run folder for portability.
 - Use `AUTOML_CONFIG=...` with `make automl-h2o` to point at alternate configs (e.g., shorter runtimes for smoke tests or vendor-specific feature sets).
 
 ## Feature Selection
 - How to run (two options):
-  - Makefile: `make select CONFIG=configs/default.yaml METHOD=mi` (or `METHOD=l1`)
+  - Makefile: `make select CONFIG=configs/pytorch_default.yaml METHOD=mi` (or `METHOD=l1`)
   - Direct:
     ```bash
-    python -m src.cli.select --config configs/default.yaml --method mi
-    python -m src.cli.select --config configs/default.yaml --method l1
+    python -m src.cli.select --config configs/pytorch_default.yaml --method mi
+    python -m src.cli.select --config configs/pytorch_default.yaml --method l1
     ```
 - Optional flags (direct invocation): `--target_coverage 0.99 --missingness_threshold 0.5 --max_features 50 --outdir selection_runs --run-name my_selector`
 - Outputs under `selection_runs/run_<timestamp>_select/<method>/`:
@@ -182,13 +186,13 @@
 
 ## Experiment Tracking (W&B)
 - Enable in config: `tracking.backend: wandb`; `tracking.wandb.enabled: true`.
-- Useful options (see `configs/default.yaml`):
+- Useful options (see `configs/pytorch_default.yaml`):
   - `run_name` or `run_name_template` — placeholders: `{dataset},{split},{pos},{layers},{nf},{auc},{sha},{run_id}`
   - `group` or `group_template` — default: `{dataset}|{split}|{pos}`
   - `job_type`/`job_type_template`, `tags`/`tag_templates`, `ignore_globs`, `log_artifacts`
 - Login via env: set `WANDB_API_KEY` and `WANDB_ENTITY`, then `make wandb-login` or just train (trainer auto‑logins if key is present). Optional `WANDB_PROJECT` overrides config.
 - Download W&B data to local folder:
-  - After PyTorch training: `make train CONFIG=configs/default.yaml PULL=true` → `local_runs/<run_id>/wandb/`
+  - After PyTorch training: `make train CONFIG=configs/pytorch_default.yaml PULL=true` → `local_runs/<run_id>/wandb/`
   - Any time: `make pull-run RUN=entity/project/run_id` → `wandb-history/<run_id>/`
 - Logged in W&B: per‑epoch loss/val_loss/val_auc/lr/time, final metrics (incl. confusion), env+git metadata, requirements snapshot, figures, interactive confusion matrix panel; key files and model are logged as artifacts.
 

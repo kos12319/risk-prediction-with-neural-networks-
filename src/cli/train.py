@@ -10,7 +10,7 @@ from src.utils.logging import setup_logging
 
 def main():
     parser = argparse.ArgumentParser(description="Train credit risk NN from config")
-    parser.add_argument("--config", type=str, default="configs/default.yaml", help="Path to YAML config")
+    parser.add_argument("--config", type=str, default="configs/pytorch_default.yaml", help="Path to YAML config")
     parser.add_argument(
         "--notes",
         type=str,

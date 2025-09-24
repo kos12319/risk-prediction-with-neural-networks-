@@ -31,32 +31,32 @@ make venv
 Run the neural-network pipeline using a configuration with `model.backend: pytorch`.
 ```bash
 # Train with the default configuration
-make train CONFIG=configs/default.yaml
+make train CONFIG=configs/pytorch_default.yaml
 
 # Train using a different configuration
-make train CONFIG=configs/pytorch/provider_aware.yaml
+make train CONFIG=configs/provider_aware.yaml
 
 # Add run notes for tracking
-make train CONFIG=configs/default.yaml NOTES="testing new dropout"
+make train CONFIG=configs/pytorch_default.yaml NOTES="testing new dropout"
 ```
 
 **H2O AutoML:**
 Switch to the AutoML backend (configs must set `model.backend: h2o`).
 ```bash
 make automl-h2o
-make automl-h2o AUTOML_CONFIG=configs/h2o/automl.yaml NOTES="smoke test"
+make automl-h2o AUTOML_CONFIG=configs/default_automl.yaml NOTES="smoke test"
 ```
 
 **3. Feature Selection:**
 Run feature selection using either Mutual Information (`mi`) or L1 regularization (`l1`).
 ```bash
-make select CONFIG=configs/default.yaml METHOD=mi
+make select CONFIG=configs/pytorch_default.yaml METHOD=mi
 ```
 
 **4. Dry Run:**
 Perform an end-to-end check without saving any artifacts. This is useful for validating a configuration change.
 ```bash
-make dryrun CONFIG=configs/default.yaml
+make dryrun CONFIG=configs/pytorch_default.yaml
 ```
 
 **5. Experiment Tracking (W&B):**

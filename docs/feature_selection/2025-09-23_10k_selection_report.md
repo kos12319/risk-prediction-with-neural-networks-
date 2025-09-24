@@ -29,15 +29,15 @@ Artifacts: `selection_runs/run_<timestamp>_select/l1/`
 Applied L1 logistic to the MI shortlist. Resulting subset:
 `addr_state`, `term`, `home_ownership`, `verification_status`, `dti`, `purpose`, `emp_length`, `total_bc_limit`, `fico_range_high`, `fico_range_low`, `loan_amnt`, `bc_open_to_buy`
 
-Artifacts: `selection_runs/run_<timestamp>_select/l1/` (re-run with `CONFIG=configs/pytorch/default_mi_subset.yaml`)
+Artifacts: `selection_runs/run_<timestamp>_select/l1/` (re-run with `CONFIG=configs/pytorch_default.yaml`)
 
 ## Training Outcomes
 
 | Config | Encoded Features | ROC AUC (test) | Avg Precision | Threshold | W&B Run |
 | --- | --- | --- | --- | --- | --- |
-| `configs/pytorch/default_mi_subset.yaml` | 92 | 0.657 | 0.340 | 0.431 | [4vbv75sy](https://wandb.ai/petr-encode-peterlamb/loan-risk-mlp/runs/4vbv75sy) |
-| `configs/pytorch/default_l1_subset.yaml` | 89 | **0.723** | **0.407** | 0.483 | [4wd8uyoe](https://wandb.ai/petr-encode-peterlamb/loan-risk-mlp/runs/4wd8uyoe) |
-| `configs/pytorch/default_l1_on_mi_subset.yaml` | 89 | 0.676 | 0.348 | 0.434 | [ewhrixls](https://wandb.ai/petr-encode-peterlamb/loan-risk-mlp/runs/ewhrixls) |
+| `configs/pytorch_default.yaml` | 92 | 0.657 | 0.340 | 0.431 | [4vbv75sy](https://wandb.ai/petr-encode-peterlamb/loan-risk-mlp/runs/4vbv75sy) |
+| Variant L1 subset | 89 | **0.723** | **0.407** | 0.483 | [4wd8uyoe](https://wandb.ai/petr-encode-peterlamb/loan-risk-mlp/runs/4wd8uyoe) |
+| Variant L1 on MI subset | 89 | 0.676 | 0.348 | 0.434 | [ewhrixls](https://wandb.ai/petr-encode-peterlamb/loan-risk-mlp/runs/ewhrixls) |
 
 > Encoded feature counts include one-hot expansions; numerical columns remain single-output.
 
@@ -51,9 +51,9 @@ Artifacts: `selection_runs/run_<timestamp>_select/l1/` (re-run with `CONFIG=conf
 ## Repro Steps
 
 ```
-make select CONFIG=configs/pytorch/default_no_winsor.yaml METHOD=mi
-make select CONFIG=configs/pytorch/default_no_winsor.yaml METHOD=l1
-make select CONFIG=configs/pytorch/default_mi_subset.yaml METHOD=l1  # chained run
+make select CONFIG=configs/pytorch_default.yaml METHOD=mi
+make select CONFIG=configs/pytorch_default.yaml METHOD=l1
+make select CONFIG=configs/pytorch_default.yaml METHOD=l1  # chained run
 make train CONFIG=configs/pytorch/default_mi_subset.yaml
 make train CONFIG=configs/pytorch/default_l1_subset.yaml
 make train CONFIG=configs/pytorch/default_l1_on_mi_subset.yaml
