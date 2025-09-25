@@ -199,6 +199,18 @@ class BackendPipeline(ABC):
         """Optional override for the W&B run name format."""
         return None
 
+    def format_group_name(
+        self,
+        *,
+        base_context: Dict[str, Any],
+        cfg: Dict[str, Any],
+    ) -> Optional[str]:
+        """Optional override for group name used in local runs and W&B.
+
+        Returning ``None`` preserves the shared default formatting logic.
+        """
+        return None
+
     def additional_wandb_tags(
         self,
         *,
@@ -836,13 +848,19 @@ def _run_backend_pipeline(
     }
     wb_cfg_local = tracking_cfg.get("wandb", {}) if isinstance(tracking_cfg, dict) else {}
     default_group_local = f"{csv_base_init}|{split_method_init}|{pos_tok_init}|{backend_tok_init}"
-    try:
-        tmpl_local = wb_cfg_local.get("group_template") if isinstance(wb_cfg_local, dict) else None
-        group_name_for_local = (
-            str(tmpl_local).format(**ctx_init) if tmpl_local else default_group_local
-        )
-    except Exception:
-        group_name_for_local = default_group_local
+    # Allow backend to format group name; fall back to template/default
+    group_name_for_local: str
+    backend_group = backend.format_group_name(base_context=ctx_init, cfg=cfg)
+    if isinstance(backend_group, str) and backend_group.strip():
+        group_name_for_local = backend_group.strip()
+    else:
+        try:
+            tmpl_local = wb_cfg_local.get("group_template") if isinstance(wb_cfg_local, dict) else None
+            group_name_for_local = (
+                str(tmpl_local).format(**ctx_init) if tmpl_local else default_group_local
+            )
+        except Exception:
+            group_name_for_local = default_group_local
 
     if single_run_dir_mode:
         runs_root = Path(out_cfg["runs_root"]).resolve()

@@ -61,6 +61,11 @@ Verification (2025-09-25): Re-ran tiny end-to-end checks to reconfirm the decoup
     - H2O pipeline already provided a backend-specific name; no change needed.
     - Result: `base_pipeline.py` no longer inspects backend types to construct names, reducing coupling.
     - Caveat: If a backend does not implement `format_run_name` and no `run_name_template` is configured, a generic `{dataset}|{split}|{pos}|{backend}|auc{auc}` name is used.
+  - [done] Allow backends to override group naming via `format_group_name`.
+    - Change: Added a `format_group_name(base_context, cfg)` hook to `BackendPipeline`. The shared layer now consults the backend first, then falls back to `wandb.group_template` and finally a default `{dataset}|{split}|{pos}|{backend}`.
+    - Effect: Removes the last bit of naming policy from the shared pipeline, enabling fully backend-owned grouping semantics for both local runs and W&B.
+    - Verification: Ran `make dryrun` on sample config; grouping preserved and run executed successfully.
+    - Caveat: Backends that don't override the hook keep current behavior; no breaking changes.
   - Scope: see `docs/architecture/PIPELINE_REFACTOR_PLAN.md` for responsibilities, decomposition ideas, and a multi‑phase plan.
   - Next (Phase 2 – prep for full separation): introduce thin per-backend orchestrators that call shared, backend-agnostic utilities, allowing `base_pipeline.py` to shrink further or become purely a library. This preserves common functionality while making a third backend fully plug-in with zero edits to shared code.
   - [done] Backend-specific config rules moved out of shared validator.
