@@ -44,6 +44,7 @@
     - `base_pipeline.py` — shared, backend-agnostic utilities for data prep/eval (no backend branching)
     - `backends/pytorch/` — PyTorch-specific orchestration (owns run naming, tags, extras)
     - `backends/h2o/` — H2O AutoML orchestration (owns run naming, tags, extras)
+    - `backends/template/` — minimal sklearn-based backend (LogisticRegression) for onboarding and smoke tests
     - `train_nn.py`, `train_h2o.py` — backend-specific trainers
     - Backend schemas: `backends/pytorch/schema.py`, `backends/h2o/schema.py` validate backend-only options via Pydantic.
   - `cli/` — command-line entry points
@@ -159,6 +160,10 @@
    # Kick off H2O AutoML (defaults to configs/h2o_default.yaml when AUTOML_CONFIG unset)
    make automl-h2o                                    # H2O AutoML pipeline
    make automl-h2o AUTOML_CONFIG=configs/h2o_default.yaml NOTES="grid search"  # custom config
+   ```
+   Quick smoke with the template backend (sklearn):
+   ```bash
+   make dryrun-template CONFIG=configs/template_default.yaml
    ```
 
 ## Temporal Cross-Validation

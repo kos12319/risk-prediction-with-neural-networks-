@@ -13,7 +13,7 @@ This guide adds repo‑specific guardrails and conventions that are easy to miss
 - If you need a new operation, add a Makefile target rather than introducing bespoke shell commands in docs or scripts.
 - Pass configuration via Makefile variables (see the `Makefile` for supported variables and defaults). Avoid hardcoded flags in ad-hoc commands.
 - Rationale: Make targets enforce safe environment settings (thread limits, headless plotting) and keep runs reproducible.
-- Config layout: PyTorch presets extend files under `configs/pytorch/` (e.g., `configs/pytorch/base.yaml`), while H2O AutoML presets extend `configs/h2o/`.
+- Config layout: PyTorch presets extend files under `configs/pytorch/` (e.g., `configs/pytorch/base.yaml`), H2O AutoML presets extend `configs/h2o/`, and the example third backend lives under `configs/template/`.
 
 ## Evaluation Invariants (don’t break)
 - Use time‑based split by `issue_d` for test; older → train, newer → test.
@@ -41,7 +41,7 @@ This guide adds repo‑specific guardrails and conventions that are easy to miss
 - Keep modules cohesive and small; prefer pure functions over side effects.
 - Design to avoid leakage: time-split, train-only oversampling, drop post-origination features (`data.drop_leakage`).
 - Shared pipeline utilities live in `src/training/base_pipeline.py`.
-- Backend-specific orchestration sits in `src/training/backends/{pytorch,h2o}/pipeline.py` and owns backend concerns (naming, tags, extra artifacts). The shared utilities must not branch on backend types.
+- Backend-specific orchestration sits in `src/training/backends/{pytorch,h2o,template}/pipeline.py` and owns backend concerns (naming, tags, extra artifacts). The shared utilities must not branch on backend types.
 
 ## Testing
 - Use pytest; place tests under `tests/` as `test_*.py`.

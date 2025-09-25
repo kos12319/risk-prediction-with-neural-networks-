@@ -28,7 +28,8 @@ endif
 
 .PHONY: help venv install train automl-h2o select clean clean-venv deps-tools deps-compile deps-sync \
 	clean-cloud-history clean-wandb-local clean-local-history clean-local-runs clean-selection-runs clean-all-local \
-	marker-install marker-pdf docs docs-canon docs-journal-new clean-docs refresh-h2o-figures run-catalog run-catalog-report
+	marker-install marker-pdf docs docs-canon docs-journal-new clean-docs refresh-h2o-figures run-catalog run-catalog-report \
+	train-template dryrun-template
 
 help:
 	@echo "Targets:"
@@ -45,6 +46,8 @@ help:
 	@echo "  dryrun-h2o-cv  Run H2O AutoML temporal CV smoke test (2 folds; no artifacts)"
 	@echo "  dryrun-cv      Run PyTorch temporal CV smoke test (2 folds; no artifacts persisted)"
 	@echo "  cv-train       Run PyTorch temporal CV then full training (smoke config)"
+	@echo "  train-template Train the template (sklearn) backend from config (CONFIG=...)"
+	@echo "  dryrun-template Run template backend as a dry run (no artifacts)"
 	@echo "  run-catalog    Index local_runs and emit _catalog.json (RUNS_ROOT=local_runs)"
 	@echo "  wandb-login    Login to W&B using env (WANDB_API_KEY, WANDB_ENTITY)"
 	@echo "  pull-run       Download a W&B run into ./wandb-history/<run_id> (RUN=entity/project/run_id | project/run_id | run_id)"
@@ -170,6 +173,14 @@ dryrun-cv: venv
 # Usage: make cv-train (PyTorch backend; temporal CV followed by full-data training)
 cv-train: venv
 	$(SAFE_ENV) $(PY) -m src.cli.pytorch.train --config configs/pytorch/cv_full_train_smoke.yaml $(if $(NOTES),--notes "$(NOTES)",)
+
+# Usage: make train-template [CONFIG=configs/template_default.yaml]
+train-template: venv
+	$(SAFE_ENV) $(PY) -m src.cli.template.train --config $(or $(CONFIG),configs/template_default.yaml)
+
+# Usage: make dryrun-template [CONFIG=configs/template_default.yaml]
+dryrun-template: venv
+	$(SAFE_ENV) $(PY) -m src.cli.template.dryrun --config $(or $(CONFIG),configs/template_default.yaml)
 
 # Usage: make run-catalog [RUNS_ROOT=local_runs] [OUT=path]
 RUNS_ROOT ?= local_runs

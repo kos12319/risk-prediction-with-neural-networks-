@@ -1,0 +1,16 @@
+extends: template/base
+
+model:
+  backend: template
+  C: 1.0
+  penalty: l2
+  max_iter: 200
+
+output:
+  model_filename: model_template.pkl
+
+tracking:
+  backend: none
+  wandb:
+    enabled: false
+

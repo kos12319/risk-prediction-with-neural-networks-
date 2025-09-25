@@ -4,9 +4,13 @@ The refactor introduced new modular boundaries so upcoming enhancements can plug
 
 ## Near-term Priorities (Medium)
 - **Backend pipeline extensions** (`src/training/base_pipeline.py`, `src/training/backends/*`)
-  - Document the `BackendPipeline` contract (hooks, expected payloads) and ship a template backend skeleton/tests so a third backend can onboard quickly.
+  - [done] Ship a minimal template backend (sklearn LogisticRegression) to demonstrate pluggability and provide a starting point for third-party backends.
+    - Code: `src/training/backends/template/` with CLIs under `src/cli/template/` and presets in `configs/template/`.
+    - Make: `make train-template` and `make dryrun-template`.
+    - Usage: `make dryrun-template CONFIG=configs/template_default.yaml` completes in seconds on the 1k sample.
+    - Caveat: Intended for smoke tests and onboarding; not a performance baseline.
+  - Document the `BackendPipeline` contract (hooks, expected payloads) and expand the template into a documented cookiecutter; add tests in a follow-up.
   - Audit `_run_backend_pipeline` for residual coupling that should migrate into shared utilities vs backend overrides; keep the shared layer focused on data prep + evaluation only.
-  - Provide a minimal "new backend" cookiecutter (docs + code skeleton) wired to Make targets (build, dryrun, cv-dryrun) so integration cost stays low and convention-driven.
   - Add per-backend orchestrator modules that call shared helpers directly; plan to deprecate `base_pipeline.run(...)` in favor of backend-owned runners once parity is established.
 - **Config validation guardrails** (`src/training/config.py`, `configs/*.yaml`)
   - Define typed schemas (e.g., Pydantic) that validate backend selection, resampling options, and threshold settings before pipelines execute.
