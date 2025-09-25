@@ -25,9 +25,10 @@ endif
 
 
 
+
 .PHONY: help venv install train automl-h2o select clean clean-venv deps-tools deps-compile deps-sync \
 	clean-cloud-history clean-wandb-local clean-local-history clean-local-runs clean-selection-runs clean-all-local \
-	marker-install marker-pdf docs docs-canon docs-journal-new clean-docs refresh-h2o-figures run-catalog
+	marker-install marker-pdf docs docs-canon docs-journal-new clean-docs refresh-h2o-figures run-catalog run-catalog-report
 
 help:
 	@echo "Targets:"
@@ -168,8 +169,14 @@ dryrun-cv: venv
 # Usage: make run-catalog [RUNS_ROOT=local_runs] [OUT=path]
 RUNS_ROOT ?= local_runs
 OUT ?=
+
 run-catalog: venv
 	$(SAFE_ENV) $(PY) -m src.cli.run_catalog --runs-root $(RUNS_ROOT) $(if $(OUT),--out $(OUT),)
+
+# Usage: make run-catalog-report [RUNS_ROOT=local_runs] [CATALOG=<runs_root>/_catalog.json] [OUT=<runs_root>/index.md]
+CATALOG ?=
+run-catalog-report: venv
+	$(SAFE_ENV) $(PY) -m src.cli.run_catalog_report --runs-root $(RUNS_ROOT) $(if $(CATALOG),--catalog $(CATALOG),) $(if $(OUT),--out $(OUT),)
 
 # W&B helpers
 wandb-login: venv

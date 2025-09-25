@@ -17,8 +17,12 @@ This list reflects the current high‑priority focus. Previous items have been a
     - Caveat: requires a working Java runtime (`java -version` must succeed). In sandboxed environments, this will fail fast with an actionable error.
   - Ensure AutoML class balancing and guardrails remain consistent under CV.
 - Run catalog usability
-  - Generate lightweight HTML/Markdown summaries from `_catalog.json` and add comparison helpers (delta tables, trends over time).
-  - Wire simple dashboards into docs for quicker review cycles.
+  - [done] Generate lightweight Markdown summaries from `_catalog.json`.
+    - New CLI: `python -m src.cli.run_catalog_report --runs-root local_runs`.
+    - Make target: `make run-catalog-report` (writes `local_runs/index.md`).
+    - Usage: run a tiny smoke (`make dryrun-cv` or `make dryrun-h2o-cv`), build catalog (`make run-catalog`), then report.
+    - Caveat: figures/links resolve relative to `local_runs/`; ensure runs were created with `output.runs_root` set.
+  - [next] Add simple delta tables and trend plots atop the catalog (HTML export).
 - Config schema hardening
   - Introduce a stricter schema layer (e.g., Pydantic) on top of the current lightweight validator to catch leakage, mutually exclusive options, and type shape errors earlier.
   - Provide clearer error messages and config linting hooks.

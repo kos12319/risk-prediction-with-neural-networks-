@@ -12,7 +12,8 @@ The refactor introduced new modular boundaries so upcoming enhancements can plug
 - **Temporal CV orchestrator** (`src/training/base_pipeline.py`, `src/training/backends/*/pipeline.py`)
   - Expose dedicated Make targets (e.g., `make cv-train`, `make cv-automl`) that wrap the orchestrator with backend-specific adapters.
 - **Run catalog & artifact manifest** (`local_runs/`, `src/cli/run_catalog.py`)
-  - Next: generate lightweight HTML/Markdown summaries from the catalog and add comparison helpers (delta tables, trends).
+  - Markdown summary implemented: `src/cli/run_catalog_report.py` with `make run-catalog-report` renders `local_runs/index.md`.
+  - Next: add comparison helpers (delta tables, trends over time) and optional HTML export.
 
 ## Longer-term Model & Training Extensions
 - **Torch model registry** (`src/models/torch_factory.py`)
