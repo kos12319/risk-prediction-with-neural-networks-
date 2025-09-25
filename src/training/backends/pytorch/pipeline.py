@@ -18,11 +18,10 @@ class PyTorchPipeline(BackendPipeline):
     name = "pytorch"
 
     def validate_config(self, cfg: Dict[str, Any]) -> None:
-        backend = str(cfg.get("model", {}).get("backend", "pytorch")).lower()
-        if backend not in {"", "pytorch"}:
-            raise ValueError(
-                "PyTorch pipeline requires model.backend to be 'pytorch' or omitted"
-            )
+        # Backend identity and schema validation (decoupled from shared layer)
+        from .schema import validate_backend_config
+
+        validate_backend_config(cfg)
 
     def resolve_model_path(
         self,

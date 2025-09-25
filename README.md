@@ -45,6 +45,7 @@
     - `backends/pytorch/` — PyTorch-specific orchestration (owns run naming, tags, extras)
     - `backends/h2o/` — H2O AutoML orchestration (owns run naming, tags, extras)
     - `train_nn.py`, `train_h2o.py` — backend-specific trainers
+    - Backend schemas: `backends/pytorch/schema.py`, `backends/h2o/schema.py` validate backend-only options via Pydantic.
   - `cli/` — command-line entry points
 - `docs/exploration/` — exploratory notebooks and reports
 

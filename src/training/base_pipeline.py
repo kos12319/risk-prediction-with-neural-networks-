@@ -952,7 +952,10 @@ def _run_backend_pipeline(
     notes: Optional[str] = None,
 ):
     cfg_path = Path(cfg_path)
+    from src.training.config import validate_and_normalize_config as _validate_cfg  # local import to avoid circulars
+
     cfg = load_config_with_extends(cfg_path)
+    cfg = _validate_cfg(cfg, cfg_path=cfg_path)
     _apply_common_env_overrides(cfg)
     backend.apply_env_overrides(cfg)
     backend.validate_config(cfg)

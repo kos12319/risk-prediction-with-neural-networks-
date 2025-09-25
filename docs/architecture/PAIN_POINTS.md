@@ -15,7 +15,9 @@ This list reflects the current high‑priority focus. Previous items have been a
     - Config: `configs/h2o/cv_smoke.yaml` (2 folds, ~15s runtime budget).
     - Target: `make dryrun-h2o-cv` (mirrors PyTorch `make dryrun-cv`).
     - Caveat: requires a working Java runtime (`java -version` must succeed). In sandboxed environments, this will fail fast with an actionable error.
-  - Ensure AutoML class balancing and guardrails remain consistent under CV.
+  - [done] Ensure AutoML class balancing and guardrails remain consistent under CV.
+    - Change: H2O backend now validates AutoML options via a backend-scoped schema and applies identical settings across folds. Environment overrides (`H2O_BALANCE_CLASSES`, `H2O_MAX_AFTER_BALANCE_SIZE`, `H2O_CLASS_SAMPLING_FACTORS`) are consistently honored for CV and single runs.
+    - Caveat: Java is still required for any H2O run; CV smoke uses low `max_runtime_secs` but may exceed tight CI timeouts on slow machines.
 - Run catalog usability
   - [done] Generate lightweight Markdown summaries from `_catalog.json`.
     - New CLI: `python -m src.cli.run_catalog_report --runs-root local_runs`.
@@ -24,8 +26,10 @@ This list reflects the current high‑priority focus. Previous items have been a
     - Caveat: figures/links resolve relative to `local_runs/`; ensure runs were created with `output.runs_root` set.
   - [next] Add simple delta tables and trend plots atop the catalog (HTML export).
 - Config schema hardening
-  - Introduce a stricter schema layer (e.g., Pydantic) on top of the current lightweight validator to catch leakage, mutually exclusive options, and type shape errors earlier.
-  - Provide clearer error messages and config linting hooks.
+  - [progress] Introduce a stricter schema layer (Pydantic) for backend-specific configs.
+    - Change: Added `src/training/backends/pytorch/schema.py` and `src/training/backends/h2o/schema.py`; pipelines call these to validate backend-only options (e.g., PyTorch `training.class_weight`, H2O `automl.*`). Shared invariants remain in the common validator.
+    - Effect: Clearer errors on type/shape issues without coupling backends; paves the way for a third backend.
+    - Next: Extend schemas to validate mutually exclusive options and leakage guardrails (time split + parse_dates) at the shared layer.
 - Base pipeline refactor (phased)
   - Rationale: reduce cognitive load, improve testability, and constrain blast radius when adding features.
   - [progress] Removed backend-specific naming branches from the shared pipeline; run naming is now owned by each backend via `format_run_name`.
@@ -38,6 +42,9 @@ This list reflects the current high‑priority focus. Previous items have been a
     - Change: `validate_and_normalize_config` is now backend-agnostic (data/split/eval only). Backend CLIs/Pipelines enforce their own requirements via `validate_config`.
     - Effect: decouples config schema across backends and simplifies adding a third backend in the future. H2O oversampling behavior is no longer silently altered by the common layer; presets keep it disabled by default for H2O.
     - Caveat: configs that relied on the implicit H2O oversampling flip must keep `oversampling.enabled: false` (the default in `configs/h2o/base.yaml`).
+  - [progress] Decouple backend validation and schemas from the shared CLI/validator.
+    - Change: Backend pipelines own schema validation via Pydantic modules; CLIs no longer import the shared validator. The shared pipeline still enforces data/eval/split invariants.
+    - Effect: Backends are more self-contained and ready for new entrants without touching shared code.
 
 ## Notes
 - We will gate deeper refactors behind tests to pin behavior and artifacts. CV smoke tests must remain fast and artifact‑light.

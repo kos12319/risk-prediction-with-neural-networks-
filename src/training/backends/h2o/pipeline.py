@@ -58,9 +58,10 @@ class H2OPipeline(BackendPipeline):
     name = "h2o"
 
     def validate_config(self, cfg: Dict[str, Any]) -> None:
-        backend = str(cfg.get("model", {}).get("backend", "h2o")).lower()
-        if backend != "h2o":
-            raise ValueError("H2O AutoML pipeline requires model.backend to be 'h2o'")
+        # Backend identity and schema validation (decoupled from shared layer)
+        from .schema import validate_backend_config
+
+        validate_backend_config(cfg)
 
     def apply_env_overrides(self, cfg: Dict[str, Any]) -> None:
         automl_cfg = cfg.setdefault("automl", {})
