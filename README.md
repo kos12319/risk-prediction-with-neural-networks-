@@ -106,6 +106,14 @@
   ```
 - Both commands write artifacts to a temporary directory that is deleted on exit; a JSON summary is printed to stdout.
 
+## Testing
+- Run targeted tests with pytest:
+  ```bash
+  . .venv/bin/activate
+  pytest -q
+  ```
+- Coverage includes evaluation thresholding, time-split monotonicity, backend wiring, and temporal CV aggregation. In particular, `tests/test_cv_artifacts.py` verifies that CV runs write `cv_metrics.json` with the expected minimal schema.
+
 ## Quick Start
 1) Create venv and install deps (Python 3.12 preferred):
    ```bash
