@@ -53,6 +53,13 @@
 - Legacy `reports/` and `models/` are deprecated and ignored.
 - Each run folder contains model, metrics, figures, config snapshot, provenance, and optionally a `wandb/` subfolder with downloaded W&B data.
 
+### Run Catalog
+- Build a lightweight catalog for comparison and dashboards:
+  ```bash
+  make run-catalog RUNS_ROOT=local_runs
+  ```
+- Outputs `local_runs/_catalog.json` with one entry per `run_*` folder, including basic metrics, confusion, data manifest summary, model files, and figure names. CV runs include a link to `cv_metrics.json` when present.
+
 ## Documentation
 - Agent Guide: `AGENTS.md`
 - ADRs: `docs/architecture/ADRs/` (legacy index at `docs/ADRs/`)
@@ -88,6 +95,10 @@
 - H2O AutoML smoke test (no artifacts persisted):
   ```bash
   make dryrun-h2o AUTOML_CONFIG=configs/h2o_default.yaml
+  ```
+- Temporal CV smoke test (PyTorch, 2 folds, fast, no artifacts persisted):
+  ```bash
+  make dryrun-cv
   ```
 - Both commands write artifacts to a temporary directory that is deleted on exit; a JSON summary is printed to stdout.
 
@@ -224,6 +235,7 @@
 - `make train CONFIG=... [PULL=true] [NOTES=...]` (PyTorch backend)
 - `make automl-h2o [AUTOML_CONFIG=... PULL=true NOTES=...]`
 - `make cpu-train CONFIG=... [PULL=true] [NOTES=...]`
+- `make run-catalog [RUNS_ROOT=local_runs] [OUT=path]`
 - `make wandb-login`
 - `make pull-run RUN=entity/project/run_id` — saves to `wandb-history/<run_id>/`
 - `make pull-all [FORCE=1]` — saves all to `wandb-history/<run_id>/`
@@ -232,6 +244,8 @@
 - `make clean-local-history` — removes `./wandb-history` (downloaded run histories)
 - `make clean-all-local` — removes `local_runs/`, `selection_runs/`, `./wandb`, and `./wandb-history`
 - `make clean-cloud-history FORCE=1` — deletes all runs (and logged artifacts) from the configured W&B project
+
+Note: both backend CLIs perform a lightweight config validation step that checks key invariants (binary target mapping to {0,1}, valid `model.backend`, threshold strategy, and required fields). H2O runs prefer internal class balancing; external oversampling is disabled by default when `model.backend: h2o`.
 
 ## Optional: PDF → Markdown Conversion
 - Install the extra tooling only when you need PDF conversion support:

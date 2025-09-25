@@ -16,3 +16,8 @@
 ## Follow-ups
 - Document `BackendPipeline` contract in developer docs and add template/tests to guide new backend implementations.
 - Continue shrinking `_run_backend_pipeline` so only data/eval utilities live in the shared layer.
+
+## Validation
+- `make dryrun CONFIG=configs/pytorch_default.yaml` (PyTorch) — success.
+- `make dryrun-h2o AUTOML_CONFIG=configs/h2o_default.yaml` — stops after the Java pre-flight with the expected sandbox error message (confirms guardrail).
+- Removed the legacy `src/training/pipeline.py` module to avoid future regressions and duplicate entry points.

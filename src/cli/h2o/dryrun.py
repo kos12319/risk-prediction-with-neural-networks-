@@ -18,9 +18,10 @@ def _prepare_transient_config(base_cfg_path: Path):
     """Create a temp config with tracking disabled and isolated outputs."""
     with tempfile.TemporaryDirectory(prefix="dryrun_h2o_") as tmp:
         tmpdir = Path(tmp)
-        from src.training.config import load_config_with_extends  # type: ignore
+        from src.training.config import load_config_with_extends, validate_and_normalize_config  # type: ignore
 
         base_cfg: Dict[str, Any] = load_config_with_extends(base_cfg_path)
+        base_cfg = validate_and_normalize_config(base_cfg, cfg_path=base_cfg_path)
         out_cfg = dict(base_cfg.get("output", {}))
         out_cfg.update(
             {
@@ -64,8 +65,9 @@ def main() -> None:
     if not base_cfg_path.exists():
         raise SystemExit(f"Config not found: {base_cfg_path}")
 
-    from src.training.config import load_config_with_extends  # type: ignore
+    from src.training.config import load_config_with_extends, validate_and_normalize_config  # type: ignore
     cfg = load_config_with_extends(base_cfg_path)
+    cfg = validate_and_normalize_config(cfg, cfg_path=base_cfg_path)
     backend = str(cfg.get("model", {}).get("backend", "")).lower()
     if backend != "h2o":
         raise SystemExit("H2O dryrun requires model.backend to be 'h2o'")

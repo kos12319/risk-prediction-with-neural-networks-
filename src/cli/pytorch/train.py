@@ -34,7 +34,7 @@ def main():
     setup_logging()
 
     # Import heavy modules after environment is set
-    from src.training.config import load_config_with_extends  # type: ignore
+    from src.training.config import load_config_with_extends, validate_and_normalize_config  # type: ignore
     from src.training.backends.pytorch import train_from_config as pytorch_train  # type: ignore
     from src.training.wandb_sync import login_from_env, download_run  # type: ignore
 
@@ -48,6 +48,7 @@ def main():
 
     # Ensure the config targets the PyTorch backend; H2O runs use a dedicated CLI
     cfg = load_config_with_extends(Path(args.config))
+    cfg = validate_and_normalize_config(cfg, cfg_path=Path(args.config))
     backend = str(cfg.get("model", {}).get("backend", "pytorch")).lower()
     if backend != "pytorch":
         raise ValueError(

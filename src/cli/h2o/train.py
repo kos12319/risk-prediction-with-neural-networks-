@@ -27,11 +27,12 @@ def main() -> None:
     apply_safe_env()
     setup_logging()
 
-    from src.training.config import load_config_with_extends  # type: ignore
+    from src.training.config import load_config_with_extends, validate_and_normalize_config  # type: ignore
     from src.training.backends.h2o import train_from_config as h2o_train  # type: ignore
     from src.training.wandb_sync import download_run, login_from_env  # type: ignore
 
     cfg = load_config_with_extends(Path(args.config))
+    cfg = validate_and_normalize_config(cfg, cfg_path=Path(args.config))
     backend = str(cfg.get("model", {}).get("backend", "")).lower()
     if backend != "h2o":
         raise ValueError("H2O CLI requires model.backend to be 'h2o'")

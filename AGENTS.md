@@ -59,7 +59,7 @@ This guide adds repo‑specific guardrails and conventions that are easy to miss
 - Selection CLI: now resolves `extends` via the shared loader; keep `tests/test_training_config.py` updated when adding configs.
 - H2O backend requires a working Java runtime; the CLI fails fast if `java -version` is blocked (e.g., sandboxed environments).
 - Headless plotting: use `MPLBACKEND=Agg`; set `XDG_CACHE_HOME=.cache` and `MPLCONFIGDIR=.mplcache` if needed; limit BLAS threads if OMP errors appear.
-- Medium backlog focus: prioritize config validation guardrails, a backend-agnostic temporal CV runner, and the run catalog manifest (see `docs/PAIN_POINTS.md`).
+- Medium backlog focus: config validation guardrails and temporal CV are implemented; a first version of the run catalog manifest is available via `make run-catalog` (see `docs/PAIN_POINTS.md`).
 
 ## If You’re Lost
 - Read README.md (Quick Start, Makefile Targets).

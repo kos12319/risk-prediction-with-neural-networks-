@@ -1,0 +1,32 @@
+extends: base
+
+model:
+  backend: pytorch
+  architecture: mlp
+  layers: [64, 32]
+  dropout: [0.2, 0.2]
+  batchnorm: true
+  loss: binary_crossentropy
+  optimizer: adam
+  epochs: 6
+  batch_size: 128
+  val_split: 0.2
+  early_stopping_patience: 5
+
+split:
+  method: time
+  time_col: issue_d
+  cv:
+    enabled: true
+    n_folds: 2
+    mode: expanding
+    initial_train_fraction: 0.5
+    validation_fraction: 0.2
+    gap: 0
+    shuffle_within_folds: false
+    train_full_after: false
+
+tracking:
+  backend: none
+  wandb:
+    enabled: false

@@ -24,9 +24,10 @@ else
 endif
 
 
+
 .PHONY: help venv install train automl-h2o select clean clean-venv deps-tools deps-compile deps-sync \
 	clean-cloud-history clean-wandb-local clean-local-history clean-local-runs clean-selection-runs clean-all-local \
-	marker-install marker-pdf docs docs-canon docs-journal-new clean-docs refresh-h2o-figures
+	marker-install marker-pdf docs docs-canon docs-journal-new clean-docs refresh-h2o-figures run-catalog
 
 help:
 	@echo "Targets:"
@@ -40,6 +41,8 @@ help:
 	@echo "  explore        Explore dataset (CONFIG=..., CSV=path optional)"
 	@echo "  dryrun         Run PyTorch training as a dry run (no artifacts persisted)"
 	@echo "  dryrun-h2o     Run H2O AutoML as a dry run (no artifacts persisted)"
+	@echo "  dryrun-cv      Run PyTorch temporal CV smoke test (2 folds; no artifacts persisted)"
+	@echo "  run-catalog    Index local_runs and emit _catalog.json (RUNS_ROOT=local_runs)"
 	@echo "  wandb-login    Login to W&B using env (WANDB_API_KEY, WANDB_ENTITY)"
 	@echo "  pull-run       Download a W&B run into ./wandb-history/<run_id> (RUN=entity/project/run_id | project/run_id | run_id)"
 	@echo "  pull-all       Download all W&B runs into ./wandb-history/<run_id> (ENTITY/PROJECT from env/config)"
@@ -152,6 +155,16 @@ dryrun: venv
 # Usage: make dryrun-h2o [AUTOML_CONFIG=configs/h2o_default.yaml]
 dryrun-h2o: venv
 	$(SAFE_ENV) $(PY) -m src.cli.h2o.dryrun --config $(AUTOML_CONFIG)
+
+# Usage: make dryrun-cv (uses a tiny CV config; PyTorch backend)
+dryrun-cv: venv
+	$(SAFE_ENV) $(PY) -m src.cli.pytorch.dryrun --config configs/pytorch/cv_smoke.yaml
+
+# Usage: make run-catalog [RUNS_ROOT=local_runs] [OUT=path]
+RUNS_ROOT ?= local_runs
+OUT ?=
+run-catalog: venv
+	$(SAFE_ENV) $(PY) -m src.cli.run_catalog --runs-root $(RUNS_ROOT) $(if $(OUT),--out $(OUT),)
 
 # W&B helpers
 wandb-login: venv

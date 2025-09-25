@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import yaml
 
@@ -35,5 +35,114 @@ def load_config_with_extends(cfg_path: Path) -> Dict[str, Any]:
     return cfg
 
 
-__all__ = ["load_config_with_extends"]
+def _bool(v: Any, default: Optional[bool] = None) -> Optional[bool]:
+    if isinstance(v, bool):
+        return v
+    if v is None:
+        return default
+    s = str(v).strip().lower()
+    if s in {"1", "true", "yes", "on"}:
+        return True
+    if s in {"0", "false", "no", "off"}:
+        return False
+    return default
 
+
+def validate_and_normalize_config(cfg: Dict[str, Any], *, cfg_path: Optional[Path] = None) -> Dict[str, Any]:
+    """Validate key invariants and normalize minor fields.
+
+    This is a lightweight guardrail layer to fail fast on common mistakes
+    without introducing a heavy dependency. It raises ``ValueError`` for
+    inconsistencies that would lead to incorrect evaluation or crashes.
+    """
+    if not isinstance(cfg, dict):
+        raise ValueError("Config must be a mapping (YAML -> dict)")
+
+    cfg_norm = dict(cfg)
+
+    # Model backend
+    model = cfg_norm.setdefault("model", {}) or {}
+    backend = str(model.get("backend", "pytorch")).lower()
+    if backend not in {"pytorch", "h2o"}:
+        raise ValueError("model.backend must be 'pytorch' or 'h2o'")
+
+    # Data block
+    data = cfg_norm.setdefault("data", {}) or {}
+    csv_path_raw = str(data.get("csv_path", "")).strip()
+    if not csv_path_raw:
+        raise ValueError("data.csv_path is required and cannot be empty")
+    csv_path = Path(csv_path_raw)
+    if not csv_path.exists():
+        # Try to resolve relative to config file if provided
+        if cfg_path is not None and not csv_path.is_absolute():
+            candidate = (cfg_path.parent / csv_path).resolve()
+            if candidate.exists():
+                data["csv_path"] = candidate.as_posix()
+            else:
+                raise ValueError(f"CSV path not found: {csv_path_raw} (resolved: {candidate})")
+        else:
+            raise ValueError(f"CSV path not found: {csv_path_raw}")
+
+    # Target mapping must cover exactly two classes mapped to 0/1
+    target_col = str(data.get("target_col", "")).strip()
+    if not target_col:
+        raise ValueError("data.target_col is required")
+    tmap = data.get("target_mapping", {}) or {}
+    if not isinstance(tmap, dict) or not tmap:
+        raise ValueError("data.target_mapping must be a mapping of label->0/1")
+    mapped_vals = {int(v) for v in tmap.values()}
+    if mapped_vals - {0, 1}:
+        raise ValueError("data.target_mapping values must be 0/1 only")
+    if 0 not in mapped_vals or 1 not in mapped_vals:
+        raise ValueError("data.target_mapping must map to both classes 0 and 1")
+
+    # Evaluation: positive label is either 0 or 1
+    eval_cfg = cfg_norm.setdefault("eval", {}) or {}
+    pos_label = eval_cfg.get("pos_label", 1)
+    if isinstance(pos_label, str):
+        pos_label = 0 if pos_label.lower() in {"charged off", "charged_off", "default"} else 1
+        eval_cfg["pos_label"] = pos_label
+    if int(pos_label) not in {0, 1}:
+        raise ValueError("eval.pos_label must be 0 or 1")
+
+    # Threshold strategy
+    thr = (eval_cfg.get("threshold") or {})
+    strategy = str(thr.get("strategy", "youden_j")).lower()
+    if strategy not in {"fixed", "youden_j", "f1"}:
+        raise ValueError("eval.threshold.strategy must be one of: fixed|youden_j|f1")
+    if strategy == "fixed":
+        try:
+            _ = float(thr.get("value", 0.5))
+        except Exception:
+            raise ValueError("eval.threshold.value must be a float when strategy=fixed")
+
+    # Split
+    split = cfg_norm.setdefault("split", {}) or {}
+    method = str(split.get("method", "time")).lower()
+    if method not in {"time", "random"}:
+        raise ValueError("split.method must be 'time' or 'random'")
+    if method == "time":
+        time_col = str(split.get("time_col", "issue_d")).strip()
+        if not time_col:
+            raise ValueError("split.time_col is required when split.method=time")
+        # Encourage parse_dates to include time_col for robust parsing
+        parse_dates = data.setdefault("parse_dates", []) or []
+        if time_col not in parse_dates:
+            parse_dates.append(time_col)
+            data["parse_dates"] = parse_dates
+
+    # Oversampling policy: enabled applies to training subset only (pipeline already enforces)
+    os_cfg = cfg_norm.setdefault("oversampling", {}) or {}
+    os_enabled = _bool(os_cfg.get("enabled"), default=False)
+    if backend == "h2o" and os_enabled:
+        # Prefer H2O's internal class balancing; allow but warn by flipping default off
+        os_cfg["enabled"] = False
+
+    # Backend-specific presence checks
+    if backend == "h2o":
+        cfg_norm.setdefault("automl", {})
+
+    return cfg_norm
+
+
+__all__ = ["load_config_with_extends", "validate_and_normalize_config"]

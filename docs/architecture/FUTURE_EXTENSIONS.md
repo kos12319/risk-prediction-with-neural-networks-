@@ -12,9 +12,9 @@ The refactor introduced new modular boundaries so upcoming enhancements can plug
 - **Temporal CV orchestrator** (`src/training/base_pipeline.py`, `src/training/backends/*/pipeline.py`)
   - Extract a reusable runner that drives expanding-window folds for any backend, aggregates metrics, and optionally refits on the full training window when `train_full_after: true`.
   - Expose dedicated Make targets (e.g., `make cv-train`, `make cv-automl`) that wrap the orchestrator with backend-specific adapters.
-- **Run catalog & artifact manifest** (`local_runs/`, `src/utils/artifacts.py`, `docs/`)
-  - Index completed runs and emit machine-readable manifests capturing configs, metrics, and produced artifacts to simplify comparisons and documentation.
-  - Feed the manifest into docs dashboards or lightweight HTML/Markdown summaries to tighten feedback loops.
+- **Run catalog & artifact manifest** (`local_runs/`, `src/cli/run_catalog.py`)
+  - Initial version shipped: `make run-catalog` emits `local_runs/_catalog.json` indexing `metrics.json`, `confusion.json`, `data_manifest.json`, figures, and model files per run. CV runs include a link to `cv_metrics.json`.
+  - Next: generate lightweight HTML/Markdown summaries from the catalog and add comparison helpers (delta tables, trends).
 
 ## Longer-term Model & Training Extensions
 - **Torch model registry** (`src/models/torch_factory.py`)
