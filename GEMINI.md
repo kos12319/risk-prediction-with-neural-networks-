@@ -84,4 +84,4 @@ make dryrun-h2o AUTOML_CONFIG=configs/h2o_default.yaml   # H2O AutoML
 *   **Dependencies:** Manage dependencies by editing `requirements.in` and running `make deps-compile` to regenerate the `requirements.txt` lockfile.
 *   **Testing:** Tests are written with `pytest` and located in the `tests/` directory.
 *   **Commits & PRs:** Follow conventional commit style (e.g., `feat: ...`, `fix: ...`). Pull requests should explain the "what" and "why" and include relevant metrics or figures.
-*   **Medium backlog:** Config guardrails and temporal CV are implemented; an initial run catalog is available via `make run-catalog` (see `docs/PAIN_POINTS.md`).
+*   **Medium backlog:** Config guardrails and temporal CV are implemented; an initial run catalog is available via `make run-catalog` (see `docs/architecture/PAIN_POINTS.md`).

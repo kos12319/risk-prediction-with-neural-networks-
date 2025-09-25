@@ -8,7 +8,7 @@
 Reviewed the refreshed backend architecture and future extensions to surface the highest-value medium-term work. Promoted the config validation guardrails, temporal CV orchestrator, and run catalog manifest into the medium-priority queue and documented the follow-ups across pain points and the roadmap.
 
 ## Impact
-- docs: docs/PAIN_POINTS.md, docs/architecture/FUTURE_EXTENSIONS.md, README.md, AGENTS.md, GEMINI.md
+- docs: docs/architecture/PAIN_POINTS.md, docs/architecture/FUTURE_EXTENSIONS.md, README.md, AGENTS.md, GEMINI.md
 
 ## Next
 - Design schema-based config validation (Pydantic or dataclasses) that enforces backend-specific invariants before training runs start.

@@ -1,6 +1,6 @@
 # Pain Points (Archived — 2025-09-25)
 
-This file captures the pain points as of 2025-09-25 before the subsequent reprioritization. See the active list at `docs/PAIN_POINTS.md`.
+This file captures the pain points as of 2025-09-25 before the subsequent reprioritization. See the active list at `docs/architecture/PAIN_POINTS.md`.
 
 ## High-Level
 - [x] **Backend decoupling.** PyTorch and H2O now own dedicated CLI packages (`src/cli/pytorch`, `src/cli/h2o`), backend-specific config stacks (`configs/pytorch/`, `configs/h2o/`), and concrete pipeline subclasses (`PyTorchPipeline`, `H2OPipeline`) that ride on a slim `_run_backend_pipeline` scaffold. Shared code is constrained to data prep/eval helpers so additional backends can plug in without touching PyTorch/H2O logic. Legacy `src/training/pipeline.py` was removed on 2025-09-25 to prevent drift; `make dryrun` (PyTorch) succeeded and `make dryrun-h2o` now fails fast with the Java pre-flight when JVM startup is sandboxed.
@@ -28,4 +28,3 @@ This file captures the pain points as of 2025-09-25 before the subsequent reprio
 ## Low
 - [x] **Pytest import ergonomics.** Added `pytest.ini` with `pythonpath=.` to avoid manual `PYTHONPATH` exports when running tests locally.
 - [ ] **Open slot.** Reserve for the next low-lift improvement identified during future sweeps.
-

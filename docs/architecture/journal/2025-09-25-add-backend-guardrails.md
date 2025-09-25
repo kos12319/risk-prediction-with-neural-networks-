@@ -13,4 +13,4 @@ Separated backend orchestration into dedicated adapters, taught the selection CL
 - code: src/training/base_pipeline.py, src/training/backends/pytorch/pipeline.py, src/training/backends/h2o/pipeline.py, src/training/train_h2o.py, src/training/config.py, src/cli/train.py, src/cli/automl_h2o.py, src/cli/dryrun.py, src/cli/dryrun_h2o.py, src/cli/select.py, tests/test_training_backends.py, tests/test_training_config.py, pytest.ini
 
 ## Next
-- Track medium-level backlog items in docs/PAIN_POINTS.md and revisit H2O support once a Java-capable environment is available.
+- Track medium-level backlog items in docs/architecture/PAIN_POINTS.md and revisit H2O support once a Java-capable environment is available.

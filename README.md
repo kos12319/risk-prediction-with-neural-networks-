@@ -78,7 +78,7 @@
   - Log the change with a dated Journal entry referencing the ADR(s).
   - Keep docs Makefile-first; examples should use `make` targets, not raw `python -m`.
   - The compiled spec is gitignored; rebuild with `make docs` when needed.
-- Pain Points: `docs/PAIN_POINTS.md` (medium queue tracks config validation guardrails, temporal CV runner, and run catalog manifest work)
+- Pain Points: `docs/architecture/PAIN_POINTS.md` (active high-priority focus and links to archive and refactor plan)
 - Data dictionary: `docs/data/COLUMN_DICTIONARY.md`
 - Regenerate column dictionary:
   ```bash
