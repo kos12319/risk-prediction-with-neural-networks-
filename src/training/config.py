@@ -49,22 +49,21 @@ def _bool(v: Any, default: Optional[bool] = None) -> Optional[bool]:
 
 
 def validate_and_normalize_config(cfg: Dict[str, Any], *, cfg_path: Optional[Path] = None) -> Dict[str, Any]:
-    """Validate key invariants and normalize minor fields.
+    """Validate backend-agnostic invariants and normalize minor fields.
 
-    This is a lightweight guardrail layer to fail fast on common mistakes
-    without introducing a heavy dependency. It raises ``ValueError`` for
-    inconsistencies that would lead to incorrect evaluation or crashes.
+    Backend-specific checks belong to each backend's pipeline validator.
+    This layer ensures data/eval/split blocks are coherent and that file
+    references resolve. It raises ``ValueError`` on inconsistencies that
+    would lead to incorrect evaluation or crashes.
     """
     if not isinstance(cfg, dict):
         raise ValueError("Config must be a mapping (YAML -> dict)")
 
     cfg_norm = dict(cfg)
 
-    # Model backend
+    # Model block (backend-specific validation is deferred to pipelines)
     model = cfg_norm.setdefault("model", {}) or {}
-    backend = str(model.get("backend", "pytorch")).lower()
-    if backend not in {"pytorch", "h2o"}:
-        raise ValueError("model.backend must be 'pytorch' or 'h2o'")
+    backend = str(model.get("backend", "")).lower()
 
     # Data block
     data = cfg_norm.setdefault("data", {}) or {}
@@ -131,16 +130,10 @@ def validate_and_normalize_config(cfg: Dict[str, Any], *, cfg_path: Optional[Pat
             parse_dates.append(time_col)
             data["parse_dates"] = parse_dates
 
-    # Oversampling policy: enabled applies to training subset only (pipeline already enforces)
-    os_cfg = cfg_norm.setdefault("oversampling", {}) or {}
-    os_enabled = _bool(os_cfg.get("enabled"), default=False)
-    if backend == "h2o" and os_enabled:
-        # Prefer H2O's internal class balancing; allow but warn by flipping default off
-        os_cfg["enabled"] = False
+    # Oversampling policy: enabled applies to training subset only (handled in pipeline)
+    cfg_norm.setdefault("oversampling", {}) or {}
 
-    # Backend-specific presence checks
-    if backend == "h2o":
-        cfg_norm.setdefault("automl", {})
+    # Do not introduce backend-specific defaults here; backends own their extras.
 
     return cfg_norm
 

@@ -30,6 +30,7 @@ Source: `src/training/base_pipeline.py`
 - Improve testability by extracting small, pure helpers with targeted unit tests.
 - Constrain blast radius for future features (new CV modes, additional backends, artifact expansions).
 - Keep behavior, file/dir layout, and public interfaces stable.
+ - Make the common config guardrails strictly backend‑agnostic; enforce backend requirements in each backend pipeline.
 
 ## Proposed Decomposition
 - Orchestrator Core
@@ -78,4 +79,3 @@ Source: `src/training/base_pipeline.py`
   - Keep helpers in leaf modules imported by the orchestrator; avoid helpers importing the orchestrator.
 - Churn across PRs
   - Deliver in small, reviewable steps (helpers → CV → evaluation writer → orchestrator move).
-
