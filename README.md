@@ -60,11 +60,11 @@
   make run-catalog RUNS_ROOT=local_runs
   ```
 - Outputs `local_runs/_catalog.json` with one entry per `run_*` folder, including basic metrics, confusion, data manifest summary, model files, and figure names. CV runs include a link to `cv_metrics.json` when present.
- - Render a simple Markdown report for quick browsing:
+- Render a simple Markdown report for quick browsing:
    ```bash
    make run-catalog-report RUNS_ROOT=local_runs
    ```
-   This writes `local_runs/index.md` with grouped runs, AUC, threshold, and links to figures.
+   This writes `local_runs/index.md` with grouped runs, AUC, ΔAUC vs previous run in the same group, threshold, and links to figures. It also embeds a small AUC trend plot per group under `local_runs/index_plots/` when `matplotlib` is available.
 
 ## Documentation
 - Agent Guide: `AGENTS.md`

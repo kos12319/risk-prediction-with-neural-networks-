@@ -129,9 +129,30 @@ def validate_and_normalize_config(cfg: Dict[str, Any], *, cfg_path: Optional[Pat
         if time_col not in parse_dates:
             parse_dates.append(time_col)
             data["parse_dates"] = parse_dates
+    # Temporal CV guardrails (backend-agnostic)
+    cv = split.get("cv", {}) or {}
+    if isinstance(cv, dict) and cv.get("enabled"):
+        n_folds = int(cv.get("n_folds", 0))
+        if n_folds < 2:
+            raise ValueError("split.cv.enabled requires split.cv.n_folds >= 2")
+        init_frac = float(cv.get("initial_train_fraction", 0.0))
+        val_frac = float(cv.get("validation_fraction", 0.0))
+        if not (0.0 < init_frac < 1.0):
+            raise ValueError("split.cv.initial_train_fraction must be in (0, 1)")
+        if not (0.0 < val_frac < 1.0):
+            raise ValueError("split.cv.validation_fraction must be in (0, 1)")
+        mode = str(cv.get("mode", "expanding")).lower()
+        if mode not in {"expanding"}:
+            raise ValueError("split.cv.mode must be 'expanding' (only supported mode)")
 
     # Oversampling policy: enabled applies to training subset only (handled in pipeline)
     cfg_norm.setdefault("oversampling", {}) or {}
+
+    # Leakage guardrail: if requested, leakage_cols must be present (list)
+    if bool(data.get("drop_leakage", False)):
+        leakage_cols = data.get("leakage_cols")
+        if not isinstance(leakage_cols, list) or not leakage_cols:
+            raise ValueError("data.drop_leakage=true requires non-empty data.leakage_cols list")
 
     # Do not introduce backend-specific defaults here; backends own their extras.
 

@@ -3,7 +3,16 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
+
+import math
+
+try:
+    import matplotlib
+    matplotlib.use("Agg")  # headless
+    import matplotlib.pyplot as plt
+except Exception:  # pragma: no cover - plotting is optional
+    plt = None  # type: ignore
 
 
 def _load_catalog(path: Path) -> Dict[str, Any]:
@@ -15,20 +24,35 @@ def _escape_md(text: str) -> str:
     return text.replace("|", "\\|")
 
 
-def _run_row(run: Dict[str, Any]) -> str:
+def _run_row(run: Dict[str, Any], delta_auc: str | None = None) -> str:
     rid = run.get("run_id", "")
     backend = run.get("backend") or "?"
     metrics = run.get("metrics") or {}
     auc = metrics.get("auc") or metrics.get("val_auc") or metrics.get("roc_auc")
     auc_str = f"{auc:.3f}" if isinstance(auc, (int, float)) else "-"
+    if delta_auc is None:
+        delta_auc = "-"
     thr = metrics.get("threshold") or "-"
     path = run.get("path", "")
     figures = run.get("figures") or []
     fig_link = f"[figures]({_escape_md(Path(path).name)}/figures)" if figures else "-"
-    return f"{_escape_md(rid)} | {_escape_md(backend)} | {auc_str} | {thr} | [{_escape_md(Path(path).name)}]({_escape_md(Path(path).name)}) | {fig_link}"
+    return (
+        f"{_escape_md(rid)} | {_escape_md(backend)} | {auc_str} | {delta_auc} | {thr} | "
+        f"[{_escape_md(Path(path).name)}]({_escape_md(Path(path).name)}) | {fig_link}"
+    )
 
 
-def build_markdown(catalog: Dict[str, Any]) -> str:
+def _group_key(run: Dict[str, Any]) -> Tuple:
+    # Prefer created timestamp (float str), fallback to run_id lexical
+    created = run.get("created")
+    try:
+        cval = float(created) if created is not None else math.inf
+    except Exception:
+        cval = math.inf
+    return (cval, str(run.get("run_id", "")))
+
+
+def build_markdown(catalog: Dict[str, Any], *, runs_root: Path, make_plots: bool = True) -> str:
     runs: List[Dict[str, Any]] = list(catalog.get("runs") or [])
     # Group by parent folder (group)
     groups: Dict[str, List[Dict[str, Any]]] = {}
@@ -46,10 +70,56 @@ def build_markdown(catalog: Dict[str, Any]) -> str:
     for g, rs in sorted(groups.items(), key=lambda kv: kv[0]):
         lines.append(f"## {_escape_md(g)}")
         lines.append("")
-        lines.append("run_id | backend | AUC | thr | folder | figures")
-        lines.append(":-- | :-- | --: | :--: | :-- | :--")
-        for r in sorted(rs, key=lambda r: r.get("run_id", "")):
-            lines.append(_run_row(r))
+        # Optionally emit a simple AUC trend plot per group
+        plot_rel = None
+        if make_plots and plt is not None:
+            try:
+                # Sort runs by created time
+                rs_sorted = sorted(rs, key=_group_key)
+                xs = list(range(1, len(rs_sorted) + 1))
+                ys = [
+                    (r.get("metrics") or {}).get("auc")
+                    or (r.get("metrics") or {}).get("val_auc")
+                    or (r.get("metrics") or {}).get("roc_auc")
+                    for r in rs_sorted
+                ]
+                ys_float = [float(y) for y in ys if isinstance(y, (int, float))]
+                if ys_float:
+                    figdir = runs_root / "index_plots"
+                    figdir.mkdir(parents=True, exist_ok=True)
+                    slug = g.replace("/", "_").replace(" ", "_")
+                    out_png = figdir / f"trend_auc_{slug}.png"
+                    plt.figure(figsize=(4.0, 2.2), dpi=150)
+                    plt.plot(xs, [float(y) if isinstance(y, (int, float)) else float('nan') for y in ys], marker="o")
+                    plt.title(f"AUC trend — {g}")
+                    plt.xlabel("run")
+                    plt.ylabel("AUC")
+                    plt.ylim(0.0, 1.0)
+                    plt.grid(True, alpha=0.3)
+                    plt.tight_layout()
+                    plt.savefig(out_png.as_posix())
+                    plt.close()
+                    plot_rel = out_png.relative_to(runs_root).as_posix()
+            except Exception:
+                plot_rel = None
+
+        if plot_rel:
+            lines.append(f"Trend: ![]({_escape_md(plot_rel)})")
+            lines.append("")
+
+        lines.append("run_id | backend | AUC | ΔAUC | thr | folder | figures")
+        lines.append(":-- | :-- | --: | --: | :--: | :-- | :--")
+
+        prev_auc: float | None = None
+        for r in sorted(rs, key=_group_key):
+            metrics = r.get("metrics") or {}
+            auc = metrics.get("auc") or metrics.get("val_auc") or metrics.get("roc_auc")
+            delta_s = "-"
+            if isinstance(auc, (int, float)) and isinstance(prev_auc, (int, float)):
+                delta = float(auc) - float(prev_auc)
+                delta_s = f"{delta:+.3f}"
+            lines.append(_run_row(r, delta_s))
+            prev_auc = float(auc) if isinstance(auc, (int, float)) else prev_auc
         lines.append("")
 
     return "\n".join(lines) + "\n"
@@ -68,7 +138,7 @@ def main() -> None:
         raise SystemExit(f"Catalog not found: {cat_path}")
 
     catalog = _load_catalog(cat_path)
-    md = build_markdown(catalog)
+    md = build_markdown(catalog, runs_root=runs_root, make_plots=True)
 
     out_path = Path(args.out) if args.out else runs_root / "index.md"
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -79,4 +149,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
