@@ -175,12 +175,16 @@ cv-train: venv
 	$(SAFE_ENV) $(PY) -m src.cli.pytorch.train --config configs/pytorch/cv_full_train_smoke.yaml $(if $(NOTES),--notes "$(NOTES)",)
 
 # Usage: make train-template [CONFIG=configs/template_default.yaml]
+TEMPLATE_CONFIG ?=
+
 train-template: venv
-	$(SAFE_ENV) $(PY) -m src.cli.template.train --config $(or $(CONFIG),configs/template_default.yaml)
+	# Use CLI default config unless TEMPLATE_CONFIG is provided
+	$(SAFE_ENV) $(PY) -m src.cli.template.train $(if $(TEMPLATE_CONFIG),--config $(TEMPLATE_CONFIG),)
 
 # Usage: make dryrun-template [CONFIG=configs/template_default.yaml]
 dryrun-template: venv
-	$(SAFE_ENV) $(PY) -m src.cli.template.dryrun --config $(or $(CONFIG),configs/template_default.yaml)
+	# Use CLI default config unless TEMPLATE_CONFIG is provided
+	$(SAFE_ENV) $(PY) -m src.cli.template.dryrun $(if $(TEMPLATE_CONFIG),--config $(TEMPLATE_CONFIG),)
 
 # Usage: make run-catalog [RUNS_ROOT=local_runs] [OUT=path]
 RUNS_ROOT ?= local_runs

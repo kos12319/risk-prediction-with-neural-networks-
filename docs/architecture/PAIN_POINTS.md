@@ -41,6 +41,12 @@ Verification (2025-09-25): Re-ran tiny end-to-end checks to reconfirm the decoup
     - Change: `run_catalog_report` now computes per-group ΔAUC vs previous run and embeds a small AUC trend PNG per group under `local_runs/index_plots/`.
     - Effect: Quickly spot regressions/improvements across iterations within a setup.
     - Caveat: Plots require `matplotlib`; if unavailable, the report still renders tables without images. Sorting prefers run creation time when present; falls back to `run_id`.
+
+- Makefile portability
+  - [done] Fix template backend targets to avoid non-portable `$(or ...)` expansion.
+    - Change: `make train-template` and `make dryrun-template` now rely on CLI defaults when `CONFIG` is unset, and only pass `--config` when explicitly provided.
+    - Effect: Works across Make variants (GNU/BSD) and avoids accidental mis-parsing that could select the wrong backend.
+    - Verification: Ran `make dryrun-template` with no `CONFIG` (uses `configs/template_default.yaml`) and observed a successful dry run on the 1k sample.
 - Config schema hardening
   - [done] Introduce a stricter schema layer (Pydantic) for backend-specific configs.
     - Change: Added `src/training/backends/pytorch/schema.py` and `src/training/backends/h2o/schema.py`; pipelines call these to validate backend-only options (e.g., PyTorch `training.class_weight`, H2O `automl.*`). Shared invariants remain in the common validator.

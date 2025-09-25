@@ -163,7 +163,8 @@
    ```
    Quick smoke with the template backend (sklearn):
    ```bash
-   make dryrun-template CONFIG=configs/template_default.yaml
+   # Uses default config unless TEMPLATE_CONFIG is set
+   make dryrun-template [TEMPLATE_CONFIG=configs/template_default.yaml]
    ```
 
 ## Temporal Cross-Validation
