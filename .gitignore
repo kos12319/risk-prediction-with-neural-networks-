@@ -43,3 +43,4 @@ docs/architecture/PLATFORM_SPEC.md
 # Legacy artifact folders (no longer used)
 reports/**
 models/**
+logs/
