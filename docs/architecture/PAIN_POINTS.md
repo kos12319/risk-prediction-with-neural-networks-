@@ -4,8 +4,8 @@ This list reflects the current high‑priority focus. Previous items have been a
 
 ## High Priority
 - Tests and evaluation invariants
-  - Add pytest coverage for: time split monotonicity; train‑only oversampling; validation‑based threshold selection; `eval.pos_label` handling; seeded determinism (Python/NumPy/Torch/DataLoader workers).
-  - Validate temporal CV aggregation schema and artifact layout (`reports/cv_metrics.json`, per‑fold files).
+  - [progress] Added pytest for threshold selection and `pos_label` handling; see tests/test_eval_thresholds.py. Existing tests cover time‑split monotonicity. Determinism and train‑only oversampling checks remain.
+  - [todo] Validate temporal CV aggregation schema and artifact layout (`reports/cv_metrics.json`, per‑fold files).
 - H2O CV parity and ergonomics
   - [done] Added an H2O temporal CV smoke‑test preset and Make target.
     - Config: `configs/h2o/cv_smoke.yaml` (2 folds, ~15s runtime budget).
