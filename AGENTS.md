@@ -41,6 +41,7 @@ This guide adds repo‑specific guardrails and conventions that are easy to miss
 - Keep modules cohesive and small; prefer pure functions over side effects.
 - Design to avoid leakage: time-split, train-only oversampling, drop post-origination features (`data.drop_leakage`).
 - Shared pipeline utilities live in `src/training/base_pipeline.py`.
+- Backends must import the stable interfaces from `src/training/interfaces.py` (`BackendPipeline`, `DatasetBundle`, `BackendTrainingResult`, `RunContext`) rather than importing these directly from `base_pipeline`.
 - Backend-specific orchestration sits in `src/training/backends/{pytorch,h2o,template}/pipeline.py` and owns backend concerns (naming, tags, extra artifacts). The shared utilities must not branch on backend types.
 
 ## Testing

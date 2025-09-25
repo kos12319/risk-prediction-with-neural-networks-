@@ -7,12 +7,7 @@ from typing import Any, Dict, Iterable, Optional
 import numpy as np
 import pandas as pd
 
-from src.training.base_pipeline import (
-    BackendPipeline,
-    BackendTrainingResult,
-    DatasetBundle,
-    RunContext,
-)
+from src.training.interfaces import BackendPipeline, BackendTrainingResult, DatasetBundle, RunContext
 from .train import train_h2o
 
 _TRUE_SET = {"1", "true", "yes", "on", "enabled"}

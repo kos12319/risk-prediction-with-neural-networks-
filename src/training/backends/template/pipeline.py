@@ -5,12 +5,7 @@ from typing import Any, Dict, Iterable, Optional
 
 import numpy as np
 
-from src.training.base_pipeline import (
-    BackendPipeline,
-    BackendTrainingResult,
-    DatasetBundle,
-    RunContext,
-)
+from src.training.interfaces import BackendPipeline, BackendTrainingResult, DatasetBundle, RunContext
 
 
 class TemplatePipeline(BackendPipeline):

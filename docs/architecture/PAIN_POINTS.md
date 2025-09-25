@@ -11,6 +11,12 @@ Verification (2025-09-25): Re-ran tiny end-to-end checks to reconfirm the decoup
     - Effect: Clear separation enables adding a third backend without touching others; users pick backend explicitly via Makefile/CLI.
     - Verification: Ran `make dryrun`, `make dryrun-cv`, `make dryrun-h2o`, and `make dryrun-h2o-cv` on sample CSVs; all completed successfully with metrics and figures.
     - Caveat: Old notebooks or scripts calling `python -m src.cli train` will need to update; the error message points to replacements.
+  - [done] Introduce stable backend interfaces and update imports.
+    - Change: Added `src/training/interfaces.py` as a façade exposing `BackendPipeline`, `DatasetBundle`, `BackendTrainingResult`, and `RunContext`. Backends now import from `src.training.interfaces` instead of `base_pipeline`.
+    - Effect: Decouples backend modules from the shared pipeline implementation; future pipeline moves won’t require touching backend code.
+    - Docs: Added `docs/architecture/INTERFACES.md` documenting the contract and extension hooks.
+    - Verification: Ran `make dryrun` and `make dryrun-cv` (PyTorch) and `make dryrun-h2o-cv` (H2O; Java present). All completed successfully.
+    - Caveat: This is an import‑path change only; the underlying class definitions still live in `base_pipeline` for now and are re‑exported by the façade. A future step can migrate definitions fully without breaking imports.
   - [done] Remove hard requirement for `model.backend` in H2O configs when using the H2O CLI.
     - Change: H2O schema now accepts missing/empty `model.backend` (treated as H2O). Presets (`configs/h2o_default.yaml`, `configs/h2o/cv_smoke.yaml`) no longer set it explicitly.
     - Effect: Further decouples backend selection from shared configs; backend is implied by the entrypoint, making it easier to add a third backend without cross‑coupling.

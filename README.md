@@ -41,6 +41,7 @@
   - `models/` — neural network (PyTorch)
   - `eval/` — metrics and plots
   - `training/`
+    - `interfaces.py` — stable backend interfaces (`BackendPipeline`, `DatasetBundle`, `BackendTrainingResult`, `RunContext`)
     - `base_pipeline.py` — shared, backend-agnostic utilities for data prep/eval (no backend branching)
     - `backends/pytorch/` — PyTorch-specific orchestration (owns run naming, tags, extras)
     - `backends/h2o/` — H2O AutoML orchestration (owns run naming, tags, extras)
