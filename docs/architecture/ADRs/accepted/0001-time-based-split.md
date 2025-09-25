@@ -32,6 +32,5 @@ Adopt a time-based holdout split by `issue_d` as the default evaluation strategy
 
 ## Implementation Notes
 - Config: set `split.method: time` and `split.time_col: issue_d` in experiment configs when reporting results. Some example configs default to `random` for quick iteration; switch to `time` for proper evaluation.
-- Code: `src/data/split.py` provides time‑based splitting logic; `src/training/pipeline.py` invokes it when configured.
+- Code: `src/data/split.py` provides time-based splitting logic; `src/training/base_pipeline.py` orchestrates it with backend adapters (`src/training/backends/pytorch/pipeline.py`, `src/training/backends/h2o/pipeline.py`).
 - Plots and metrics reflect the chosen positive class and threshold strategy.
-

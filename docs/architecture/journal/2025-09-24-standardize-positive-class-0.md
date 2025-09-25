@@ -12,9 +12,8 @@ Standardized the default positive class to 0 (Charged Off) across the pipeline. 
 
 ## Impact
 - Config: `eval.pos_label: 0` in `configs/default.yaml` and variants.
-- Code: probability alignment and metric computation updated in `src/training/pipeline.py` and H2O path.
+- Code: probability alignment handled centrally in `src/training/base_pipeline.py`; backend adapters (`src/training/backends/*/pipeline.py`) ensure their outputs respect the configured positive class.
 - Docs: README clarifies the convention and override.
 
 ## Next
 - Ensure confusion matrix plots label the positive class explicitly in figures.
-

@@ -1,144 +1,4 @@
-data:
-  csv_path: data/raw/samples/thesis_data_sample_1k.csv
-  target_col: loan_status
-  target_mapping:
-    'Charged Off': 0
-    'Fully Paid': 1
-  # Columns to parse as dates
-  parse_dates: [issue_d, earliest_cr_line]
-  # Drop post-origination/leaky columns if present
-  drop_leakage: true
-  leakage_cols:
-    - out_prncp
-    - out_prncp_inv
-    - total_pymnt
-    - total_pymnt_inv
-    - last_pymnt_d
-    - last_pymnt_amnt
-    - next_pymnt_d
-    - last_credit_pull_d
-    - collection_recovery_fee
-    - recoveries
-    - hardship_flag
-    - hardship_type
-    - hardship_reason
-    - hardship_status
-    - hardship_amount
-    - hardship_start_date
-    - hardship_end_date
-    - payment_plan_start_date
-    - hardship_length
-    - hardship_dpd
-    - hardship_loan_status
-    - orig_projected_additional_accrued_interest
-    - hardship_payoff_balance_amount
-    - hardship_last_payment_amount
-    - debt_settlement_flag
-    - debt_settlement_flag_date
-    - settlement_status
-    - settlement_date
-    - settlement_amount
-    - settlement_percentage
-    - settlement_term
-  # Provider-agnostic feature set (no int_rate/grade/sub_grade/installment/funded_amnt)
-  # Engineered features (income_to_loan_ratio, credit_history_length, fico_avg) will be computed if inputs present
-  features:
-    # Loan/application
-    - loan_amnt
-    - term
-    - purpose
-    - emp_length
-    - annual_inc
-    - verification_status
-    - home_ownership
-    - addr_state
-
-    # Credit profile
-    - dti
-    - delinq_2yrs
-    - pub_rec
-    - inq_last_6mths
-    # inq_last_12m has ~41% missingness; drop by default (can re-enable after testing)
-    - open_acc
-    - total_acc
-    - revol_bal
-    - revol_util
-    - fico_range_low
-    - fico_range_high
-    - mort_acc
-
-    # Depth/limits and risk indicators
-    - total_rev_hi_lim
-    - bc_open_to_buy
-    - bc_util
-    - percent_bc_gt_75
-    - tot_cur_bal
-    - tot_hi_cred_lim
-    - total_bal_ex_mort
-    - total_bc_limit
-    - total_il_high_credit_limit
-    - num_rev_accts
-    - num_rev_tl_bal_gt_0
-    - num_il_tl
-    - num_bc_tl
-    - num_bc_sats
-    - num_actv_rev_tl
-    - num_tl_90g_dpd_24m
-    - pub_rec_bankruptcies
-    - tax_liens
-
-    # Dates for engineering/splitting (not fed to the model)
-    - issue_d
-    - earliest_cr_line
-
-  winsorize_enabled: true
-  winsorize:
-    annual_inc:
-      lower_quantile: 0.01
-      upper_quantile: 0.995
-    dti:
-      lower_value: 0.0
-      upper_quantile: 0.995
-    revol_util:
-      lower_value: 0.0
-      upper_quantile: 0.995
-    income_to_loan_ratio:
-      lower_value: 0.0
-      upper_quantile: 0.995
-    fico_spread:
-      lower_value: 0.0
-      upper_quantile: 0.99
-
-split:
-  method: time             # time | random
-  time_col: issue_d
-  test_size: 0.2
-  random_state: 42
-  cv:
-    enabled: false
-    n_folds: 0
-    mode: expanding          # expanding | rolling (rolling pending implementation)
-    initial_train_fraction: 0.4
-    validation_fraction: 0.2
-    gap: 0
-    shuffle_within_folds: false
-    train_full_after: false
-
-oversampling:
-  enabled: true          # applies to training split only
-  method: random_over_sampler
-  params: {}
-
-preprocessing:
-  categorical_encoder: one_hot   # options: one_hot | target
-  sparse_threshold: 0.3
-  numerical:
-    imputer: median              # median | mean | most_frequent | constant
-    scaler: standard             # standard | minmax | robust | none
-  categorical:
-    imputer: most_frequent       # most_frequent | constant
-    encoder_params:
-      handle_unknown: ignore
+extends: pytorch/base
 
 model:
   backend: pytorch
@@ -146,7 +6,7 @@ model:
   layers: [256, 128, 64, 32]
   dropout: [0.4, 0.3, 0.2, 0.2]
   batchnorm: true
-  loss: binary_crossentropy   # options: binary_crossentropy | focal
+  loss: binary_crossentropy
   focal:
     enabled: false
     alpha: 0.25
@@ -157,66 +17,14 @@ model:
   val_split: 0.2
   early_stopping_patience: 10
 
-automl:
-  backend: h2o
-  max_runtime_secs: 900
-  max_models: null
-  stopping_metric: "AUTO"
-  project_name: null
-  balance_classes: false
-  max_after_balance_size: 5.0
-  seed: 42
-  nfolds: 0  # keep 0 to rely on explicit validation split
-  keep_cross_validation_models: false
-  keep_cross_validation_predictions: false
-  keep_cross_validation_fold_assignment: false
-  exclude_algos: []
-  include_algos: []
-  sort_metric: "AUTO"
-  nthreads: -1
-  max_mem_size: null
-  export_checkpoints_dir: null
-  log_dir: null
-
 output:
-  runs_root: local_runs   # single gitignored folder where each run writes all artifacts
   model_filename: loan_default_model.pt
 
-eval:
-  # Which class counts as positive for ROC/PR and metrics: 1 (Fully Paid) or 0 (Charged Off)
-  pos_label: 0
-  threshold:
-    strategy: youden_j   # options: fixed | youden_j | f1
-    value: 0.5        # used when strategy=fixed
-
 training:
-  # Use class weights for BCE training. Options: null | "auto" | {0: w0, 1: w1}
   class_weight: null
 
 tracking:
-  backend: wandb          # options: none | wandb
+  backend: wandb
   wandb:
     enabled: true
-    project: loan-risk-mlp   # set your W&B project name
-    entity: null             # optional W&B entity/org
-    mode: online             # online | offline | disabled
-    run_name: null           # optional explicit name
-    run_name_template: "{dataset}|{split}|{pos}|mlp[{layers}]|nc{nc}|auc{auc:.3f}"  # used if run_name is null
-    group: null              # optional W&B group
-    group_template: "{dataset}|{split}|{pos}|{backend}"   # used if group is null
-    job_type: train          # optional W&B job_type (e.g., train, eval)
-    job_type_template: null  # optional template if job_type is null
-    tags: []                 # static tags to add to each run
-    tag_templates:           # rendered with dataset/split/pos/layers/nf/auc/sha/run_id
-      - "dataset:{dataset}"
-      - "split:{split}"
-      - "pos:{pos}"
-      - "backend:{backend}"
-      - "nc:{nc}"
-      - "auc:{auc:.3f}"
-    log_artifacts: true      # upload key run artifacts
-    ignore_globs:            # reduce uploads; keeps metrics/figures/config only
-      - "**/*.csv"
-      - "data/**"
-      - "local_runs/**/roc_points.csv"
-      - "local_runs/**/pr_points.csv"
+    project: loan-risk-mlp

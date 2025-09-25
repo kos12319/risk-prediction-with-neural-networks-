@@ -7,7 +7,7 @@ This document provides essential context for AI agents interacting with this pro
 This is a Python-based machine learning project for building a neural network-based credit risk model on the LendingClub dataset. The primary goal is to predict loan defaults while also supporting feature subset selection to find a compact, high-value set of predictors.
 
 **Key Technologies:**
-*   **Backend:** PyTorch
+*   **Backends:** PyTorch (neural net) and H2O AutoML
 *   **Data Handling:** pandas, scikit-learn, imbalanced-learn
 *   **Configuration:** YAML (`configs/`)
 *   **Experiment Tracking:** Weights & Biases (`wandb`)
@@ -44,8 +44,9 @@ make train CONFIG=configs/pytorch_default.yaml NOTES="testing new dropout"
 Switch to the AutoML backend (configs must set `model.backend: h2o`).
 ```bash
 make automl-h2o
-make automl-h2o AUTOML_CONFIG=configs/default_automl.yaml NOTES="smoke test"
+make automl-h2o AUTOML_CONFIG=configs/h2o_default.yaml NOTES="smoke test"
 ```
+- Ensure a Java runtime is available (`java -version`). The CLI performs a pre-flight check and exits with guidance if Java is missing or blocked.
 
 **3. Feature Selection:**
 Run feature selection using either Mutual Information (`mi`) or L1 regularization (`l1`).
@@ -54,9 +55,10 @@ make select CONFIG=configs/pytorch_default.yaml METHOD=mi
 ```
 
 **4. Dry Run:**
-Perform an end-to-end check without saving any artifacts. This is useful for validating a configuration change.
+Perform an end-to-end check without saving any artifacts. Use the backend-specific target:
 ```bash
-make dryrun CONFIG=configs/pytorch_default.yaml
+make dryrun CONFIG=configs/pytorch_default.yaml          # PyTorch
+make dryrun-h2o AUTOML_CONFIG=configs/h2o_default.yaml   # H2O AutoML
 ```
 
 **5. Experiment Tracking (W&B):**
@@ -76,9 +78,10 @@ make dryrun CONFIG=configs/pytorch_default.yaml
 ## Development Conventions
 
 *   **Makefile-First Policy:** ALWAYS use `make` for running tasks. Do not call `python -m src.cli...` directly.
-*   **Configuration:** All parameters (data paths, model hyperparameters, features) are managed via YAML files in `configs/`. Do not hardcode paths or parameters in scripts.
+*   **Configuration:** All parameters (data paths, model hyperparameters, features) are managed via YAML files in `configs/` (`configs/pytorch/` for PyTorch bases, `configs/h2o/` for AutoML). Do not hardcode paths or parameters in scripts.
 *   **Data Splitting:** The default and required method for test sets is a time-based split on the `issue_d` column to prevent lookahead bias. Validation sets are carved from the training data *before* oversampling.
 *   **Leakage Prevention:** A strict leakage policy is enforced. Only features available at the time of loan origination are used. A list of known leaky columns is maintained in the configuration and dropped automatically.
 *   **Dependencies:** Manage dependencies by editing `requirements.in` and running `make deps-compile` to regenerate the `requirements.txt` lockfile.
 *   **Testing:** Tests are written with `pytest` and located in the `tests/` directory.
 *   **Commits & PRs:** Follow conventional commit style (e.g., `feat: ...`, `fix: ...`). Pull requests should explain the "what" and "why" and include relevant metrics or figures.
+*   **Medium backlog:** Current medium-priority initiatives focus on config validation guardrails, a shared temporal CV runner, and a run catalog manifest (documented in `docs/PAIN_POINTS.md`).

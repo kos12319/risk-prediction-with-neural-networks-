@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 from src.training.wandb_sync import login_from_env, download_run
-from src.training.pipeline import load_config_with_extends  # reuse config loader
+from src.training.config import load_config_with_extends  # reuse config loader
 
 
 def main():

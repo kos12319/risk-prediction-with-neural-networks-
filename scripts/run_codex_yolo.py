@@ -36,7 +36,7 @@ Right before each commit go over the architecture and refine the pain points or 
 stop your run after each commit. you will be run in a non interctive mode and a script will relaunch you to start again and fix the next item. if all items are fixed, and you cannot refine more, send a signal to kill the running script
 if you get stuck, kill the script. DO NOT STAY IN A LOOP FOR MORE THAN 15mins. kill the script so this all stops. Before tou stop your run or kill the script, write a log line with timestamp and the reason you stopped your run or killed the script in coding_agent.log. Make sure you consult this log every time you start to see and understand your status and act according to these instructions."""
 
-DEFAULT_COMMAND = "codex exec --full-auto"
+DEFAULT_COMMAND = "codex exec --dangerously-bypass-approvals-and-sandbox"
 LOG_PATH = Path("coding_agent.log")
 MAX_RUNTIME_SEC = 2 * 60 * 60  # two hours
 SLEEP_BETWEEN_RUNS = float(os.environ.get("CODEX_CLI_SLEEP", "0"))

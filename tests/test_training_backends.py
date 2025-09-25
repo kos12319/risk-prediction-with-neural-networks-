@@ -5,11 +5,12 @@ from pathlib import Path
 import pytest
 import yaml
 
-from src.training.pipeline import train_from_config
+from src.training.backends.pytorch import train_from_config
+from src.training.config import load_config_with_extends
 
 
 def test_train_from_config_rejects_unknown_backend(tmp_path):
-    base_cfg = yaml.safe_load(Path("configs/pytorch_default.yaml").read_text(encoding="utf-8"))
+    base_cfg = load_config_with_extends(Path("configs/pytorch_default.yaml"))
     base_cfg["data"]["csv_path"] = "data/raw/samples/thesis_data_sample_100.csv"
     base_cfg["output"] = {"runs_root": (tmp_path / "runs").as_posix()}
     base_cfg.setdefault("tracking", {})["backend"] = "none"
@@ -20,5 +21,5 @@ def test_train_from_config_rejects_unknown_backend(tmp_path):
     cfg_path = tmp_path / "invalid_backend.yaml"
     cfg_path.write_text(yaml.safe_dump(base_cfg, sort_keys=False), encoding="utf-8")
 
-    with pytest.raises(ValueError, match="Unsupported model backend"):
+    with pytest.raises(ValueError, match="PyTorch pipeline requires model.backend"):
         train_from_config(cfg_path)

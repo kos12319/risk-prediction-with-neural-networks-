@@ -46,7 +46,7 @@
 ### Scale-up plan
 - 10k: increase AutoML budget (e.g., 1800s) and reuse the same four configs per size.
 - 100k: point `csv_path` to `data/raw/samples/thesis_data_sample_100k.csv` (ensure the file exists locally; see README/LFS notes) and extend budget (e.g., 3600s+).
-- Full: use `configs/default_automl.yaml` as base; keep `leaderboard_extra_columns`, test leaderboard, and SHAP/varimp plots enabled.
+- Full: use `configs/h2o_default.yaml` as base; keep `leaderboard_extra_columns`, test leaderboard, and SHAP/varimp plots enabled.
 
 ## Success Criteria
 - On 1k and 10k, selected subset reaches ≥98–99% of agnostic AUC/PR with fewer inputs.

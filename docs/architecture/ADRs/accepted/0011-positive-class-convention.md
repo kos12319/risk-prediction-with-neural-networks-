@@ -22,6 +22,5 @@ Adopt `eval.pos_label: 0` (Charged Off) as the default positive class. Ensure pr
 
 ## Implementation Notes
 - Config: `configs/default.yaml:evalu.pos_label: 0` and variants under `configs/pytorch/*.yaml`.
-- Code: `src/training/pipeline.py` aligns probability columns to `pos_label`, computes metrics/curves consistently; H2O path in `src/training/train_h2o.py` reorders factor levels to place the positive class last and aligns probability extraction.
+- Code: probability alignment and metric computation live in `src/training/base_pipeline.py`; backend adapters (e.g., `src/training/backends/pytorch/pipeline.py`, `src/training/backends/h2o/pipeline.py`) feed backend-specific outputs while respecting the configured `pos_label`.
 - CLI/Explore: `src/cli/explore.py` normalizes string values (“default”, “charged off”) to 0.
-

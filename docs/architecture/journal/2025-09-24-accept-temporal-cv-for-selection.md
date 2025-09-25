@@ -12,9 +12,8 @@ Adopted forward-chaining temporal cross-validation (expanding windows) for featu
 
 ## Impact
 - Config: `split.cv.enabled: true`, `n_folds`, `mode: expanding`, `validation_fraction`, `train_full_after`.
-- Code: CV orchestration and aggregation in `src/training/pipeline.py` with per-fold artifacts.
+- Code: CV orchestration and aggregation live in `src/training/base_pipeline.py` (`_run_temporal_cv`), invoked via backend adapters under `src/training/backends/*/pipeline.py`.
 - Artifacts: `run_dir/folds/fold_XX/` and `reports/cv_metrics.json` in the main run directory.
 
 ## Next
 - Evaluate rolling mode once implemented; document default fold counts for common dataset sizes.
-

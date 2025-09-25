@@ -27,8 +27,11 @@
   - `processed/` — optional cached splits (ignored by git)
 - `local_runs/` (gitignored) — per‑run folders with all artifacts
 - `configs/`
-  - `pytorch_default.yaml` — base config for PyTorch backend
-  - `default_automl.yaml` — base config for H2O AutoML
+  - `pytorch/` — PyTorch-only bases (e.g., `base.yaml`) plus optional backend presets
+  - `h2o/` — H2O-only bases (e.g., `base.yaml`) plus AutoML presets
+  - `pytorch_default.yaml` — PyTorch baseline extending `pytorch/base.yaml`
+  - `h2o_default.yaml` — H2O AutoML baseline extending `h2o/base.yaml`
+  - `default_automl.yaml` — compatibility shim extending `h2o_default.yaml`
   - `provider_agnostic.yaml` — PyTorch with lender-agnostic features
   - `provider_aware.yaml` — PyTorch including pricing/scoring fields
   - `pytorch_instances/` and `h2o_instances/` — your local presets (gitignored)
@@ -37,8 +40,12 @@
   - `features/` — preprocessing and feature engineering
   - `models/` — neural network (PyTorch)
   - `eval/` — metrics and plots
-  - `training/` — training orchestration
-  - `cli/` — command‑line entry points
+  - `training/`
+    - `base_pipeline.py` — shared utilities for data prep/eval reused by each backend pipeline
+    - `backends/pytorch/` — PyTorch-specific orchestration built on the shared utilities
+    - `backends/h2o/` — H2O AutoML orchestration built on the shared utilities
+    - `train_nn.py`, `train_h2o.py` — backend-specific trainers
+  - `cli/` — command-line entry points
 - `docs/exploration/` — exploratory notebooks and reports
 
 ## Local Artifacts
@@ -64,7 +71,7 @@
   - Log the change with a dated Journal entry referencing the ADR(s).
   - Keep docs Makefile-first; examples should use `make` targets, not raw `python -m`.
   - The compiled spec is gitignored; rebuild with `make docs` when needed.
-- Pain Points: `docs/PAIN_POINTS.md`
+- Pain Points: `docs/PAIN_POINTS.md` (medium queue tracks config validation guardrails, temporal CV runner, and run catalog manifest work)
 - Data dictionary: `docs/data/COLUMN_DICTIONARY.md`
 - Regenerate column dictionary:
   ```bash
@@ -74,14 +81,15 @@
   ```
 
 ## Dry Run
-- End‑to‑end check without persisting files:
+- PyTorch pipeline smoke test (no artifacts persisted):
   ```bash
   make dryrun CONFIG=configs/pytorch_default.yaml
-  # or
-  . .venv/bin/activate
-  python -m src.cli.dryrun --config configs/pytorch_default.yaml
   ```
-- Artifacts are written to a temporary directory and deleted after completion. A JSON summary is printed to stdout.
+- H2O AutoML smoke test (no artifacts persisted):
+  ```bash
+  make dryrun-h2o AUTOML_CONFIG=configs/h2o_default.yaml
+  ```
+- Both commands write artifacts to a temporary directory that is deleted on exit; a JSON summary is printed to stdout.
 
 ## Quick Start
 1) Create venv and install deps (Python 3.12 preferred):
@@ -114,9 +122,9 @@
    make train CONFIG=configs/pytorch_default.yaml PULL=true   # PyTorch + download W&B files
    # On Linux/WSL or constrained envs, use CPU-only helper:
    make cpu-train CONFIG=configs/pytorch_default.yaml         # PyTorch on CPU with minimal threads
-   # Kick off H2O AutoML (defaults to configs/default_automl.yaml when AUTOML_CONFIG unset)
+   # Kick off H2O AutoML (defaults to configs/h2o_default.yaml when AUTOML_CONFIG unset)
    make automl-h2o                                    # H2O AutoML pipeline
-   make automl-h2o AUTOML_CONFIG=configs/default_automl.yaml NOTES="grid search"  # custom config
+   make automl-h2o AUTOML_CONFIG=configs/h2o_default.yaml NOTES="grid search"  # custom config
    ```
 
 ## Temporal Cross-Validation
@@ -152,10 +160,11 @@
   - W&B: `wandb.json` with `{id, path, url}`; optional `wandb/` with downloaded files/artifacts (when `PULL=true` or via `pull-run`)
 
 ## H2O AutoML
-- Switch the backend by setting `model.backend: h2o` in your YAML (see `configs/default_automl.yaml` for a ready-to-run example that extends the default config).
+- Switch the backend by setting `model.backend: h2o` in your YAML (see `configs/h2o_default.yaml` for a ready-to-run example that extends the default config).
 - Put your own AutoML presets under `configs/h2o_instances/` (gitignored).
 - Configure AutoML behaviour via the `automl` block: `progress` (set `true` to re-enable the CLI progress bar), `log_level` (defaults to `WARN` on the JVM side), `suppress_dependency_warnings` (hides repetitive `H2ODependencyWarning` chatter by default), `max_runtime_secs`, `max_models`, `balance_classes`, `include_algos`/`exclude_algos`, `seed`, `nthreads`, `max_mem_size`, and optional `export_checkpoints_dir` and `log_dir`. All inputs are respected by the `make automl-h2o` target.
 - On Apple Silicon laptops with 16 GB unified memory the full ~1.5 GB LendingClub CSV fits comfortably; set `automl.max_mem_size` to roughly `8g-10g` so the JVM has headroom while leaving space for macOS and Python. On smaller machines, keep the sample CSV or downsample to avoid garbage-collection churn.
+- H2O AutoML requires a functional Java runtime (`java -version`). The training CLI now checks for Java before launching; sandboxed environments that block the JVM will fail fast with guidance.
 - H2O's XGBoost backend is available on recent macOS/Apple Silicon with current H2O releases. If logs report `XGBoost is not available; skipping it`, AutoML will proceed without XGBoost models. To force-disable, set `automl.exclude_algos: ['XGBoost']`. If you hit linker/OpenMP issues, install `libomp` (e.g., via Homebrew) and rerun `make automl-h2o`.
 - Leaderboard charts now use human-friendly model labels (algorithm + short ID) in both PNG exports and comparison curves. A Pareto-front scatter (`figures/comparison/h2o_pareto_front.png`) and CSV (`h2o_pareto_front.csv`) are emitted when AutoML finishes to highlight accuracy vs latency trade-offs; toggle via `explanation_plots.pareto_front`.
 - Feature-importance dashboards now include per-family bar charts (`figures/comparison/per_family_varimp/`) with matching CSVs (`varimp_per_family/`), plus partial dependence plots (PDPs) for the overall leader under `figures/explanations/partial_dependence/`; configure via `explanation_plots.per_family_varimp` and `explanation_plots.partial_dependence` (ICE overlays are not exposed by H2O and are ignored).
@@ -204,7 +213,10 @@
 - Thread controls (set by `cpu-train`): `OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 BLIS_NUM_THREADS=1`
 
 ## CLI Reference
-- Train: `python -m src.cli.train --config CONFIG [--notes TEXT] [--pull] [--cpu]`
+- PyTorch train: `python -m src.cli.pytorch.train --config CONFIG [--notes TEXT] [--pull] [--cpu]`
+- PyTorch dry run: `python -m src.cli.pytorch.dryrun --config CONFIG`
+- H2O train: `python -m src.cli.h2o.train --config CONFIG [--notes TEXT] [--pull]`
+- H2O dry run: `python -m src.cli.h2o.dryrun --config CONFIG`
 - W&B login: `python -m src.cli.wandb_login`
 - Pull W&B run: `python -m src.cli.wandb_pull --run ENTITY/PROJECT/RUN_ID [--target DIR] [--config CONFIG]`
 

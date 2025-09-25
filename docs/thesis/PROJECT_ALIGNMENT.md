@@ -15,7 +15,7 @@ This memo captures engineering-side proposals that keep the codebase in lockstep
 - Report Brier score, ECE/MCE, and calibration curves to ground **RQ3/H3** experiments.
 
 ## Utility-Aligned Thresholding
-- Enhance the evaluator (`src/eval/binary.py`, `src/training/pipeline.py`) with cost-matrix inputs, partial ROC in business FPR bands, and validation → test transfer tables.
+- Enhance the evaluator (`src/eval/binary.py`, `src/training/base_pipeline.py`) with cost-matrix inputs, partial ROC in business FPR bands, and validation → test transfer tables.
 - Supports **RQ4/H4** regarding expected-utility thresholds.
 
 ## Gradient-Boosting Baselines
@@ -28,7 +28,7 @@ This memo captures engineering-side proposals that keep the codebase in lockstep
 - Provide paired configs/scripts that batch-run provider-agnostic vs provider-aware setups so **RQ1/H1** comparisons remain reproducible.
 
 ## Thesis-Ready Figures
-- Extend the artifact pipeline (`src/training/pipeline.py`) to export calibration curves, partial ROC plots, and threshold sweeps directly into `local_runs/` for inclusion in thesis chapters.
+- Extend the artifact pipeline (`src/training/base_pipeline.py` with backend hooks under `src/training/backends/*/pipeline.py`) to export calibration curves, partial ROC plots, and threshold sweeps directly into `local_runs/` for inclusion in thesis chapters.
 
 ## Loss-Template Configs
 - Supply curated BCE and focal-loss config variants with multi-seed Make helpers, streamlining the loss-function and calibration study plan.

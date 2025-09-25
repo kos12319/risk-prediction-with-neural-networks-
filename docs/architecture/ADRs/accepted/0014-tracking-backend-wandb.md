@@ -23,6 +23,5 @@ Support W&B as an optional tracking backend. Enable via config (`tracking.backen
 
 ## Implementation Notes
 - Config: `tracking.backend`, `tracking.wandb.*` keys with templates for names/groups/tags.
-- Code: `src/training/pipeline.py` conditional W&B init and artifact logging; helpers under `src/cli/wandb_*`.
+- Code: `src/training/base_pipeline.py` handles conditional W&B init and shared artifact logging; backend adapters add backend-specific logging (`src/training/backends/pytorch/pipeline.py`, `src/training/backends/h2o/pipeline.py`). CLI helpers live under `src/cli/wandb_*`.
 - Makefile: `wandb-login`, `pull-run`, `pull-all`, `clean-cloud-history`.
-

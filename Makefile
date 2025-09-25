@@ -6,7 +6,7 @@ PY := $(VENV)/bin/python
 PIP := $(VENV)/bin/pip
 PIP_COMPILE := $(VENV)/bin/pip-compile
 PIP_SYNC := $(VENV)/bin/pip-sync
-AUTOML_CONFIG ?= configs/default_automl.yaml
+AUTOML_CONFIG ?= configs/h2o_default.yaml
 H2O_BALANCE ?= 1
 H2O_OVERSAMPLING ?= 0
 H2O_MAX_AFTER_BALANCE ?=
@@ -38,7 +38,8 @@ help:
 	@echo "  select         Run feature selection (CONFIG=..., METHOD=mi|l1)"
 	@echo "  dict           Generate column dictionary (CONFIG=..., CSV optional)"
 	@echo "  explore        Explore dataset (CONFIG=..., CSV=path optional)"
-	@echo "  dryrun         Run training as a dry run (no artifacts persisted)"
+	@echo "  dryrun         Run PyTorch training as a dry run (no artifacts persisted)"
+	@echo "  dryrun-h2o     Run H2O AutoML as a dry run (no artifacts persisted)"
 	@echo "  wandb-login    Login to W&B using env (WANDB_API_KEY, WANDB_ENTITY)"
 	@echo "  pull-run       Download a W&B run into ./wandb-history/<run_id> (RUN=entity/project/run_id | project/run_id | run_id)"
 	@echo "  pull-all       Download all W&B runs into ./wandb-history/<run_id> (ENTITY/PROJECT from env/config)"
@@ -75,7 +76,7 @@ CONFIG ?= configs/pytorch_default.yaml
 train: venv
 	@mkdir -p local_runs
 	@echo "Starting PyTorch training in a background shell."; \
-	$(SAFE_ENV) $(PY) -m src.cli train --config $(CONFIG) $(if $(NOTES),--notes "$(NOTES)",) $(if $(PULL),--pull,) & \
+	$(SAFE_ENV) $(PY) -m src.cli.pytorch.train --config $(CONFIG) $(if $(NOTES),--notes "$(NOTES)",) $(if $(PULL),--pull,) & \
 	PID=$$!; \
 	trap 'echo "Interrupt received; stopping PyTorch training (PID $$PID)..."; kill $$PID 2>/dev/null; wait $$PID; exit 130' INT TERM; \
 	echo "PyTorch training started (PID $$PID). Waiting for completion..."; \
@@ -89,7 +90,7 @@ train: venv
 	  exit $$STATUS; \
 	fi
 
-# Usage: make automl-h2o [AUTOML_CONFIG=configs/default_automl.yaml]
+# Usage: make automl-h2o [AUTOML_CONFIG=configs/h2o_default.yaml]
 automl-h2o: venv
 	@mkdir -p local_runs
 	@echo "Starting H2O AutoML training in a background shell."; \
@@ -97,7 +98,7 @@ automl-h2o: venv
 	PIPELINE_OVERSAMPLING_ENABLED=$(H2O_OVERSAMPLING) \
 	H2O_MAX_AFTER_BALANCE_SIZE=$(H2O_MAX_AFTER_BALANCE) \
 	H2O_CLASS_SAMPLING_FACTORS=$(H2O_CLASS_SAMPLING_FACTORS) \
-	$(SAFE_ENV) $(PY) -m src.cli.automl_h2o --config $(AUTOML_CONFIG) $(if $(NOTES),--notes "$(NOTES)",) $(if $(PULL),--pull,) & \
+	$(SAFE_ENV) $(PY) -m src.cli.h2o.train --config $(AUTOML_CONFIG) $(if $(NOTES),--notes "$(NOTES)",) $(if $(PULL),--pull,) & \
 	PID=$$!; \
 	trap 'echo "Interrupt received; stopping H2O AutoML training (PID $$PID)..."; kill $$PID 2>/dev/null; wait $$PID; exit 130' INT TERM; \
 	echo "H2O AutoML training started (PID $$PID). Waiting for completion..."; \
@@ -127,7 +128,7 @@ cpu-train: venv
 	BLIS_NUM_THREADS=1 \
 	CUDA_VISIBLE_DEVICES= \
 	MPLBACKEND=Agg \
-	$(PY) -m src.cli.train --config $(CONFIG) --cpu $(if $(NOTES),--notes "$(NOTES)",) $(if $(PULL),--pull,)
+	$(PY) -m src.cli.pytorch.train --config $(CONFIG) --cpu $(if $(NOTES),--notes "$(NOTES)",) $(if $(PULL),--pull,)
 
 # Usage: make select CONFIG=configs/pytorch_default.yaml METHOD=mi
 METHOD ?= mi
@@ -146,7 +147,11 @@ explore: venv
 
 # Usage: make dryrun CONFIG=configs/pytorch_default.yaml
 dryrun: venv
-	$(SAFE_ENV) $(PY) -m src.cli.dryrun --config $(CONFIG)
+	$(SAFE_ENV) $(PY) -m src.cli.pytorch.dryrun --config $(CONFIG)
+
+# Usage: make dryrun-h2o [AUTOML_CONFIG=configs/h2o_default.yaml]
+dryrun-h2o: venv
+	$(SAFE_ENV) $(PY) -m src.cli.h2o.dryrun --config $(AUTOML_CONFIG)
 
 # W&B helpers
 wandb-login: venv

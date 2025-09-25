@@ -9,30 +9,7 @@ from typing import Any, Dict, List
 import yaml
 
 from src.cli._bootstrap import apply_safe_env
-
-
-def _deep_merge(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
-    out = dict(base)
-    for k, v in (override or {}).items():
-        if isinstance(v, dict) and isinstance(out.get(k), dict):
-            out[k] = _deep_merge(out[k], v)
-        else:
-            out[k] = v
-    return out
-
-
-def load_base_config(cfg_path: str | Path) -> Dict[str, Any]:
-    cfg_path = Path(cfg_path)
-    with open(cfg_path, "r", encoding="utf-8") as f:
-        cfg = yaml.safe_load(f) or {}
-    extends = cfg.get("extends")
-    if extends:
-        base_candidate = cfg_path.parent / f"{extends}.yaml"
-        base_path = base_candidate if base_candidate.exists() else Path(extends)
-        with open(base_path, "r", encoding="utf-8") as bf:
-            base_cfg = yaml.safe_load(bf) or {}
-        return _deep_merge(base_cfg, {k: v for k, v in cfg.items() if k != "extends"})
-    return cfg
+from src.training.config import load_config_with_extends
 
 
 def main():
@@ -54,7 +31,7 @@ def main():
     from src.selection.mi_selection import run_mi_selection  # type: ignore
     from src.selection.l1_selection import run_l1_selection  # type: ignore
 
-    cfg = load_base_config(args.config)
+    cfg = load_config_with_extends(Path(args.config))
     data_cfg = cfg["data"]
     split_cfg = cfg.get("split", {})
 

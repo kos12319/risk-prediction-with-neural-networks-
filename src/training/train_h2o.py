@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import re
 import shutil
+import subprocess
 import warnings
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -111,6 +112,35 @@ def train_h2o(
         df = df.sort_values("relative_importance", ascending=False).reset_index(drop=True)
         return df
 
+    def _verify_java_available() -> None:
+        java_path = shutil.which("java")
+        if not java_path:
+            raise RuntimeError(
+                "H2O AutoML requires the Java runtime (java executable not found). "
+                "Install a JRE/JDK and ensure it is on PATH or set JAVA_HOME."
+            )
+
+        try:
+            subprocess.run(
+                [java_path, "-version"],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+        except PermissionError as exc:
+            raise RuntimeError(
+                "Unable to execute 'java -version'; the current environment blocks launching Java. "
+                "Grant execution permission or run in an environment where Java is allowed."
+            ) from exc
+        except subprocess.CalledProcessError as exc:
+            output = (exc.stdout or b"") + (exc.stderr or b"")
+            snippet = output.decode(errors="ignore").strip().splitlines()
+            detail = snippet[-1] if snippet else f"exit code {exc.returncode}"
+            raise RuntimeError(
+                "Java is installed but 'java -version' failed ({}). "
+                "Ensure the JVM is functional and not blocked by sandbox restrictions before running H2O.".format(detail)
+            ) from exc
+
     feature_list = [str(f) for f in feature_names] if len(feature_names) else [f"feature_{i}" for i in range(X_train_np.shape[1])]
 
     train_df = pd.DataFrame(X_train_np, columns=feature_list)
@@ -165,6 +195,7 @@ def train_h2o(
     else:
         init_kwargs["log_level"] = "WARN"
 
+    _verify_java_available()
     logger.info("Connecting to H2O with args=%s", init_kwargs)
     conn = h2o.init(**init_kwargs)
     try:

@@ -27,10 +27,14 @@ def main() -> None:
     )
     epilog = (
         "Examples:\n"
-        "  Train (from YAML config):\n"
-        "    python -m src.cli train --config configs/pytorch_default.yaml\n\n"
-        "  Dry run (no artifacts):\n"
-        "    python -m src.cli dryrun --config configs/pytorch_default.yaml\n\n"
+        "  PyTorch train (from YAML config):\n"
+        "    python -m src.cli.pytorch.train --config configs/pytorch_default.yaml\n\n"
+        "  PyTorch dry run (no artifacts):\n"
+        "    python -m src.cli.pytorch.dryrun --config configs/pytorch_default.yaml\n\n"
+        "  H2O AutoML train:\n"
+        "    python -m src.cli.h2o.train --config configs/h2o_default.yaml\n\n"
+        "  H2O AutoML dry run:\n"
+        "    python -m src.cli.h2o.dryrun --config configs/h2o_default.yaml\n\n"
         "  Feature selection (mutual information):\n"
         "    python -m src.cli select --config configs/pytorch_default.yaml --method mi\n\n"
         "  Column dictionary from CSV (optionally override csv path):\n"

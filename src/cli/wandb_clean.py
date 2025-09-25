@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import List
 
 from src.training.wandb_sync import login_from_env
-from src.training.pipeline import load_config_with_extends  # reuse config loader
+from src.training.config import load_config_with_extends  # reuse config loader
 
 
 def main():

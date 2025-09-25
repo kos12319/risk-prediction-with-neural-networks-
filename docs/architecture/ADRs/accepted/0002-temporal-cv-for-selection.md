@@ -24,6 +24,5 @@ Adopt temporal cross‑validation (forward‑chaining, expanding mode) for featu
 
 ## Implementation Notes
 - Config: `split.cv.enabled: true`, `n_folds: N`, `mode: expanding`, `validation_fraction`, `train_full_after` in `configs/*.yaml`.
-- Code: `src/training/pipeline.py` (`_run_temporal_cv`, fold aggregation, optional full retrain).
+- Code: temporal CV orchestration lives in `src/training/base_pipeline.py` (`_run_temporal_cv`), invoked via backend adapters under `src/training/backends/*/pipeline.py`.
 - Artifacts: per‑fold runs under `local_runs/…/folds/fold_XX/`; aggregate `reports/cv_metrics.json` in the main run folder.
-

@@ -8,9 +8,11 @@ This guide adds repo‑specific guardrails and conventions that are easy to miss
 - Always run workflows via the Makefile. Do not call `python -m src...` directly in routine use.
 - Discover available operations by reading the `Makefile` (and `make help` if present). Do not rely on copied command snippets here.
 - `make train` runs the PyTorch backend; use `make automl-h2o` (with `model.backend: h2o`) for H2O AutoML experiments.
+- Use `make dryrun` for PyTorch smoke tests and `make dryrun-h2o` for H2O smoke tests; both commands clean up temporary artifacts automatically.
 - If you need a new operation, add a Makefile target rather than introducing bespoke shell commands in docs or scripts.
-- Pass configuration via Makefile variables (see the `Makefile` for supported variables and defaults). Avoid hardcoded flags in ad‑hoc commands.
+- Pass configuration via Makefile variables (see the `Makefile` for supported variables and defaults). Avoid hardcoded flags in ad-hoc commands.
 - Rationale: Make targets enforce safe environment settings (thread limits, headless plotting) and keep runs reproducible.
+- Config layout: PyTorch presets extend files under `configs/pytorch/` (e.g., `configs/pytorch/base.yaml`), while H2O AutoML presets extend `configs/h2o/`.
 
 ## Evaluation Invariants (don’t break)
 - Use time‑based split by `issue_d` for test; older → train, newer → test.
@@ -36,7 +38,8 @@ This guide adds repo‑specific guardrails and conventions that are easy to miss
 - Python 3.10+; type hints required for public functions.
 - Naming: snake_case (functions/variables), PascalCase (classes), UPPER_SNAKE (constants).
 - Keep modules cohesive and small; prefer pure functions over side effects.
-- Design to avoid leakage: time‑split, train‑only oversampling, drop post‑origination features (`data.drop_leakage`).
+- Design to avoid leakage: time-split, train-only oversampling, drop post-origination features (`data.drop_leakage`).
+- Shared pipeline utilities live in `src/training/base_pipeline.py`; backend-specific orchestration sits in `src/training/backends/{pytorch,h2o}/pipeline.py`.
 
 ## Testing
 - Use pytest; place tests under `tests/` as `test_*.py`.
@@ -53,11 +56,23 @@ This guide adds repo‑specific guardrails and conventions that are easy to miss
 - Threshold selection: compute on validation; apply fixed threshold to test.
 - Dense conversion: prefer `.toarray()` over `.todense()` where applicable.
 - Feature name mapping after OHE: avoid brittle string splits; use encoder introspection.
-- Selection CLI: ensure it resolves `extends` like training does.
+- Selection CLI: now resolves `extends` via the shared loader; keep `tests/test_training_config.py` updated when adding configs.
+- H2O backend requires a working Java runtime; the CLI fails fast if `java -version` is blocked (e.g., sandboxed environments).
 - Headless plotting: use `MPLBACKEND=Agg`; set `XDG_CACHE_HOME=.cache` and `MPLCONFIGDIR=.mplcache` if needed; limit BLAS threads if OMP errors appear.
+- Medium backlog focus: prioritize config validation guardrails, a backend-agnostic temporal CV runner, and the run catalog manifest (see `docs/PAIN_POINTS.md`).
 
 ## If You’re Lost
 - Read README.md (Quick Start, Makefile Targets).
 - If data is missing, `git lfs pull`, then update `data.csv_path` to a sample CSV under `data/raw/samples/`.
 - See `docs/architecture/ADRs/` (time split rationale and proposals) and `docs/PAIN_POINTS.md`.
 - Ask for clarification before changing evaluation protocols or data handling.
+
+## Automation Scripts
+- `scripts/run_codex_yolo.py` — repeatedly launches the Codex CLI in non-interactive mode (`codex exec --dangerously-bypass-approvals-and-sandbox`) with the automation prompt; stops after two hours or on failure.
+- `scripts/codex_runner_daemon.py` — daemon supervisor that spawns the runner script and checks every five minutes that runtime stays within the two-hour ceiling.
+- Environment knobs:
+  - `CODEX_CLI_CMD` overrides the Codex executable/arguments (default: `codex exec --dangerously-bypass-approvals-and-sandbox`).
+  - `CODEX_CLI_SLEEP` waits between successful iterations (seconds).
+  - `CODEX_CLI_FAIL_SLEEP` backs off after failed launches (default 5s).
+  - `CODEX_CLI_MAX_FAILURES` stops the runner after N consecutive failures (default 100).
+  - `CODEX_CLI_CWD` forces the working directory for Codex runs.

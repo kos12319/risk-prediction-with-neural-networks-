@@ -2,15 +2,29 @@
 
 The refactor introduced new modular boundaries so upcoming enhancements can plug into well-defined extension points. Below are high-value follow-ups that build on the new structure.
 
-## Model & Training Extensions
+## Near-term Priorities (Medium)
+- **Backend pipeline extensions** (`src/training/base_pipeline.py`, `src/training/backends/*`)
+  - Document the `BackendPipeline` contract (hooks, expected payloads) and ship a template backend skeleton/tests so a third backend can onboard quickly.
+  - Audit `_run_backend_pipeline` for residual coupling that should migrate into shared utilities vs backend overrides; keep the shared layer focused on data prep + evaluation only.
+- **Config validation guardrails** (`src/training/config.py`, `configs/*.yaml`)
+  - Define typed schemas (e.g., Pydantic) that validate backend selection, resampling options, and threshold settings before pipelines execute.
+  - Surface actionable error messages (`make train`, `make automl-h2o`, `make select`) when configs violate invariants.
+- **Temporal CV orchestrator** (`src/training/base_pipeline.py`, `src/training/backends/*/pipeline.py`)
+  - Extract a reusable runner that drives expanding-window folds for any backend, aggregates metrics, and optionally refits on the full training window when `train_full_after: true`.
+  - Expose dedicated Make targets (e.g., `make cv-train`, `make cv-automl`) that wrap the orchestrator with backend-specific adapters.
+- **Run catalog & artifact manifest** (`local_runs/`, `src/utils/artifacts.py`, `docs/`)
+  - Index completed runs and emit machine-readable manifests capturing configs, metrics, and produced artifacts to simplify comparisons and documentation.
+  - Feed the manifest into docs dashboards or lightweight HTML/Markdown summaries to tighten feedback loops.
+
+## Longer-term Model & Training Extensions
 - **Torch model registry** (`src/models/torch_factory.py`)
   - Add additional architectures (e.g., residual MLP, TabTransformer, TabNet) by registering new builders.
   - Support hyperparameter templates so configs can reference concise model aliases.
 - **Resampling strategies** (`src/training/resample.py`)
   - Implement class-distance aware samplers (ADASYN, Borderline-SMOTE) and expose per-strategy configs.
   - Allow sequential resampling (e.g., undersample majority before SMOTE) via a composable pipeline.
-- **Cross-validation orchestrator**
-  - Build a reusable `KFoldRunner` that uses `train_val_test_split` to emit per-fold data bundles and aggregates metrics.
+- **Cross-validation ensembling**
+  - Build on the shared fold runner to capture out-of-fold predictions, track per-fold drift, and feed bagging/stacking ensembles.
   - Enable H2O AutoML ensembling by stacking fold models or majority voting.
 - **H2O temporal CV integration**
   - Generate chronological fold assignments and pass them to AutoML via a `fold_column` so stacked ensembles can consume out-of-fold predictions without leaking future vintages.
@@ -23,7 +37,7 @@ The refactor introduced new modular boundaries so upcoming enhancements can plug
   - Benchmark accuracy/runtime vs the current H2O flow on sampled vintages; only invest in full integration if the spike shows clear gains and artifact parity is achievable without excessive maintenance overhead.
   - Document dependency impacts (PyTorch/LightGBM/CatBoost wheels on Apple Silicon) and update CI/install guidance before promoting it beyond experimental status.
 
-## Data & Preprocessing
+## Longer-term Data & Preprocessing
 - **Encoder plugins** (`src/features/preprocess.py`)
   - Introduce advanced categorical encoders (Weight-of-Evidence, Target smoothing, CatBoost). Each should follow the existing registry pattern for plug-and-play use.
   - Add numerical transformer mixins (quantile transformer, power transformer) selectable via config.
@@ -39,20 +53,18 @@ The refactor introduced new modular boundaries so upcoming enhancements can plug
      - Taxonomy: code titles to SOC/Census/ESCO via external coders (SOCcer, Census I&O), then map to 20–40 families; cache responses to avoid drift.
    - Wire as a mixed encoder: apply this normalization to `emp_title` only; keep one-hot for low-card categoricals; preserve time-split safety (fit on train only) and document bias checks.
 
-## Evaluation & Comparison
+## Longer-term Evaluation & Comparison
 - **Binary evaluator enhancements** (`src/eval/binary.py`)
   - Add calibration metrics, KS-statistic, lift charts, and cost curves.
   - Support configurable operating points (e.g., recall targets) alongside threshold sweeps.
 - **H2O leaderboard comparison CLI**
   - Create a command (e.g., `make compare-h2o RUNS="run_a,run_b"`) that loads `h2o_leaderboard.csv` artifacts, highlights deltas, and exports summary tables/plots.
-- **Run catalog & dashboards**
-  - Implement a `RunCatalog` module that indexes `local_runs/**/metrics.json` and `config_resolved.yaml`, enabling filtered reports or notebooks.
+- **Run dashboards & insights**
+  - Layer richer reporting (HTML dashboards, markdown digests) on top of the run manifest to highlight trends, deltas, and data drift.
 - **Ensembling harness**
   - Provide utilities to blend predictions from multiple runs (PyTorch + H2O) and evaluate stacked models via the evaluator module.
 
-## Tooling & DX
-- **Config validation**
-  - Add Pydantic schemas for config files to validate incompatible options (e.g., SMOTE without numerical features).
+## Longer-term Tooling & DX
 - **Artifact manager** (`src/utils/artifacts.py`)
   - Extend the manager to understand artifact “types” (model, metrics, plots) and create signed manifests for reproducibility.
 - **Testing**
