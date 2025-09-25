@@ -53,9 +53,10 @@ Source: `src/training/base_pipeline.py`
    - Move env flags, device selection, telemetry, and probability alignment to new modules. Import them from `base_pipeline.py` to keep current call sites identical.
    - Add unit tests: env flag parsing, probability alignment, device selection fallbacks (guard with availability checks).
 
-2) Extract Temporal CV
-   - Move `_run_cv_fold` and `_run_temporal_cv` into `cv.py`. Preserve return types and artifact paths, including `reports/cv_metrics.json` schema.
-   - Add tests for CV aggregation (`roc_auc_mean/std`, `average_precision_mean/std`, confusion sums, `total_test_rows`).
+2) Extract Temporal CV — in progress (first cut DONE)
+   - Moved `_run_temporal_cv` into `src/training/cv.py` and delegated from `base_pipeline.py` with identical outputs (`cv_metrics.json`, summary README, return payload).
+   - Next: relocate `_run_cv_fold` as well and deduplicate plot/CSV emission via a shared evaluation writer.
+   - Tests: existing CV smoke tests cover aggregation shape; consider adding unit tests for aggregation math (`roc_auc_mean/std`, `average_precision_mean/std`, confusion sums, `total_test_rows`).
 
 3) Centralize Evaluation Writer
    - Implement `evaluation_writer.write_all(...)` used by both the single‑run and CV fold paths to eliminate duplication (figures + CSVs + JSONs + READMEs).

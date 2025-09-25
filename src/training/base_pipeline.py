@@ -697,153 +697,25 @@ def _run_temporal_cv(
     notes: Optional[str],
     backend: BackendPipeline,
 ) -> List[TrainingRunResult]:
-    cv_cfg = split_cfg.get("cv", {}) or {}
-    n_folds = int(cv_cfg.get("n_folds", 0))
-    if n_folds < 2:
-        raise ValueError("Temporal CV requires 'n_folds' >= 2 when enabled.")
+    from src.training.cv import run_temporal_cv as _cv_run_temporal_cv
 
-    time_col = split_cfg.get("time_col", "issue_d")
-    folds = time_based_kfold_splits(
-        df,
-        feature_inputs,
-        data_cfg["target_col"],
-        time_col=time_col,
-        n_folds=n_folds,
-        initial_train_fraction=float(cv_cfg.get("initial_train_fraction", 0.4)),
-        validation_fraction=float(cv_cfg.get("validation_fraction", model_cfg.get("val_split", 0.2))),
-        gap=int(cv_cfg.get("gap", 0)),
-        mode=str(cv_cfg.get("mode", "expanding")),
-        shuffle_within_folds=bool(cv_cfg.get("shuffle_within_folds", False)),
-        random_state=int(split_cfg.get("random_state", 42)),
+    return _cv_run_temporal_cv(
+        cfg=cfg,
+        df=df,
+        feature_inputs=feature_inputs,
+        data_cfg=data_cfg,
+        split_cfg=split_cfg,
+        model_cfg=model_cfg,
+        os_cfg=os_cfg,
+        eval_cfg=eval_cfg,
+        training_cfg=training_cfg,
+        tracking_cfg=tracking_cfg,
+        out_cfg=out_cfg,
+        artifact_mgr=artifact_mgr,
+        run_id=run_id,
+        notes=notes,
+        backend=backend,
     )
-
-    folds_root = artifact_mgr.run_dir / "folds"
-    fold_models_root = artifact_mgr.models_dir / "folds"
-    fold_reports_root = artifact_mgr.reports_dir / "folds"
-    fold_figures_root = artifact_mgr.figures_dir / "folds"
-
-    results: List[TrainingRunResult] = []
-    fold_records: List[Dict[str, Any]] = []
-    random_state = int(split_cfg.get("random_state", 42))
-
-    for fold in folds:
-        fold_name = f"fold_{fold.fold_id:02d}"
-        fold_mgr = ArtifactManager(
-            run_dir=folds_root / fold_name,
-            models_dir=fold_models_root / fold_name,
-            reports_dir=fold_reports_root / fold_name,
-            figures_dir=fold_figures_root / fold_name,
-            single_run_mode=True,
-        )
-        fold_run_id = f"{run_id}_{fold_name}"
-        fold_context = RunContext(run_id=fold_run_id, run_dir=fold_mgr.run_dir, artifact_mgr=fold_mgr)
-        fold_result = _run_cv_fold(
-            fold=fold,
-            cfg=cfg,
-            df=df,
-            feature_inputs=feature_inputs,
-            data_cfg=data_cfg,
-            split_cfg=split_cfg,
-            model_cfg=model_cfg,
-            os_cfg=os_cfg,
-            eval_cfg=eval_cfg,
-            training_cfg=training_cfg,
-            tracking_cfg=tracking_cfg,
-            out_cfg=out_cfg,
-            artifact_mgr=fold_mgr,
-            random_state=random_state,
-            notes=notes,
-            run_id=fold_run_id,
-            backend=backend,
-            run_context=fold_context,
-        )
-        results.append(fold_result)
-        fold_record = {
-            "fold_id": fold.fold_id,
-            "run_id": fold_run_id,
-            "metrics": fold_result.metrics,
-            "confusion": fold_result.confusion,
-            "threshold": fold_result.evaluation.threshold,
-            "durations": fold_result.durations,
-            "train_range": fold.train_range,
-            "val_range": fold.val_range,
-            "test_range": fold.test_range,
-            "metadata": fold_result.fold_meta,
-        }
-        fold_records.append(fold_record)
-
-    roc_aucs = [float(r.metrics.get("roc_auc", float("nan"))) for r in results]
-    ap_scores = [float(r.metrics.get("average_precision", float("nan"))) for r in results]
-    thresholds = [float(r.evaluation.threshold) for r in results]
-    confusion_sums = {k: 0.0 for k in ("tp", "tn", "fp", "fn")}
-    total_test = 0
-    for res in results:
-        meta = res.fold_meta or {}
-        n_test = int(meta.get("n_test", 0))
-        total_test += n_test
-        for key in confusion_sums:
-            confusion_sums[key] += float(res.confusion.get(key, 0.0))
-
-    aggregate = {
-        "n_folds": len(results),
-        "roc_auc_mean": float(np.nanmean(roc_aucs)) if roc_aucs else None,
-        "roc_auc_std": float(np.nanstd(roc_aucs, ddof=1)) if len(roc_aucs) > 1 else 0.0,
-        "average_precision_mean": float(np.nanmean(ap_scores)) if ap_scores else None,
-        "average_precision_std": float(np.nanstd(ap_scores, ddof=1)) if len(ap_scores) > 1 else 0.0,
-        "threshold_mean": float(np.nanmean(thresholds)) if thresholds else None,
-        "threshold_std": float(np.nanstd(thresholds, ddof=1)) if len(thresholds) > 1 else 0.0,
-        "total_test_rows": total_test,
-        "confusion_sum": {k: float(v) for k, v in confusion_sums.items()},
-    }
-
-    cv_report = {
-        "folds": fold_records,
-        "aggregate": aggregate,
-    }
-
-    try:
-        with open(artifact_mgr.reports_dir / "cv_metrics.json", "w", encoding="utf-8") as f:
-            _json.dump(cv_report, f, indent=2)
-    except Exception:
-        pass
-
-    try:
-        summary_lines = [
-            f"# Temporal Cross-Validation Summary — {run_id}",
-            "",
-            f"Folds: {aggregate['n_folds']}",
-        ]
-        if aggregate.get("roc_auc_mean") is not None:
-            summary_lines.append(
-                f"ROC AUC (mean±std): {aggregate['roc_auc_mean']:.3f} ± {aggregate['roc_auc_std']:.3f}"
-            )
-        if aggregate.get("average_precision_mean") is not None:
-            summary_lines.append(
-                f"Average Precision (mean±std): {aggregate['average_precision_mean']:.3f} ± {aggregate['average_precision_std']:.3f}"
-            )
-        if aggregate.get("threshold_mean") is not None:
-            summary_lines.append(
-                f"Threshold (mean±std): {aggregate['threshold_mean']:.4f} ± {aggregate['threshold_std']:.4f}"
-            )
-        summary_lines.extend(["", "## Fold Metrics"])
-        for rec in fold_records:
-            summary_lines.append(
-                f"- Fold {rec['fold_id']:02d}: ROC AUC={rec['metrics'].get('roc_auc'):.3f}, AP={rec['metrics'].get('average_precision'):.3f}, Threshold={rec['threshold']:.4f}"
-            )
-        if notes:
-            summary_lines.extend(["", "## Notes", notes.strip()])
-        with open(artifact_mgr.run_dir / "README.md", "w", encoding="utf-8") as f:
-            f.write("\n".join(summary_lines))
-    except Exception:
-        pass
-
-    return {
-        "results": results,
-        "fold_records": fold_records,
-        "aggregate": aggregate,
-        "report_path": (artifact_mgr.reports_dir / "cv_metrics.json"),
-        "summary_path": (artifact_mgr.run_dir / "README.md"),
-    }
 def _resolve_torch_device(force_cpu: bool) -> tuple["torch.device", Dict[str, Any]]:
     """Best-effort accelerator selection with CPU fallback."""
     import torch
