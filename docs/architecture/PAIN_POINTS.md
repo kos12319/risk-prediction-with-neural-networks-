@@ -23,6 +23,10 @@ Verification (2025-09-25): Re-ran tiny end-to-end checks to reconfirm the decoup
     - `test_determinism_same_seed_same_metrics` runs two tiny single runs with identical seeds and asserts metrics.json equality.
     - `test_oversampling_train_only_manifest` asserts that resampling only alters training labels (before/after counts recorded) and leaves validation/test distributions unchanged.
     - Caveat: exact determinism is validated on CPU; accelerator backends (CUDA/MPS) can introduce nondeterminism unless deterministic ops are fully enforced.
+  - [done] Backend config guardrails wording aligned with tests.
+    - Change: PyTorch schema now raises “PyTorch pipeline requires model.backend to be 'pytorch' (or omitted)” to match `tests/test_training_backends.py`.
+    - Verification: `pytest -q` passes locally; message regex matches.
+    - Caveat: H2O uses analogous wording; keep messages stable as tests may pin regex substrings.
 - H2O CV parity and ergonomics
   - [done] Added an H2O temporal CV smoke‑test preset and Make target.
     - Config: `configs/h2o/cv_smoke.yaml` (2 folds, ~15s runtime budget).

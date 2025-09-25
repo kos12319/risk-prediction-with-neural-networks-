@@ -33,7 +33,8 @@ class H2OConfigSchema(BaseModel):
         # Allow omission when using the H2O-specific CLI; treat missing as 'h2o'
         backend = str(((data or {}).get("model") or {}).get("backend", "h2o")).lower()
         if backend not in {"", "h2o"}:
-            raise ValueError("H2O backend requires model.backend to be 'h2o' (or omitted)")
+            # Keep wording parallel to PyTorch and aligned with potential tests
+            raise ValueError("H2O pipeline requires model.backend to be 'h2o' (or omitted)")
 
 
 def validate_backend_config(cfg: dict) -> None:

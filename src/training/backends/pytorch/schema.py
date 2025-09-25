@@ -56,7 +56,8 @@ class PyTorchConfigSchema(BaseModel):
     def validate_backend(cls, data: dict) -> None:
         backend = str(((data or {}).get("model") or {}).get("backend", "pytorch")).lower()
         if backend not in {"", "pytorch"}:
-            raise ValueError("PyTorch backend requires model.backend to be 'pytorch' (or omitted)")
+            # Keep message aligned with tests expecting 'pipeline' wording
+            raise ValueError("PyTorch pipeline requires model.backend to be 'pytorch' (or omitted)")
 
 
 def validate_backend_config(cfg: dict) -> None:
@@ -73,4 +74,3 @@ def validate_backend_config(cfg: dict) -> None:
 
 
 __all__ = ["validate_backend_config"]
-
