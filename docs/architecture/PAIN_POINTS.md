@@ -3,6 +3,7 @@
 This list reflects the current high‑priority focus. Previous items have been archived at `docs/architecture/archives/PAIN_POINTS_2025-09-25.md`.
 
 ## High Priority
+Verification (2025-09-25): Re-ran tiny end-to-end checks to reconfirm the decoupled backends and guardrails are healthy. `make dryrun` (PyTorch, 2-fold CV smoke) and `make dryrun-h2o-cv` (H2O, 2-fold CV smoke; Java present) both executed and produced metrics/figures as expected. Also rebuilt the run catalog (`make run-catalog` + `make run-catalog-report`) to verify manifest/report generation.
 - Backend decoupling (CLI/config/pipeline)
   - [done] Separate backend CLIs and configs; deprecate unified training/dryrun CLI.
     - Change: `python -m src.cli train|dryrun` now exits with guidance. Use `make train`/`make automl-h2o` or explicit modules `src.cli.pytorch.*` / `src.cli.h2o.*`.
@@ -61,6 +62,7 @@ This list reflects the current high‑priority focus. Previous items have been a
     - Result: `base_pipeline.py` no longer inspects backend types to construct names, reducing coupling.
     - Caveat: If a backend does not implement `format_run_name` and no `run_name_template` is configured, a generic `{dataset}|{split}|{pos}|{backend}|auc{auc}` name is used.
   - Scope: see `docs/architecture/PIPELINE_REFACTOR_PLAN.md` for responsibilities, decomposition ideas, and a multi‑phase plan.
+  - Next (Phase 2 – prep for full separation): introduce thin per-backend orchestrators that call shared, backend-agnostic utilities, allowing `base_pipeline.py` to shrink further or become purely a library. This preserves common functionality while making a third backend fully plug-in with zero edits to shared code.
   - [done] Backend-specific config rules moved out of shared validator.
     - Change: `validate_and_normalize_config` is now backend-agnostic (data/split/eval only). Backend CLIs/Pipelines enforce their own requirements via `validate_config`.
     - Effect: decouples config schema across backends and simplifies adding a third backend in the future. H2O oversampling behavior is no longer silently altered by the common layer; presets keep it disabled by default for H2O.
