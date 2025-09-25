@@ -41,7 +41,7 @@ make train CONFIG=configs/pytorch_default.yaml NOTES="testing new dropout"
 ```
 
 **H2O AutoML:**
-Switch to the AutoML backend (configs must set `model.backend: h2o`).
+Switch to the AutoML backend via `make automl-h2o` (the backend is implied; `model.backend` is optional when using the H2O CLI).
 ```bash
 make automl-h2o
 make automl-h2o AUTOML_CONFIG=configs/h2o_default.yaml NOTES="smoke test"

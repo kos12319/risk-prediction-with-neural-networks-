@@ -1,7 +1,6 @@
 extends: base
 
-model:
-  backend: h2o
+# Backend is implied by the H2O CLI; `model.backend` optional
 
 automl:
   # Keep runs very short for smoke testing
@@ -29,4 +28,3 @@ tracking:
   backend: none
   wandb:
     enabled: false
-

@@ -7,7 +7,7 @@ This guide adds repo‑specific guardrails and conventions that are easy to miss
 ## Makefile‑First Policy
 - Always run workflows via the Makefile. Do not call `python -m src...` directly in routine use.
 - Discover available operations by reading the `Makefile` (and `make help` if present). Do not rely on copied command snippets here.
-- `make train` runs the PyTorch backend; use `make automl-h2o` (with `model.backend: h2o`) for H2O AutoML experiments.
+- `make train` runs the PyTorch backend; use `make automl-h2o` for H2O AutoML experiments. When using the H2O CLI/Make target, `model.backend` is optional.
 - Use `make dryrun` for PyTorch smoke tests and `make dryrun-h2o` for H2O smoke tests; both commands clean up temporary artifacts automatically. For temporal CV smoke tests, use `make dryrun-cv` (PyTorch) or `make dryrun-h2o-cv` (H2O; requires Java).
 - Catalog helpers: `make run-catalog` builds `local_runs/_catalog.json`; `make run-catalog-report` renders `local_runs/index.md` for quick browsing.
 - If you need a new operation, add a Makefile target rather than introducing bespoke shell commands in docs or scripts.

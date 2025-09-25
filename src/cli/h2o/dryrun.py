@@ -68,9 +68,9 @@ def main() -> None:
     from src.training.config import load_config_with_extends, validate_and_normalize_config  # type: ignore
     cfg = load_config_with_extends(base_cfg_path)
     cfg = validate_and_normalize_config(cfg, cfg_path=base_cfg_path)
-    backend = str(cfg.get("model", {}).get("backend", "")).lower()
-    if backend != "h2o":
-        raise SystemExit("H2O dryrun requires model.backend to be 'h2o'")
+    backend = str(cfg.get("model", {}).get("backend", "h2o")).lower()
+    if backend not in {"", "h2o"}:
+        raise SystemExit("H2O dryrun requires model.backend to be 'h2o' (or omitted)")
 
     from src.training.backends.h2o import train_from_config as h2o_train  # type: ignore
 

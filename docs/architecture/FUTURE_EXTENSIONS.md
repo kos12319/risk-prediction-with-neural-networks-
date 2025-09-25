@@ -8,7 +8,7 @@ The refactor introduced new modular boundaries so upcoming enhancements can plug
   - Audit `_run_backend_pipeline` for residual coupling that should migrate into shared utilities vs backend overrides; keep the shared layer focused on data prep + evaluation only.
 - **Config validation guardrails** (`src/training/config.py`, `configs/*.yaml`)
   - Define typed schemas (e.g., Pydantic) that validate backend selection, resampling options, and threshold settings before pipelines execute.
-  - Surface actionable error messages (`make train`, `make automl-h2o`, `make select`) when configs violate invariants.
+  - Surface actionable error messages (`make train`, `make automl-h2o`, `make select`) when configs violate invariants. Backend selection can be implied by the CLI (PyTorch/H2O); config validators should allow omitted `model.backend` when the entrypoint already fixes the backend.
 - **Temporal CV orchestrator** (`src/training/base_pipeline.py`, `src/training/backends/*/pipeline.py`)
   - Expose dedicated Make targets (e.g., `make cv-train`, `make cv-automl`) that wrap the orchestrator with backend-specific adapters.
 - **Run catalog & artifact manifest** (`local_runs/`, `src/cli/run_catalog.py`)

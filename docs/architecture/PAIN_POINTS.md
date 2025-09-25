@@ -10,6 +10,11 @@ This list reflects the current high‑priority focus. Previous items have been a
     - Effect: Clear separation enables adding a third backend without touching others; users pick backend explicitly via Makefile/CLI.
     - Verification: Ran `make dryrun`, `make dryrun-cv`, `make dryrun-h2o`, and `make dryrun-h2o-cv` on sample CSVs; all completed successfully with metrics and figures.
     - Caveat: Old notebooks or scripts calling `python -m src.cli train` will need to update; the error message points to replacements.
+  - [done] Remove hard requirement for `model.backend` in H2O configs when using the H2O CLI.
+    - Change: H2O schema now accepts missing/empty `model.backend` (treated as H2O). Presets (`configs/h2o_default.yaml`, `configs/h2o/cv_smoke.yaml`) no longer set it explicitly.
+    - Effect: Further decouples backend selection from shared configs; backend is implied by the entrypoint, making it easier to add a third backend without cross‑coupling.
+    - Verification: Ran `make dryrun-h2o-cv` on sample CSV with Java available; completed successfully with metrics and CV artifacts.
+    - Caveat: When invoking backend pipelines programmatically (not via the CLI), keep `model.backend` set for clarity.
 - Tests and evaluation invariants
   - [done] Added pytest for threshold selection and `pos_label` handling; see tests/test_eval_thresholds.py. Existing tests cover time‑split monotonicity.
   - [done] Validate temporal CV aggregation schema and artifact layout. Added tests/test_cv_artifacts.py to assert `cv_metrics.json` presence and minimal schema under CV smoke runs.

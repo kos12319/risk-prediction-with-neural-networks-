@@ -32,9 +32,9 @@ def main() -> None:
     from src.training.wandb_sync import download_run, login_from_env  # type: ignore
 
     cfg = load_config_with_extends(Path(args.config))
-    backend = str(cfg.get("model", {}).get("backend", "")).lower()
-    if backend != "h2o":
-        raise ValueError("H2O CLI requires model.backend to be 'h2o'")
+    backend = str(cfg.get("model", {}).get("backend", "h2o")).lower()
+    if backend not in {"", "h2o"}:
+        raise ValueError("H2O CLI requires model.backend to be 'h2o' (or omitted)")
 
     login_from_env()
 

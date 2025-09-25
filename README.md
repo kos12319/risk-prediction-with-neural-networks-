@@ -190,7 +190,7 @@
   - W&B: `wandb.json` with `{id, path, url}`; optional `wandb/` with downloaded files/artifacts (when `PULL=true` or via `pull-run`)
 
 ## H2O AutoML
-- Switch the backend by setting `model.backend: h2o` in your YAML (see `configs/h2o_default.yaml` for a ready-to-run example that extends the default config).
+- Use the H2O backend via the H2O-specific CLI/Make target. The `model.backend` key is optional when using `make automl-h2o` (or `python -m src.cli.h2o.train`); see `configs/h2o_default.yaml` for a ready-to-run example.
 - Put your own AutoML presets under `configs/h2o_instances/` (gitignored).
 - Configure AutoML behaviour via the `automl` block: `progress` (set `true` to re-enable the CLI progress bar), `log_level` (defaults to `WARN` on the JVM side), `suppress_dependency_warnings` (hides repetitive `H2ODependencyWarning` chatter by default), `max_runtime_secs`, `max_models`, `balance_classes`, `include_algos`/`exclude_algos`, `seed`, `nthreads`, `max_mem_size`, and optional `export_checkpoints_dir` and `log_dir`. All inputs are respected by the `make automl-h2o` target.
 - On Apple Silicon laptops with 16 GB unified memory the full ~1.5 GB LendingClub CSV fits comfortably; set `automl.max_mem_size` to roughly `8g-10g` so the JVM has headroom while leaving space for macOS and Python. On smaller machines, keep the sample CSV or downsample to avoid garbage-collection churn.
@@ -264,7 +264,7 @@
 - `make clean-all-local` — removes `local_runs/`, `selection_runs/`, `./wandb`, and `./wandb-history`
 - `make clean-cloud-history FORCE=1` — deletes all runs (and logged artifacts) from the configured W&B project
 
-Note: both backend CLIs perform a lightweight config validation step that checks key invariants (binary target mapping to {0,1}, valid `model.backend`, threshold strategy, and required fields). H2O runs prefer internal class balancing; external oversampling is disabled by default when `model.backend: h2o`.
+Note: both backend CLIs perform a lightweight config validation step that checks key invariants (binary target mapping to {0,1}, backend selection — implied by CLI for H2O/PyTorch — threshold strategy, and required fields). H2O runs prefer internal class balancing; external oversampling is disabled by default for the H2O backend.
 
 ## Optional: PDF → Markdown Conversion
 - Install the extra tooling only when you need PDF conversion support:

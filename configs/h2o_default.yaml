@@ -3,8 +3,7 @@ extends: h2o/base
 data:
   csv_path: data/raw/samples/thesis_data_sample_10k.csv
 
-model:
-  backend: h2o
+# Backend is implied by the H2O CLI; `model.backend` optional
 
 automl:
   progress: false

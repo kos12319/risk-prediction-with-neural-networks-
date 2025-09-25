@@ -20,7 +20,8 @@ class AutoMLSchema(BaseModel):
 
 
 class ModelSchema(BaseModel):
-    backend: str
+    # Optional to allow CLI-implicit backend; validated separately
+    backend: Optional[str] = Field(default=None)
 
 
 class H2OConfigSchema(BaseModel):
@@ -29,9 +30,10 @@ class H2OConfigSchema(BaseModel):
 
     @classmethod
     def validate_backend(cls, data: dict) -> None:
-        backend = str(((data or {}).get("model") or {}).get("backend", "")).lower()
-        if backend != "h2o":
-            raise ValueError("H2O backend requires model.backend='h2o'")
+        # Allow omission when using the H2O-specific CLI; treat missing as 'h2o'
+        backend = str(((data or {}).get("model") or {}).get("backend", "h2o")).lower()
+        if backend not in {"", "h2o"}:
+            raise ValueError("H2O backend requires model.backend to be 'h2o' (or omitted)")
 
 
 def validate_backend_config(cfg: dict) -> None:
@@ -48,4 +50,3 @@ def validate_backend_config(cfg: dict) -> None:
 
 
 __all__ = ["validate_backend_config"]
-
