@@ -99,3 +99,12 @@ Verification (2025-09-25): Re-ran tiny end-to-end checks to reconfirm the decoup
 
 ## Notes
 - We will gate deeper refactors behind tests to pin behavior and artifacts. CV smoke tests must remain fast and artifact‑light.
+  - [done] Route H2O training via backend-owned module.
+    - Change: `H2OPipeline` now imports `train_h2o` from `src/training/backends/h2o/train.py`.
+      The current implementation remains in place but is re-exported through the backend
+      namespace to decouple callers from legacy paths and prepare for a future move.
+    - Effect: Further separation of backends; future H2O changes won’t touch shared modules.
+    - Verification: Imported `H2OPipeline` successfully and ran `make dryrun-cv` (PyTorch)
+      to ensure unrelated paths remain green. H2O smoke runs still require Java; behavior
+      unchanged.
+    - Caveat: In environments without Java, H2O runs still fail fast by design.

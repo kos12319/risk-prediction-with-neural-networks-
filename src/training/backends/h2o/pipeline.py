@@ -13,7 +13,7 @@ from src.training.base_pipeline import (
     DatasetBundle,
     RunContext,
 )
-from src.training.train_h2o import train_h2o
+from .train import train_h2o
 
 _TRUE_SET = {"1", "true", "yes", "on", "enabled"}
 _FALSE_SET = {"0", "false", "no", "off", "disabled"}
