@@ -1,0 +1,396 @@
+<h1 id="abstract">Abstract</h1>
+<p>This thesis iteration investigates default risk prediction on the
+LendingClub consumer installment loans dataset (2007–2018), evaluating
+which feature subsets and modeling approaches—especially neural
+networks—yield the best precision–recall performance under a time‑based
+evaluation protocol. We compare compact baselines against enriched
+feature sets that include pricing/grade variables
+(<code>int_rate</code>, <code>grade</code>, <code>sub_grade</code>,
+<code>installment</code>) across dataset sizes (1k, 10k, 100k, full).
+Using an H2O AutoML backend, results show that enriched feature sets
+consistently improve AUCPR on medium and large samples (10k/100k/full),
+while smaller samples (1k) favor leaner feature sets to avoid
+overfitting. Tree ensembles (GBM/XGBoost) generally lead on larger
+datasets; deep neural networks are competitive on the smallest subset
+(1k) and remain a key part of the modeling toolkit. We conclude with
+guidance on feature selection by scale, thresholding protocol, and next
+steps to strengthen neural network performance and interpretability.</p>
+<h1 id="1-introduction">1. Introduction</h1>
+<p>Peer‑to‑peer lending platforms like LendingClub have catalyzed a rich
+literature on credit risk modeling, feature selection, and evaluation
+under class imbalance, with impactful baselines built on this specific
+dataset (Emekter et al., 2015; Serrano‑Cinca et al., 2015; Jagtiani
+&amp; Lemieux, 2019; Croux et al., 2020). We study the problem of loan
+default prediction and, in particular: which feature subsets and model
+families—including neural networks—perform best under robust, time‑aware
+evaluation.</p>
+<p>Objectives:</p>
+<ul>
+<li>Identify the best architecture per feature subset and dataset size
+under a time‑based split.</li>
+<li>Assess the contribution of pricing/grade variables to discriminative
+power.</li>
+<li>Evaluate the role and performance of neural networks (NNs) relative
+to tree ensembles.</li>
+</ul>
+<p>Contributions:</p>
+<ul>
+<li>A configurable, reproducible experimental suite with Makefile‑driven
+runs and H2O AutoML backend to compare feature subsets at multiple
+scales.</li>
+<li>Per‑dataset reports with figures and metrics; a cross‑dataset
+summary synthesizing patterns and recommendations.</li>
+<li>Guidance on when enriched features (pricing/grade) help and when
+leaner sets are preferable, plus concrete next steps for improving
+NNs.</li>
+</ul>
+<h1 id="2-background-and-related-work">2. Background and Related
+Work</h1>
+<p>LendingClub default prediction has been widely studied as a benchmark
+for P2P credit modeling (Emekter et al., 2015; Serrano‑Cinca et al.,
+2015; Nunez‑Mora et al., 2023). Traditional baselines rely on logistic
+regression or tree ensembles (Malekipirbazari &amp; Aksakalli, 2015),
+while more recent work explores richer features, profit‑aware
+objectives, and alternative data (Serrano‑Cinca &amp; Gutiérrez‑Nieto,
+2016; Jagtiani &amp; Lemieux, 2019; Croux et al., 2020).</p>
+<p>Neural networks for credit risk have shown promise when supplied with
+sufficient data and regularization, including deep MLPs and hybrid
+CNN/LSTM variants for sequence‑like signals (e.g., Li et al., 2022; Wang
+&amp; Wang, 2024). However, on tabular data with strong monotonic
+signals, gradient‑boosted trees often excel out‑of‑the‑box,
+necessitating careful NN design, calibration, and feature engineering to
+compete.</p>
+<p>Citations used in this iteration draw from the curated bibliographies
+under <code>docs/thesis/bibliography/</code>, including
+LendingClub‑focused and NN‑for‑credit‑risk sources.</p>
+<h1 id="3-dataset-and-labels">3. Dataset and Labels</h1>
+<p>Dataset: LendingClub consumer installment loans, vintages 2007–2018,
+with funded loans and final statuses. Labels are derived from funding
+outcomes (e.g., Fully Paid vs Charged Off) and evaluated under a
+time‑based split by <code>issue_d</code> to mitigate leakage from
+right‑censoring of recent vintages.</p>
+<ul>
+<li>Positive class convention: <code>eval.pos_label=0</code> corresponds
+to Charged Off.</li>
+<li>Leakage policy: Post‑event fields (payments, recoveries, last_*
+dates, hardship/settlement) are dropped consistently.</li>
+<li>Splits: Older → train; newer → test. Validation is carved from the
+training period only.</li>
+</ul>
+<p>References: Emekter et al. (2015); Serrano‑Cinca et al. (2015);
+Jagtiani &amp; Lemieux (2019); Croux et al. (2020).</p>
+<h1 id="4-methodology">4. Methodology</h1>
+<p>4.1 Protocol and Invariants</p>
+<ul>
+<li>Time‑based split by <code>issue_d</code> (older→train,
+newer→test).</li>
+<li>Validation held out from the training period only; oversampling (if
+used) applies to train subset only.</li>
+<li>Threshold selection on validation using Youden’s J (unless otherwise
+configured); fixed threshold applied to test metrics.</li>
+<li>Determinism: seed Python/NumPy/Torch; consistent DataLoader seeding
+(for the PyTorch backend; here we use H2O backend for automl runs).</li>
+</ul>
+<p>4.1.1 Data Sources and Cohorts</p>
+<ul>
+<li>Accepted loans (primary):
+<code>data/raw/full/thesis_data_full.csv</code> (see
+docs/data/DATA_SOURCES_REPORT.md).</li>
+<li>Rejected applications (limited covariates, no labels):
+<code>data/raw/full/kaggle_rejected_2007_to_2018Q4.csv</code> for
+reject‑inference research; not used for supervised training.</li>
+<li>Comparison to Kaggle accepted file shows thesis full is a curated
+subset with consistent schemas and missingness profiles; see
+docs/data/comparison_accepted_vs_thesis.md.</li>
+</ul>
+<p>4.2 Experimental Suite and Reproducibility</p>
+<ul>
+<li>Makefile‑first: operations run via Make targets; configurations
+extend <code>configs/h2o/</code> and <code>configs/pytorch/</code>
+presets.</li>
+<li>Backend: H2O AutoML with leaderboard curves, per‑family variable
+importance, and optional partial dependence.</li>
+<li>Artifacts per run: metrics.json, ROC/PR curves, leaderboards,
+comparison figures, and varimp heatmaps.</li>
+<li>Suite structure: <code>docs/experiments/suites/thesis_iter1/</code>
+contains scripts, runs, and consolidated reports in
+<code>reports/</code>.</li>
+</ul>
+<p>Architecture &amp; ADR alignment:</p>
+<ul>
+<li>Time‑based split rationale (ADR 0001):
+docs/architecture/ADRs/accepted/0001-time-based-split.md.</li>
+<li>Threshold on validation (ADR 0004):
+docs/architecture/ADRs/accepted/0004-threshold-on-validation.md.</li>
+<li>Positive class convention (ADR 0011): <code>pos_label=0</code> =
+Charged Off;
+docs/architecture/journal/2025-09-24-standardize-positive-class-0.md.</li>
+<li>Makefile‑first policy (ADR 0013):
+docs/architecture/ADRs/accepted/0013-makefile-first-policy.md; journal:
+2025‑09‑24 entry.</li>
+<li>Backend separation and pipeline design:
+docs/architecture/journal/2025-09-25-backend-pipeline-separation.md.</li>
+</ul>
+<p>H2O capabilities leveraged:</p>
+<ul>
+<li>AutoML leaderboard and explainability (varimp, PDP/ICE, SHAP) per
+docs/h2o/LIBRARY_OFFERINGS.md, enabling consistent cross‑model
+comparison and deployment‑ready artifacts (MOJO/POJO).</li>
+</ul>
+<p>4.3 Feature Subsets and Sizes We evaluate feature sets at four
+dataset sizes: 1k, 10k, 100k, full. Feature subsets include:</p>
+<ul>
+<li>12 features (compact baseline)</li>
+<li>16 features (compact + pricing/grade)</li>
+<li>39 features (broad credit/utilization/history; no
+pricing/grade)</li>
+<li>43 features (broad + pricing/grade: <code>int_rate</code>,
+<code>grade</code>, <code>sub_grade</code>,
+<code>installment</code>)</li>
+</ul>
+<p>4.4 Models</p>
+<ul>
+<li>H2O AutoML explores GBM, XGBoost, DRF, GLM, and Deep Learning (MLP)
+variants; we capture leaderboard performance and variable importance per
+family. Although this iteration emphasizes H2O to ensure a strong
+baseline, the suite is compatible with a PyTorch NN backend for future
+work.</li>
+</ul>
+<h1 id="5-experiments">5. Experiments</h1>
+<p>5.1 Datasets and Winners</p>
+<p>Table 1 summarizes the winning run (by AUCPR) per dataset size, along
+with ROC AUC.</p>
+<table>
+<thead>
+<tr>
+<th>Dataset</th>
+<th>Winner Run</th>
+<th style="text-align: right;">Features</th>
+<th style="text-align: right;">Avg Precision</th>
+<th style="text-align: right;">ROC AUC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1k</td>
+<td>run_20250925_020521</td>
+<td style="text-align: right;">39</td>
+<td style="text-align: right;">0.3148</td>
+<td style="text-align: right;">0.7313</td>
+</tr>
+<tr>
+<td>10k</td>
+<td>run_20250925_023120</td>
+<td style="text-align: right;">43</td>
+<td style="text-align: right;">0.4601</td>
+<td style="text-align: right;">0.7591</td>
+</tr>
+<tr>
+<td>100k</td>
+<td>run_20250925_032002</td>
+<td style="text-align: right;">43</td>
+<td style="text-align: right;">0.4524</td>
+<td style="text-align: right;">0.7435</td>
+</tr>
+<tr>
+<td>full</td>
+<td>run_20250925_070714</td>
+<td style="text-align: right;">43</td>
+<td style="text-align: right;">0.3934</td>
+<td style="text-align: right;">0.7093</td>
+</tr>
+</tbody>
+</table>
+<p>Figure 1 compares AUCPR across feature sets within each dataset:</p>
+<ul>
+<li>1k: <code>reports/1k/figures/aupr_by_feature_set.svg</code></li>
+<li>10k: <code>reports/10k/figures/aupr_by_feature_set.svg</code></li>
+<li>100k: <code>reports/100k/figures/aupr_by_feature_set.svg</code></li>
+<li>full: <code>reports/full/figures/aupr_by_feature_set.svg</code></li>
+</ul>
+<p>Figure 2 compares AUCPR and ROC AUC across winners by dataset
+size:</p>
+<ul>
+<li><code>docs/experiments/suites/thesis_iter1/reports/aupr_roc_winners_by_size.svg</code></li>
+</ul>
+<p>5.2 Full Dataset Focus</p>
+<p>Winner: <code>run_20250925_070714</code> (43 features including
+pricing/grade). Test metrics at fixed threshold (Youden J on
+validation): AP 0.3934, ROC 0.7093, threshold 0.1765. Confusion:
+tp=36,227; tn=129,969; fp=68,284; fn=19,876 (Precision 0.347; Recall
+0.646; FPR 0.344).</p>
+<ul>
+<li>PR curve: <code>reports/full/figures/pr_curve.png</code></li>
+<li>ROC curve: <code>reports/full/figures/roc_curve.png</code></li>
+<li>VarImp heatmap (winners):
+<code>reports/full/figures/h2o_varimp_heatmap_winners.png</code></li>
+<li>Leaderboard PR/ROC:
+<code>reports/full/figures/h2o_leaderboard_pr.png</code>,
+<code>reports/full/figures/h2o_leaderboard_roc.png</code></li>
+</ul>
+<p>Top drivers (GBM family): <code>int_rate</code>, term (36/60), grade
+bands, <code>dti</code>, <code>income_to_loan_ratio</code>,
+<code>fico_avg</code>, <code>mort_acc</code>,
+<code>annual_inc</code>.</p>
+<p>5.3 Model Families Observed at the Top</p>
+<p>From the H2O leaderboards for the winner runs:</p>
+<ul>
+<li>1k: DeepLearning (MLP) appears as the top model on the best 1k
+run.</li>
+<li>10k: GBM leads.</li>
+<li>100k: XGBoost leads.</li>
+<li>full: GBM leads.</li>
+</ul>
+<p>Interpretation: Tree ensembles dominate at larger scales with these
+feature sets, while NNs can be competitive at very small scale (1k).
+This pattern aligns with known strengths of boosted trees on structured
+tabular data; NNs often require careful architecture/regularization,
+larger data, and feature learning to surpass ensembles.</p>
+<h1 id="6-discussion-feature-sets-and-neural-networks">6. Discussion:
+Feature Sets and Neural Networks</h1>
+<p>6.1 Feature Set Effects by Scale</p>
+<ul>
+<li>Enriched 43‑feature set (adds <code>int_rate</code>,
+<code>grade/sub_grade</code>, <code>installment</code>) consistently
+improves AUCPR on 10k/100k/full, vs. 12‑ or 39‑feature baselines.</li>
+<li>On 1k, the 39‑feature set outperforms the 43‑feature set; additional
+categorical expansion (grades, terms) increases variance and risks
+overfitting.</li>
+</ul>
+<p>6.2 Neural Networks in This Iteration</p>
+<ul>
+<li>NNs (H2O DeepLearning) reached the top on the 1k benchmark,
+indicating strong potential on small sample regimes when regularization
+and compact features align.</li>
+<li>On larger datasets, GBM/XGBoost led. To strengthen NNs:
+<ul>
+<li>Architecture: tuned depth/width, batchnorm, dropout schedules;
+consider monotonic constraints or embedding strategies for
+high‑cardinality categoricals.</li>
+<li>Training: robust early stopping, learning rate schedules, and
+calibration for threshold stability.</li>
+<li>Features: engineered ratios (e.g.,
+<code>income_to_loan_ratio</code>), standardized credit history length,
+careful handling of grade/sub_grade to avoid explosion of dummies (e.g.,
+embeddings).</li>
+<li>Validation: temporal CV (expanding window) to guard against vintage
+shifts.</li>
+</ul></li>
+</ul>
+<p>6.4 Empirical Signals from Exploration</p>
+<ul>
+<li>Correlation (origination‑only numeric):
+<ul>
+<li>Image:
+<code>docs/exploration/figures/top_corr_numeric_orig.png</code></li>
+<li>Finding: FICO measures (avg/low/high) are strongest anti‑correlates
+(~−0.13); DTI and utilization are positively associated.</li>
+</ul></li>
+<li>Mutual Information (origination‑only):
+<ul>
+<li>Strong MI in <code>fico_spread</code>, <code>term</code>,
+<code>fico_avg</code>, <code>income_to_loan_ratio</code>,
+<code>loan_amnt</code>, and inquiry/depth features.</li>
+</ul></li>
+<li>Temporal Drift (PSI):
+<ul>
+<li>Images:
+<code>docs/exploration/figures/psi_numeric_top_orig.png</code>,
+<code>docs/exploration/figures/psi_categorical_top_orig.png</code></li>
+<li>Finding: Depth/limit features shift substantially across time;
+<code>purpose</code> shows modest drift; pricing variables require
+monitoring.</li>
+</ul></li>
+<li>Leakage audit (explicit): payments/recoveries, post‑event dates,
+hardship/settlement must be excluded
+(docs/exploration/EXPLORATION_REPORT.md).</li>
+</ul>
+<p>6.3 Thresholding and Business Operating Points</p>
+<ul>
+<li>Threshold chosen on validation via Youden J provides a single fixed
+operating point for test. For deployment, evaluate PR operating points
+that align with cost/benefit trade‑offs and consider probability
+calibration.</li>
+</ul>
+<h1 id="7-threats-to-validity">7. Threats to Validity</h1>
+<ul>
+<li>Right‑censoring in recent vintages: mitigated via time‑split by
+<code>issue_d</code>, but residual effects may remain.</li>
+<li>Class imbalance shifts over time: aggregated CV across time windows
+can better quantify variance.</li>
+<li>Leakage: strict dropping of post‑origination fields enforced;
+double‑check any engineered features for implicit leakage.</li>
+</ul>
+<h1 id="8-conclusion">8. Conclusion</h1>
+<p>This iteration finds that pricing/grade features materially improve
+discrimination at moderate‑to‑large scales, while small samples benefit
+from compact, high‑signal features. Tree ensembles (GBM/XGBoost) lead on
+10k/100k/full. Neural networks are competitive on the smallest benchmark
+and remain promising, especially with improved architectures and
+encodings for tabular categorical structure. Next iterations will target
+NN‑centric enhancements and cross‑time validation to close performance
+gaps.</p>
+<h1 id="9-future-work">9. Future Work</h1>
+<ul>
+<li>Neural nets:
+<ul>
+<li>Add a dedicated PyTorch MLP pipeline with tuned hyperparameters,
+categorical embeddings, and monotonic regularization where
+justified.</li>
+<li>Explore self‑supervised/contrastive pretraining for tabular
+signals.</li>
+</ul></li>
+<li>Evaluation:
+<ul>
+<li>Temporal CV with <code>train_full_after: true</code> for stability;
+calibration checks.</li>
+<li>Profit‑aware metrics alongside AUCPR/ROC (Serrano‑Cinca &amp;
+Gutiérrez‑Nieto, 2016).</li>
+</ul></li>
+<li>Features:
+<ul>
+<li>Standardize <code>credit_history_length</code>; expand ratio
+features and interaction terms subject to leakage policy.</li>
+</ul></li>
+<li>Robustness:
+<ul>
+<li>Stress tests on recent vintages; monitor drift in distributions and
+performance.</li>
+</ul></li>
+</ul>
+<p>Feature selection track:</p>
+<ul>
+<li>Integrate the selector registry and artifacts
+(docs/feature_selection/FEATURE_SELECTION.md) so selection runs reuse
+preprocessing/evaluation from training.</li>
+<li>Quantify engineered feature lift via paired selection/training with
+engineered toggles; add stability analysis (bootstrap / time‑blocked
+resampling).</li>
+</ul>
+<h1 id="references-selection">References (selection)</h1>
+<ul>
+<li>Emekter, R., Tu, Y., Jirasakuldech, B., &amp; Lu, M. (2015).
+Evaluating Credit Risk and Loan Performance in Online Peer‑to‑Peer
+Lending. Applied Economics. (BibTeX: <code>Emekter2015</code>)</li>
+<li>Serrano‑Cinca, C., Gutiérrez‑Nieto, B., &amp; López‑Palacios, L.
+(2015). Determinants of Default in P2P Lending. PLoS ONE.
+(<code>SerranoCinca2015</code>)</li>
+<li>Jagtiani, J., &amp; Lemieux, C. (2019). The Roles of Alternative
+Data and Machine Learning in Fintech Lending. Financial Management.
+(<code>Jagtiani2019FM</code>)</li>
+<li>Croux, C., Jagtiani, J., Korivi, T., &amp; Vulanovic, M. (2020).
+Important Factors Determining Fintech Loan Default. JEBO.
+(<code>Croux2020JEBO</code>)</li>
+<li>Nunez‑Mora, J. A., et al. (2023). Loan Default Prediction: A
+Complete Revision of LendingClub. REMEF.
+(<code>NunezMora2023</code>)</li>
+<li>Malekipirbazari, M., &amp; Aksakalli, V. (2015). Risk Assessment in
+Social Lending via Random Forests. ESWA.
+(<code>Malekipirbazari2015</code>)</li>
+<li>Li, H., Sun, J., &amp; Li, A. (2022). CNN‑LSTM‑ATT for Credit Risk.
+Electronics. (<code>li2022evaluation</code>)</li>
+<li>Wang, Y., &amp; Wang, J. (2024). Hybrid CNN‑LSTM for Bond Default.
+J. Computational Science. (<code>wang2024hybrid</code>)</li>
+</ul>
+<p>Notes: Full BibTeX entries are available under
+<code>docs/thesis/bibliography/</code>.</p>

@@ -59,6 +59,8 @@ Perform an end-to-end check without saving any artifacts. Use the backend-specif
 ```bash
 make dryrun CONFIG=configs/pytorch_default.yaml          # PyTorch
 make dryrun-h2o AUTOML_CONFIG=configs/h2o_default.yaml   # H2O AutoML
+make dryrun-cv                                           # PyTorch temporal CV (2 folds)
+make dryrun-h2o-cv                                       # H2O temporal CV (2 folds; Java required)
 ```
 
 **5. Experiment Tracking (W&B):**

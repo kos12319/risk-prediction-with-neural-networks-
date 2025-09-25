@@ -8,7 +8,7 @@ This guide adds repo‑specific guardrails and conventions that are easy to miss
 - Always run workflows via the Makefile. Do not call `python -m src...` directly in routine use.
 - Discover available operations by reading the `Makefile` (and `make help` if present). Do not rely on copied command snippets here.
 - `make train` runs the PyTorch backend; use `make automl-h2o` (with `model.backend: h2o`) for H2O AutoML experiments.
-- Use `make dryrun` for PyTorch smoke tests and `make dryrun-h2o` for H2O smoke tests; both commands clean up temporary artifacts automatically.
+- Use `make dryrun` for PyTorch smoke tests and `make dryrun-h2o` for H2O smoke tests; both commands clean up temporary artifacts automatically. For temporal CV smoke tests, use `make dryrun-cv` (PyTorch) or `make dryrun-h2o-cv` (H2O; requires Java).
 - If you need a new operation, add a Makefile target rather than introducing bespoke shell commands in docs or scripts.
 - Pass configuration via Makefile variables (see the `Makefile` for supported variables and defaults). Avoid hardcoded flags in ad-hoc commands.
 - Rationale: Make targets enforce safe environment settings (thread limits, headless plotting) and keep runs reproducible.

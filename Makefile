@@ -41,6 +41,7 @@ help:
 	@echo "  explore        Explore dataset (CONFIG=..., CSV=path optional)"
 	@echo "  dryrun         Run PyTorch training as a dry run (no artifacts persisted)"
 	@echo "  dryrun-h2o     Run H2O AutoML as a dry run (no artifacts persisted)"
+	@echo "  dryrun-h2o-cv  Run H2O AutoML temporal CV smoke test (2 folds; no artifacts)"
 	@echo "  dryrun-cv      Run PyTorch temporal CV smoke test (2 folds; no artifacts persisted)"
 	@echo "  run-catalog    Index local_runs and emit _catalog.json (RUNS_ROOT=local_runs)"
 	@echo "  wandb-login    Login to W&B using env (WANDB_API_KEY, WANDB_ENTITY)"
@@ -155,6 +156,10 @@ dryrun: venv
 # Usage: make dryrun-h2o [AUTOML_CONFIG=configs/h2o_default.yaml]
 dryrun-h2o: venv
 	$(SAFE_ENV) $(PY) -m src.cli.h2o.dryrun --config $(AUTOML_CONFIG)
+
+# Usage: make dryrun-h2o-cv (uses a tiny CV config; H2O backend)
+dryrun-h2o-cv: venv
+	$(SAFE_ENV) $(PY) -m src.cli.h2o.dryrun --config configs/h2o/cv_smoke.yaml
 
 # Usage: make dryrun-cv (uses a tiny CV config; PyTorch backend)
 dryrun-cv: venv

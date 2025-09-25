@@ -100,6 +100,10 @@
   ```bash
   make dryrun-cv
   ```
+- Temporal CV smoke test (H2O AutoML, 2 folds, fast, no artifacts persisted; requires Java):
+  ```bash
+  make dryrun-h2o-cv
+  ```
 - Both commands write artifacts to a temporary directory that is deleted on exit; a JSON summary is printed to stdout.
 
 ## Quick Start

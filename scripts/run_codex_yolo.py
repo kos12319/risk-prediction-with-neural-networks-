@@ -23,7 +23,7 @@ import time
 from pathlib import Path
 from typing import List
 
-PROMPT = """Start addressing the pain points. Start with the high levle pain points and work down from there. for each pain point you fix run a very very small run to make sure it is done. however do not stop until all are fixed or you are truely stuck. think hard. After you fix each pain point and you make sure it works, review your work, improve it and commit. COMPACT whenever the context left is below 50%. always make runs to test that they work. in the pain points skip changes if you are not 100% sure they are green and have caveats for the nature of the project.
+PROMPT = """Start addressing the pain points in docs/architecture. Start with the high levle pain points and work down from there. for each pain point you fix run a very very small run to make sure it is done. however do not stop until all are fixed or you are truely stuck. think hard. After you fix each pain point and you make sure it works, review your work, improve it and commit. COMPACT whenever the context left is below 50%. always make runs to test that they work. in the pain points skip changes if you are not 100% sure they are green and have caveats for the nature of the project.
 
 And one more point to consider: decouple the two backends altogether. you may allow them to share some common parts of the code base but i don't like that they have common cli, common configs and common pipeline. The framework in the project should keep common functionality on one hand, but have clear separation of backends so that a third can enter the picture in the future and so that the codebase is cleanly separated. by the way this is high priority for me.
 

@@ -1,0 +1,32 @@
+extends: base
+
+model:
+  backend: h2o
+
+automl:
+  # Keep runs very short for smoke testing
+  max_runtime_secs: 15
+  progress: false
+  log_level: WARN
+  balance_classes: true
+  seed: 42
+  leaderboard_make_test: true
+
+split:
+  method: time
+  time_col: issue_d
+  cv:
+    enabled: true
+    n_folds: 2
+    mode: expanding
+    initial_train_fraction: 0.5
+    validation_fraction: 0.2
+    gap: 0
+    shuffle_within_folds: false
+    train_full_after: false
+
+tracking:
+  backend: none
+  wandb:
+    enabled: false
+

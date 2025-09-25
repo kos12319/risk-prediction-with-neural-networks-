@@ -7,7 +7,10 @@ This list reflects the current high‑priority focus. Previous items have been a
   - Add pytest coverage for: time split monotonicity; train‑only oversampling; validation‑based threshold selection; `eval.pos_label` handling; seeded determinism (Python/NumPy/Torch/DataLoader workers).
   - Validate temporal CV aggregation schema and artifact layout (`reports/cv_metrics.json`, per‑fold files).
 - H2O CV parity and ergonomics
-  - Add an H2O temporal CV smoke test target (mirrors PyTorch `make dryrun-cv`) and document Java setup options and constraints.
+  - [done] Added an H2O temporal CV smoke‑test preset and Make target.
+    - Config: `configs/h2o/cv_smoke.yaml` (2 folds, ~15s runtime budget).
+    - Target: `make dryrun-h2o-cv` (mirrors PyTorch `make dryrun-cv`).
+    - Caveat: requires a working Java runtime (`java -version` must succeed). In sandboxed environments, this will fail fast with an actionable error.
   - Ensure AutoML class balancing and guardrails remain consistent under CV.
 - Run catalog usability
   - Generate lightweight HTML/Markdown summaries from `_catalog.json` and add comparison helpers (delta tables, trends over time).
@@ -21,4 +24,3 @@ This list reflects the current high‑priority focus. Previous items have been a
 
 ## Notes
 - We will gate deeper refactors behind tests to pin behavior and artifacts. CV smoke tests must remain fast and artifact‑light.
-
