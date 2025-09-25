@@ -1,0 +1,21 @@
+feature,relative_importance
+cat__grade_C,1.0
+cat__home_ownership_MORTGAGE,0.9617236852645874
+cat__home_ownership_RENT,0.9320226311683655
+cat__sub_grade_A1,0.882820725440979
+num__fico_spread,0.8641237616539001
+cat__emp_length_10+ years,0.8468909859657288
+cat__purpose_credit_card,0.7899959087371826
+num__inq_last_6mths,0.753501296043396
+cat__purpose_debt_consolidation,0.7300609946250916
+num__int_rate,0.7293776869773865
+cat__term_ 36 months,0.7282227277755737
+num__dti,0.7154484391212463
+num__loan_amnt,0.6587578058242798
+cat__verification_status_Verified,0.6202173829078674
+cat__grade_A,0.6200323700904846
+num__income_to_loan_ratio,0.6088443994522095
+num__percent_bc_gt_75,0.6081190705299377
+cat__sub_grade_A2,0.5930177569389343
+cat__sub_grade_A3,0.5917811989784241
+cat__verification_status_Not Verified,0.5896168351173401

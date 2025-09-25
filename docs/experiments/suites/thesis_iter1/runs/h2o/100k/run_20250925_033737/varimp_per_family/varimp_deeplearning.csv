@@ -1,0 +1,21 @@
+feature,relative_importance
+cat__sub_grade_A1,1.0
+cat__grade_B,0.9026095271110535
+num__fico_spread,0.8694391846656799
+cat__home_ownership_MORTGAGE,0.7885333299636841
+cat__addr_state_CA,0.7596859931945801
+cat__emp_length_10+ years,0.7558243274688721
+cat__sub_grade_A2,0.7545002102851868
+cat__grade_C,0.7454882264137268
+cat__sub_grade_A3,0.7404575943946838
+cat__sub_grade_G5,0.7248778939247131
+cat__sub_grade_G4,0.7220464944839478
+cat__purpose_debt_consolidation,0.6809725165367126
+cat__sub_grade_A4,0.6776596903800964
+cat__addr_state_TX,0.6742320656776428
+cat__sub_grade_A5,0.6716198921203613
+cat__home_ownership_RENT,0.670674741268158
+cat__purpose_renewable_energy,0.6701585054397583
+cat__sub_grade_G3,0.6544780731201172
+cat__addr_state_NY,0.6080219745635986
+cat__addr_state_FL,0.600469708442688

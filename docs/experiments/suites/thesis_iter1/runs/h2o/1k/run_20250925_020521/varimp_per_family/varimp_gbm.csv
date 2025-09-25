@@ -1,0 +1,21 @@
+feature,relative_importance
+cat__term_ 60 months,57.10609436035156
+cat__term_ 36 months,55.965858459472656
+num__dti,35.62278366088867
+num__annual_inc,30.81121253967285
+num__tot_hi_cred_lim,29.698930740356445
+num__bc_util,27.251781463623047
+num__income_to_loan_ratio,26.340665817260742
+num__revol_util,24.811525344848633
+num__fico_range_high,24.197345733642578
+num__inq_last_6mths,23.21036148071289
+num__num_rev_accts,23.044851303100586
+num__tot_cur_bal,22.326688766479492
+num__total_acc,19.65846824645996
+num__delinq_2yrs,19.447757720947266
+num__total_bal_ex_mort,19.1669979095459
+num__num_bc_tl,19.125680923461914
+num__loan_amnt,18.35132598876953
+num__total_il_high_credit_limit,18.1325626373291
+num__total_bc_limit,17.899065017700195
+num__fico_avg,17.190526962280273

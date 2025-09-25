@@ -1,0 +1,21 @@
+feature,relative_importance
+cat__term_ 36 months,23.39154815673828
+num__dti,21.414527893066406
+num__total_bal_ex_mort,20.31869125366211
+num__mort_acc,19.60306167602539
+num__total_bc_limit,18.08263397216797
+cat__term_ 60 months,17.261089324951172
+num__inq_last_6mths,15.671590805053711
+num__bc_open_to_buy,14.967455863952637
+num__loan_amnt,12.18796443939209
+num__credit_history_length,11.602577209472656
+num__total_rev_hi_lim,10.32361888885498
+num__total_il_high_credit_limit,9.572169303894043
+num__fico_range_low,9.348115921020508
+cat__purpose_credit_card,9.061089515686035
+cat__home_ownership_MORTGAGE,8.920150756835938
+num__tot_cur_bal,7.7842535972595215
+num__fico_avg,7.706101417541504
+num__bc_util,7.6744914054870605
+num__open_acc,7.571253299713135
+num__tot_hi_cred_lim,6.995095729827881

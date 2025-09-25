@@ -1,0 +1,517 @@
+_wandb:
+    value:
+        cli_version: 0.22.0
+        e:
+            ln9u2o71bt9xzlzfj89zyy7iklnma1sb:
+                apple:
+                    ecpuCores: 4
+                    gpuCores: 8
+                    memoryGb: 16
+                    name: Apple M1
+                    pcpuCores: 4
+                    ramTotalBytes: "17179869184"
+                    swapTotalBytes: "3221225472"
+                args:
+                    - --config
+                    - docs/experiments/suites/thesis_iter1/h2o/10k/agnostic_time.yaml
+                    - --notes
+                    - thesis_iter1 time-budgeted rerun after extends fix
+                    - --pull
+                cpu_count: 8
+                cpu_count_logical: 8
+                disk:
+                    /:
+                        total: "494384795648"
+                        used: "443559198720"
+                email: petr.encode@gmail.com
+                executable: /Users/petros/Projects/risk-prediction-with-neural-networks-/.venv/bin/python
+                git:
+                    commit: 617a7aefbd6ea487312b4ec52d4bf0b3db611092
+                    remote: git@github.com:kos12319/risk-prediction-with-neural-networks-.git
+                host: mbp
+                memory:
+                    total: "17179869184"
+                os: macOS-15.6.1-arm64-arm-64bit
+                program: -m src.cli.automl_h2o
+                python: CPython 3.12.8
+                root: /Users/petros/Projects/risk-prediction-with-neural-networks-
+                startedAt: "2025-09-24T23:17:17.420420Z"
+                writerId: ln9u2o71bt9xzlzfj89zyy7iklnma1sb
+        m:
+            - "1": epoch_time_sec
+              "5": 2
+              "6":
+                - 1
+                - 3
+              "7": []
+            - "1": epoch
+              "6":
+                - 3
+              "7": []
+            - "1": loss
+              "5": 2
+              "6":
+                - 1
+                - 3
+              "7": []
+            - "1": val_loss
+              "5": 2
+              "6":
+                - 1
+                - 3
+              "7": []
+            - "1": val_auc
+              "5": 2
+              "6":
+                - 1
+                - 3
+              "7": []
+            - "1": lr
+              "5": 2
+              "6":
+                - 1
+                - 3
+              "7": []
+        python_version: 3.12.8
+        t:
+            "1":
+                - 1
+                - 5
+                - 53
+            "2":
+                - 1
+                - 5
+                - 53
+            "3":
+                - 2
+                - 7
+                - 16
+                - 17
+                - 18
+                - 62
+            "4": 3.12.8
+            "5": 0.22.0
+            "8":
+                - 2
+            "12": 0.22.0
+            "13": darwin-arm64
+        visualize:
+            confusion_matrix:
+                panel_config:
+                    fieldSettings:
+                        Actual: Actual
+                        Predicted: Predicted
+                        nPredictions: nPredictions
+                    panelDefId: wandb/confusion_matrix/v1
+                    stringSettings:
+                        title: Confusion Matrix Curve
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: confusion_matrix_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            pr_curve_plot:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: recall
+                        "y": precision
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: Precision-Recall Curve
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: pr_curve_plot_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            roc_curve_plot:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: fpr
+                        "y": tpr
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: ROC Curve
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: roc_curve_plot_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            threshold_f1:
+                panel_config:
+                    fieldSettings:
+                        lineKey: lineKey
+                        lineVal: lineVal
+                        step: step
+                    panelDefId: wandb/lineseries/v0
+                    stringSettings:
+                        title: F1 vs Threshold
+                        xname: threshold
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: threshold_f1_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            threshold_precision:
+                panel_config:
+                    fieldSettings:
+                        lineKey: lineKey
+                        lineVal: lineVal
+                        step: step
+                    panelDefId: wandb/lineseries/v0
+                    stringSettings:
+                        title: Precision vs Threshold
+                        xname: threshold
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: threshold_precision_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            threshold_recall:
+                panel_config:
+                    fieldSettings:
+                        lineKey: lineKey
+                        lineVal: lineVal
+                        step: step
+                    panelDefId: wandb/lineseries/v0
+                    stringSettings:
+                        title: Recall vs Threshold
+                        xname: threshold
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: threshold_recall_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+automl:
+    value:
+        backend: h2o
+        balance_classes: true
+        exclude_algos: []
+        explanation_plots:
+            model_correlation: true
+            partial_dependence:
+                data: train
+                enabled: true
+                ice: false
+                nbins: 20
+                top_k: 3
+            per_family_varimp:
+                enabled: true
+                top_k: 20
+            varimp_heatmap: true
+            varimp_heatmap_fontsize: 9
+            varimp_heatmap_row_height: 0.35
+            varimp_top_k: 20
+            varimp_winners_sort: mean
+            varimp_winners_top_k: 35
+        export_checkpoints_dir: null
+        include_algos: []
+        keep_cross_validation_fold_assignment: false
+        keep_cross_validation_models: false
+        keep_cross_validation_predictions: false
+        leaderboard_curve_top_n: 8
+        leaderboard_extra_columns: ALL
+        leaderboard_make_test: true
+        log_dir: null
+        log_level: WARN
+        max_after_balance_size: 5
+        max_mem_size: null
+        max_models: null
+        max_runtime_secs: 300
+        nfolds: 0
+        nthreads: -1
+        progress: false
+        project_name: null
+        seed: 42
+        sort_metric: AUCPR
+        stopping_metric: AUC
+        suppress_dependency_warnings: true
+data:
+    value:
+        csv_path: data/raw/samples/thesis_data_sample_10k.csv
+        drop_leakage: true
+        features:
+            - loan_amnt
+            - term
+            - purpose
+            - emp_length
+            - annual_inc
+            - verification_status
+            - home_ownership
+            - addr_state
+            - dti
+            - delinq_2yrs
+            - pub_rec
+            - inq_last_6mths
+            - open_acc
+            - total_acc
+            - revol_bal
+            - revol_util
+            - fico_range_low
+            - fico_range_high
+            - mort_acc
+            - total_rev_hi_lim
+            - bc_open_to_buy
+            - bc_util
+            - percent_bc_gt_75
+            - tot_cur_bal
+            - tot_hi_cred_lim
+            - total_bal_ex_mort
+            - total_bc_limit
+            - total_il_high_credit_limit
+            - num_rev_accts
+            - num_rev_tl_bal_gt_0
+            - num_il_tl
+            - num_bc_tl
+            - num_bc_sats
+            - num_actv_rev_tl
+            - num_tl_90g_dpd_24m
+            - pub_rec_bankruptcies
+            - tax_liens
+            - issue_d
+            - earliest_cr_line
+        leakage_cols:
+            - out_prncp
+            - out_prncp_inv
+            - total_pymnt
+            - total_pymnt_inv
+            - last_pymnt_d
+            - last_pymnt_amnt
+            - next_pymnt_d
+            - last_credit_pull_d
+            - collection_recovery_fee
+            - recoveries
+            - hardship_flag
+            - hardship_type
+            - hardship_reason
+            - hardship_status
+            - hardship_amount
+            - hardship_start_date
+            - hardship_end_date
+            - payment_plan_start_date
+            - hardship_length
+            - hardship_dpd
+            - hardship_loan_status
+            - orig_projected_additional_accrued_interest
+            - hardship_payoff_balance_amount
+            - hardship_last_payment_amount
+            - debt_settlement_flag
+            - debt_settlement_flag_date
+            - settlement_status
+            - settlement_date
+            - settlement_amount
+            - settlement_percentage
+            - settlement_term
+        parse_dates:
+            - issue_d
+            - earliest_cr_line
+        target_col: loan_status
+        target_mapping:
+            Charged Off: 0
+            Fully Paid: 1
+        winsorize:
+            annual_inc:
+                lower_quantile: 0.01
+                upper_quantile: 0.995
+            dti:
+                lower_value: 0
+                upper_quantile: 0.995
+            fico_spread:
+                lower_value: 0
+                upper_quantile: 0.99
+            income_to_loan_ratio:
+                lower_value: 0
+                upper_quantile: 0.995
+            revol_util:
+                lower_value: 0
+                upper_quantile: 0.995
+        winsorize_enabled: true
+eval:
+    value:
+        pos_label: 0
+        threshold:
+            strategy: youden_j
+            value: 0.5
+model:
+    value:
+        architecture: mlp
+        backend: h2o
+        batch_size: 128
+        batchnorm: true
+        dropout:
+            - 0.4
+            - 0.3
+            - 0.2
+            - 0.2
+        early_stopping_patience: 10
+        epochs: 30
+        focal:
+            alpha: 0.25
+            enabled: false
+            gamma: 2
+        layers:
+            - 256
+            - 128
+            - 64
+            - 32
+        loss: binary_crossentropy
+        optimizer: adam
+        val_split: 0.2
+output:
+    value:
+        model_filename: loan_default_model.pt
+        runs_root: local_runs
+oversampling:
+    value:
+        enabled: false
+        method: random_over_sampler
+preprocessing:
+    value:
+        categorical:
+            encoder_params:
+                handle_unknown: ignore
+            imputer: most_frequent
+        categorical_encoder: one_hot
+        numerical:
+            imputer: median
+            scaler: standard
+        sparse_threshold: 0.3
+split:
+    value:
+        cv:
+            enabled: false
+            gap: 0
+            initial_train_fraction: 0.4
+            mode: expanding
+            n_folds: 0
+            shuffle_within_folds: false
+            train_full_after: false
+            validation_fraction: 0.2
+        method: time
+        random_state: 42
+        test_size: 0.2
+        time_col: issue_d
+tracking:
+    value:
+        backend: wandb
+        wandb:
+            enabled: true
+            entity: null
+            group: null
+            group_template: '{dataset}|{split}|{pos}|{backend}'
+            ignore_globs:
+                - '**/*.csv'
+                - data/**
+                - local_runs/**/roc_points.csv
+                - local_runs/**/pr_points.csv
+            job_type: train
+            job_type_template: null
+            log_artifacts: true
+            mode: online
+            project: loan-risk-mlp
+            run_name: null
+            run_name_template: '{dataset}|{split}|{pos}|h2o[{leader_algo}]|{leader_id}|nc{nc}|auc{auc:.3f}'
+            tag_templates:
+                - backend:{backend}
+                - leader_algo:{leader_algo_raw}
+            tags: []
+training:
+    value:
+        class_weight: null

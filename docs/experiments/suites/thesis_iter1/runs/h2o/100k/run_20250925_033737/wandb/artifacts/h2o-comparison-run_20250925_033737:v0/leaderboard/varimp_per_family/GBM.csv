@@ -1,0 +1,21 @@
+feature,relative_importance
+cat__term_ 36 months,3938.275390625
+num__int_rate,3596.83056640625
+cat__grade_A,1555.6055908203125
+cat__grade_E,1188.8853759765625
+num__dti,880.0574951171875
+cat__grade_B,854.6317749023438
+num__fico_range_low,765.9943237304688
+cat__term_ 60 months,705.7998046875
+num__fico_avg,618.3812866210938
+num__installment,525.0069580078125
+cat__sub_grade_A1,504.8178405761719
+num__loan_amnt,341.79180908203125
+cat__grade_D,320.374755859375
+num__inq_last_6mths,305.89495849609375
+num__fico_range_high,304.2394104003906
+cat__home_ownership_MORTGAGE,251.2793731689453
+num__credit_history_length,240.1032257080078
+num__revol_bal,192.4096221923828
+cat__home_ownership_RENT,190.53932189941406
+cat__sub_grade_A3,189.1936798095703

@@ -1,0 +1,21 @@
+feature,relative_importance
+cat__addr_state_MA,1.0
+cat__verification_status_Not Verified,0.9848694801330566
+num__num_il_tl,0.983818769454956
+num__total_rev_hi_lim,0.9827281832695007
+cat__addr_state_WA,0.9825295805931091
+cat__addr_state_NV,0.9770756363868713
+cat__addr_state_DC,0.9725794196128845
+cat__emp_length_1 year,0.9703262448310852
+num__fico_avg,0.9656884670257568
+num__total_acc,0.9638097286224365
+cat__addr_state_PA,0.9580479860305786
+num__mort_acc,0.9464741945266724
+cat__home_ownership_MORTGAGE,0.9460444450378418
+cat__purpose_vacation,0.9411909580230713
+cat__emp_length_3 years,0.940863311290741
+num__annual_inc,0.9381994605064392
+num__revol_bal,0.9379377961158752
+cat__purpose_debt_consolidation,0.9352718591690063
+num__bc_open_to_buy,0.9297490119934082
+cat__addr_state_OH,0.9281657338142395

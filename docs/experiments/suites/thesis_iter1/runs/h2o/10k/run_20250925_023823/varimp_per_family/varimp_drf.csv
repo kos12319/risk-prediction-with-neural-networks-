@@ -1,0 +1,21 @@
+feature,relative_importance
+num__int_rate,3383.58203125
+num__fico_range_high,657.6680908203125
+cat__term_ 36 months,536.00146484375
+cat__grade_A,534.184326171875
+num__fico_range_low,471.5177001953125
+cat__term_ 60 months,381.87933349609375
+num__loan_amnt,376.5189208984375
+num__dti,376.14727783203125
+num__installment,321.7958068847656
+num__fico_avg,284.3206481933594
+num__credit_history_length,206.3392791748047
+num__revol_bal,202.1711883544922
+cat__grade_E,163.82559204101562
+num__inq_last_6mths,162.9269256591797
+cat__grade_D,141.46591186523438
+cat__grade_B,117.98192596435547
+cat__verification_status_Verified,79.5447006225586
+cat__sub_grade_A2,67.89930725097656
+cat__purpose_debt_consolidation,53.63275146484375
+cat__grade_C,48.77973175048828

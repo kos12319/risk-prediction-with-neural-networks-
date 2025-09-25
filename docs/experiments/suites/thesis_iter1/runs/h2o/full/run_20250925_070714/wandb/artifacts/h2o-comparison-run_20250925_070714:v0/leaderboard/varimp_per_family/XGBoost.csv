@@ -1,0 +1,21 @@
+feature,relative_importance
+num__int_rate,33770.9765625
+cat__term_ 60 months,13970.6650390625
+cat__term_ 36 months,5983.4267578125
+num__dti,2961.753662109375
+num__income_to_loan_ratio,2355.880126953125
+cat__grade_A,2037.461181640625
+num__annual_inc,1795.111572265625
+num__mort_acc,1526.6793212890625
+num__fico_range_low,1394.657958984375
+num__tot_cur_bal,992.1092529296875
+cat__grade_C,984.1591796875
+num__num_rev_tl_bal_gt_0,970.9752197265625
+num__fico_range_high,930.3065185546875
+num__revol_bal,891.7638549804688
+num__total_bc_limit,864.6700439453125
+num__installment,770.6852416992188
+num__credit_history_length,766.7183227539062
+cat__grade_B,757.8880615234375
+num__inq_last_6mths,753.8513793945312
+cat__grade_D,691.166015625

@@ -1,0 +1,21 @@
+feature,relative_importance
+num__dti,1.0
+cat__term_ 60 months,0.8675123453140259
+cat__term_ 36 months,0.8231814503669739
+num__fico_range_high,0.8068485856056213
+num__inq_last_6mths,0.8047983050346375
+cat__addr_state_AK,0.7868754267692566
+num__loan_amnt,0.7769950032234192
+cat__purpose_renewable_energy,0.7751772999763489
+cat__addr_state_DC,0.7750458717346191
+cat__emp_length_< 1 year,0.7714405059814453
+cat__addr_state_VT,0.7687702775001526
+cat__addr_state_MT,0.7686733603477478
+num__fico_spread,0.7579233646392822
+cat__purpose_medical,0.754673421382904
+cat__addr_state_NJ,0.7529945969581604
+cat__addr_state_KS,0.7527271509170532
+cat__addr_state_ME,0.7524121403694153
+num__revol_bal,0.7496387958526611
+cat__purpose_small_business,0.7460862398147583
+cat__emp_length_1 year,0.7457578182220459

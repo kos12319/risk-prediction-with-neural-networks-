@@ -1,0 +1,21 @@
+feature,relative_importance
+cat__addr_state_WY,1.0
+cat__sub_grade_C4,0.9954518675804138
+cat__verification_status_Verified,0.9223515391349792
+cat__grade_D,0.9192031025886536
+cat__addr_state_MS,0.9029940366744995
+cat__sub_grade_F3,0.9016169309616089
+cat__emp_length_3 years,0.8844864368438721
+cat__sub_grade_B4,0.8785508871078491
+cat__addr_state_MO,0.8777554035186768
+cat__addr_state_SC,0.8773807287216187
+cat__addr_state_MD,0.8695743083953857
+cat__sub_grade_F1,0.8670752048492432
+cat__emp_length_4 years,0.865041196346283
+cat__verification_status_Source Verified,0.8645092248916626
+num__dti,0.8590331673622131
+cat__addr_state_TN,0.8515209555625916
+cat__home_ownership_MORTGAGE,0.8425197005271912
+cat__purpose_car,0.8247478008270264
+cat__sub_grade_C2,0.8182377219200134
+num__revol_bal,0.8096814751625061

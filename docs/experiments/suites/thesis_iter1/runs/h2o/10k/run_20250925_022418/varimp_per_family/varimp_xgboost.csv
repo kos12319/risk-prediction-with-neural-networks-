@@ -1,0 +1,21 @@
+feature,relative_importance
+cat__term_ 36 months,164.03744506835938
+num__dti,92.76553344726562
+num__fico_range_high,88.59222412109375
+num__revol_bal,46.65357208251953
+num__loan_amnt,40.302459716796875
+num__credit_history_length,39.34468078613281
+cat__home_ownership_MORTGAGE,29.78884506225586
+num__inq_last_6mths,28.863759994506836
+cat__verification_status_Verified,12.613716125488281
+cat__verification_status_Not Verified,9.55289077758789
+cat__purpose_credit_card,7.939169883728027
+cat__purpose_debt_consolidation,4.1521687507629395
+cat__emp_length_10+ years,3.754162549972534
+cat__emp_length_5 years,2.817779064178467
+cat__addr_state_TX,2.5388529300689697
+cat__emp_length_2 years,2.34552001953125
+cat__home_ownership_OWN,2.1391916275024414
+cat__emp_length_1 year,1.3840446472167969
+cat__emp_length_8 years,1.1521120071411133
+cat__addr_state_NJ,1.1266636848449707

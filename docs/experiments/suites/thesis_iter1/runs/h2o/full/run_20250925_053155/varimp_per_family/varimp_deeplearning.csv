@@ -1,0 +1,21 @@
+feature,relative_importance
+cat__term_ 36 months,1.0
+cat__purpose_educational,0.977151095867157
+cat__purpose_debt_consolidation,0.8211142420768738
+num__credit_history_length,0.7920487523078918
+cat__addr_state_CA,0.7506140470504761
+cat__term_ 60 months,0.6948540806770325
+num__revol_bal,0.682199239730835
+cat__emp_length_10+ years,0.670295774936676
+cat__home_ownership_OTHER,0.6641622185707092
+cat__purpose_credit_card,0.6563246250152588
+cat__addr_state_NY,0.6439497470855713
+num__fico_spread,0.5865449905395508
+cat__addr_state_TX,0.5132015347480774
+cat__addr_state_FL,0.5084400177001953
+cat__home_ownership_MORTGAGE,0.4987041652202606
+cat__addr_state_NE,0.4846917986869812
+cat__home_ownership_NONE,0.4723418056964874
+cat__home_ownership_RENT,0.46784985065460205
+cat__addr_state_ME,0.45793968439102173
+cat__addr_state_OH,0.44088080525398254

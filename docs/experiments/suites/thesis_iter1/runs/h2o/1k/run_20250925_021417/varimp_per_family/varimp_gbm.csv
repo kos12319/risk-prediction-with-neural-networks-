@@ -1,0 +1,21 @@
+feature,relative_importance
+num__int_rate,94.64444732666016
+cat__term_ 36 months,69.4449234008789
+num__fico_avg,41.99243927001953
+num__dti,34.647727966308594
+cat__grade_A,30.441017150878906
+num__credit_history_length,27.30035972595215
+num__installment,26.861526489257812
+cat__home_ownership_MORTGAGE,16.6910400390625
+num__revol_bal,14.603836059570312
+cat__purpose_credit_card,14.245912551879883
+num__loan_amnt,13.200347900390625
+cat__term_ 60 months,12.735466957092285
+cat__grade_E,12.077451705932617
+num__inq_last_6mths,10.153192520141602
+cat__addr_state_AL,8.689352035522461
+cat__grade_D,8.424192428588867
+cat__verification_status_Source Verified,7.780327320098877
+cat__addr_state_WA,7.690281867980957
+cat__grade_B,6.513734817504883
+num__fico_range_high,6.002539157867432

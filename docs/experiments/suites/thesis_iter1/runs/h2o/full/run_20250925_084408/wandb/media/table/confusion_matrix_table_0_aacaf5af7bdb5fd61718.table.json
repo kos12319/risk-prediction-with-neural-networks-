@@ -1,0 +1,1 @@
+{"columns": ["Actual", "Predicted", "nPredictions"], "data": [["fully_paid", "fully_paid", 115334.0], ["fully_paid", "charged_off", 82919.0], ["charged_off", "fully_paid", 16441.0], ["charged_off", "charged_off", 39662.0]]}

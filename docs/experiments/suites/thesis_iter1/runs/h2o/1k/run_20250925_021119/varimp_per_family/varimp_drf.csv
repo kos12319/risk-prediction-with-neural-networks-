@@ -1,0 +1,21 @@
+feature,relative_importance
+num__int_rate,468.3354187011719
+num__fico_range_high,172.34298706054688
+num__dti,152.8671875
+num__fico_avg,143.62600708007812
+cat__term_ 36 months,141.54002380371094
+cat__grade_A,137.36802673339844
+num__num_rev_accts,135.77926635742188
+num__revol_util,131.93331909179688
+num__fico_range_low,130.6536102294922
+num__mort_acc,125.20498657226562
+num__credit_history_length,119.3603515625
+num__total_bc_limit,119.32640075683594
+num__loan_amnt,115.7131118774414
+num__num_actv_rev_tl,112.14039611816406
+num__income_to_loan_ratio,110.98551940917969
+num__total_acc,109.73097229003906
+num__installment,109.65585327148438
+num__tot_hi_cred_lim,108.48114013671875
+num__percent_bc_gt_75,102.8648681640625
+cat__term_ 60 months,102.61763000488281

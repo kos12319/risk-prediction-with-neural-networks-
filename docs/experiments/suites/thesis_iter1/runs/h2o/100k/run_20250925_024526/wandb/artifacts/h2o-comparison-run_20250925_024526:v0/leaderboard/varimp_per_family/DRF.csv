@@ -1,0 +1,21 @@
+feature,relative_importance
+cat__term_ 36 months,28742.16015625
+cat__term_ 60 months,19857.23828125
+num__loan_amnt,19168.08203125
+num__credit_history_length,15722.5146484375
+num__dti,15252.4970703125
+num__revol_util,15171.8798828125
+num__fico_range_low,14838.39453125
+num__total_bc_limit,14307.9609375
+num__fico_avg,13712.9072265625
+num__bc_util,13683.955078125
+num__bc_open_to_buy,13671.283203125
+num__fico_range_high,13048.75390625
+num__num_rev_accts,12990.318359375
+num__open_acc,12881.3291015625
+num__num_bc_tl,12733.2822265625
+num__total_acc,12358.302734375
+num__num_rev_tl_bal_gt_0,11691.1806640625
+num__tot_cur_bal,11435.134765625
+num__num_il_tl,11391.37109375
+num__percent_bc_gt_75,11119.87890625

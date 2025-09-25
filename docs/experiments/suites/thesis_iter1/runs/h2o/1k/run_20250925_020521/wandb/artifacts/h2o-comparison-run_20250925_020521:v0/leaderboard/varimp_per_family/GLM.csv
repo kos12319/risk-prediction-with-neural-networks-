@@ -1,0 +1,21 @@
+feature,relative_importance
+cat__term_ 36 months,0.2926376760005951
+cat__term_ 60 months,0.2923375964164734
+cat__purpose_credit_card,0.18125596642494202
+cat__addr_state_WA,0.17908819019794464
+cat__home_ownership_MORTGAGE,0.17334981262683868
+cat__addr_state_MI,0.1627514511346817
+num__delinq_2yrs,0.16231302917003632
+cat__addr_state_AL,0.1605885922908783
+num__fico_range_low,0.15432828664779663
+num__fico_range_high,0.15422895550727844
+num__fico_avg,0.15397530794143677
+num__inq_last_6mths,0.1531262844800949
+num__dti,0.14243291318416595
+num__open_acc,0.14050745964050293
+cat__addr_state_IL,0.13675053417682648
+cat__emp_length_3 years,0.13374367356300354
+cat__addr_state_MN,0.12826155126094818
+num__annual_inc,0.12487904727458954
+cat__addr_state_DE,0.12169122695922852
+cat__home_ownership_RENT,0.12136441469192505

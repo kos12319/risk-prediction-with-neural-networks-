@@ -1,0 +1,21 @@
+feature,relative_importance
+cat__term_ 36 months,0.1180603951215744
+cat__term_ 60 months,0.11800777912139893
+num__int_rate,0.10813145339488983
+cat__grade_A,0.07933216542005539
+cat__home_ownership_MORTGAGE,0.07697568088769913
+cat__grade_D,0.06992240250110626
+cat__addr_state_AL,0.06985536962747574
+cat__sub_grade_D3,0.06447368860244751
+cat__sub_grade_E1,0.06405013054609299
+cat__grade_E,0.06096968054771423
+cat__purpose_credit_card,0.05640606954693794
+cat__verification_status_Not Verified,0.05424243211746216
+cat__addr_state_OK,0.053084757179021835
+cat__sub_grade_A1,0.052789121866226196
+num__inq_last_6mths,0.05253150686621666
+num__fico_range_high,0.051784101873636246
+num__fico_range_low,0.05178225785493851
+num__fico_avg,0.05177031457424164
+cat__addr_state_MI,0.05080987140536308
+num__credit_history_length,0.05070214346051216

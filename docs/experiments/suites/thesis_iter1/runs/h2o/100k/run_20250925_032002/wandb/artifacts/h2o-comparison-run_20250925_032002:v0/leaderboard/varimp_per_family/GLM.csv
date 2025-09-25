@@ -1,0 +1,21 @@
+feature,relative_importance
+num__income_to_loan_ratio,0.23522193729877472
+cat__term_ 36 months,0.1664259284734726
+num__int_rate,0.16589060425758362
+cat__term_ 60 months,0.16078056395053864
+num__total_bc_limit,0.14660674333572388
+cat__grade_A,0.14097650349140167
+num__dti,0.12741197645664215
+cat__sub_grade_A1,0.12502391636371613
+num__num_rev_tl_bal_gt_0,0.11889849603176117
+num__total_il_high_credit_limit,0.10026668757200241
+num__installment,0.09291405975818634
+num__tot_cur_bal,0.086640864610672
+num__total_rev_hi_lim,0.08581220358610153
+num__total_bal_ex_mort,0.08056250959634781
+cat__sub_grade_A3,0.07888650894165039
+cat__grade_D,0.07346466183662415
+cat__grade_C,0.06428694725036621
+num__inq_last_6mths,0.06392406672239304
+cat__addr_state_OR,0.06338661164045334
+cat__sub_grade_A2,0.060731858015060425

@@ -1,0 +1,21 @@
+feature,relative_importance
+num__credit_history_length,1.0
+cat__purpose_vacation,0.915520966053009
+cat__addr_state_LA,0.8495423197746277
+cat__emp_length_8 years,0.7925699949264526
+cat__addr_state_TN,0.7694820761680603
+cat__emp_length_10+ years,0.7631441354751587
+cat__addr_state_DC,0.7597616314888
+cat__addr_state_MT,0.7526485919952393
+cat__purpose_debt_consolidation,0.7521851062774658
+cat__purpose_car,0.7500019073486328
+cat__addr_state_NY,0.7483986020088196
+cat__addr_state_OK,0.7411699295043945
+cat__home_ownership_OWN,0.7323224544525146
+cat__purpose_credit_card,0.7270849347114563
+cat__purpose_small_business,0.7116665840148926
+num__fico_avg,0.7112141251564026
+cat__emp_length_7 years,0.7033717036247253
+cat__addr_state_HI,0.6960063576698303
+num__fico_range_low,0.6919531226158142
+num__fico_range_high,0.689055323600769

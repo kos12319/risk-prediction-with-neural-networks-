@@ -1,0 +1,21 @@
+feature,relative_importance
+num__dti,1.0
+cat__term_ 36 months,0.9546958208084106
+cat__term_ 60 months,0.8728399872779846
+num__revol_bal,0.730102002620697
+num__inq_last_6mths,0.7004005312919617
+num__fico_range_high,0.6586960554122925
+cat__addr_state_CA,0.6484864950180054
+cat__verification_status_Not Verified,0.6473236083984375
+cat__emp_length_< 1 year,0.6290730237960815
+cat__addr_state_NY,0.6250231266021729
+num__fico_spread,0.62415611743927
+cat__purpose_credit_card,0.6030919551849365
+cat__addr_state_TX,0.5959025621414185
+cat__emp_length_2 years,0.5801379680633545
+num__loan_amnt,0.5775861144065857
+cat__addr_state_IL,0.5773780345916748
+cat__emp_length_10+ years,0.5772460699081421
+cat__addr_state_FL,0.5762401819229126
+cat__home_ownership_RENT,0.5756993889808655
+cat__purpose_renewable_energy,0.570341169834137

@@ -1,0 +1,21 @@
+feature,relative_importance
+cat__sub_grade_A1,1.0
+num__int_rate,0.8641993403434753
+cat__sub_grade_A2,0.8160236477851868
+cat__sub_grade_A3,0.7818988561630249
+cat__sub_grade_A4,0.7738530039787292
+cat__addr_state_CA,0.7412514686584473
+cat__purpose_debt_consolidation,0.6869218945503235
+cat__sub_grade_A5,0.6514949798583984
+cat__sub_grade_E4,0.6367092728614807
+cat__grade_C,0.5896907448768616
+num__income_to_loan_ratio,0.589510977268219
+cat__sub_grade_B1,0.5722469687461853
+cat__emp_length_10+ years,0.5560029149055481
+cat__sub_grade_E5,0.5532590746879578
+cat__addr_state_TX,0.5451921820640564
+cat__sub_grade_B2,0.5387172698974609
+cat__grade_B,0.5296556949615479
+num__dti,0.5268728137016296
+cat__sub_grade_E1,0.5262723565101624
+cat__addr_state_NY,0.5214248895645142

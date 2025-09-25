@@ -1,0 +1,21 @@
+feature,relative_importance
+num__int_rate,156.82778930664062
+num__revol_util,50.8594856262207
+cat__grade_A,49.6848030090332
+num__dti,32.974273681640625
+num__tot_cur_bal,27.452106475830078
+num__bc_open_to_buy,27.031822204589844
+num__installment,25.707508087158203
+cat__term_ 36 months,24.501676559448242
+num__annual_inc,24.237571716308594
+num__credit_history_length,22.187273025512695
+num__num_rev_accts,20.553857803344727
+num__delinq_2yrs,19.83367919921875
+num__tot_hi_cred_lim,19.711074829101562
+cat__term_ 60 months,19.379112243652344
+num__total_bal_ex_mort,19.287311553955078
+num__total_acc,18.84231948852539
+num__fico_range_low,18.16200065612793
+num__mort_acc,16.19478416442871
+num__total_bc_limit,16.048967361450195
+num__fico_avg,15.843498229980469

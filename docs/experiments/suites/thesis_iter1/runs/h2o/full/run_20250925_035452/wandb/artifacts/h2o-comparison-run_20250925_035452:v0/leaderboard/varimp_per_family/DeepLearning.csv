@@ -1,0 +1,21 @@
+feature,relative_importance
+cat__purpose_educational,1.0
+cat__home_ownership_OTHER,0.8661049008369446
+cat__addr_state_ND,0.8407998085021973
+cat__addr_state_ME,0.834257960319519
+num__fico_spread,0.8178900480270386
+cat__home_ownership_RENT,0.80039381980896
+cat__home_ownership_MORTGAGE,0.7836889624595642
+cat__purpose_debt_consolidation,0.7561712265014648
+cat__home_ownership_NONE,0.7464990019798279
+cat__purpose_renewable_energy,0.6977398991584778
+cat__addr_state_NE,0.696064293384552
+cat__emp_length_10+ years,0.6897158026695251
+cat__purpose_wedding,0.637976884841919
+cat__addr_state_IA,0.5710854530334473
+cat__addr_state_CA,0.5607022047042847
+cat__addr_state_ID,0.5596616268157959
+cat__purpose_credit_card,0.5123910307884216
+cat__home_ownership_ANY,0.4891853928565979
+cat__addr_state_VT,0.48250675201416016
+cat__addr_state_NY,0.46152395009994507

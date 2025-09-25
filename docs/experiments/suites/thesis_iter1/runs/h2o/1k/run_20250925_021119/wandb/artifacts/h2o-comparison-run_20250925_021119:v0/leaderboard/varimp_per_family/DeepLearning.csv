@@ -1,0 +1,21 @@
+feature,relative_importance
+cat__addr_state_VT,1.0
+cat__grade_G,0.9786278605461121
+num__total_il_high_credit_limit,0.9769347906112671
+cat__addr_state_KY,0.9469716548919678
+num__int_rate,0.9168536067008972
+cat__purpose_debt_consolidation,0.9100674390792847
+cat__emp_length_1 year,0.909004271030426
+cat__verification_status_Not Verified,0.8990825414657593
+cat__purpose_credit_card,0.8802748918533325
+cat__addr_state_NV,0.8757642507553101
+cat__sub_grade_A5,0.8634145855903625
+cat__emp_length_7 years,0.8549365997314453
+num__tot_cur_bal,0.8511960506439209
+cat__verification_status_Verified,0.8394057154655457
+num__num_rev_accts,0.8229991793632507
+cat__term_ 36 months,0.8227341771125793
+cat__addr_state_WY,0.8185873031616211
+cat__addr_state_OK,0.8112064599990845
+num__tot_hi_cred_lim,0.8028035759925842
+cat__grade_F,0.7970314025878906

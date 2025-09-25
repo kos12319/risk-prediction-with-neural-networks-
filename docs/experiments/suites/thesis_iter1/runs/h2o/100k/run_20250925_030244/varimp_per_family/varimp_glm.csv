@@ -1,0 +1,21 @@
+feature,relative_importance
+num__dti,0.2537061870098114
+cat__term_ 36 months,0.2509720027446747
+cat__term_ 60 months,0.24131450057029724
+num__inq_last_6mths,0.1608731746673584
+num__revol_bal,0.14135336875915527
+num__fico_range_high,0.11713267117738724
+num__fico_range_low,0.11168646812438965
+num__fico_avg,0.10763434320688248
+num__loan_amnt,0.10741788893938065
+cat__home_ownership_MORTGAGE,0.0963592454791069
+cat__verification_status_Not Verified,0.08724884688854218
+cat__verification_status_Verified,0.0815296322107315
+cat__purpose_credit_card,0.08019541949033737
+cat__home_ownership_RENT,0.07929462194442749
+cat__addr_state_OR,0.06239261105656624
+cat__purpose_small_business,0.06234283745288849
+num__credit_history_length,0.05610278248786926
+cat__addr_state_SC,0.050911612808704376
+cat__addr_state_NH,0.04112252965569496
+cat__addr_state_OK,0.04084910824894905

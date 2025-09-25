@@ -1,0 +1,13 @@
+feature,relative_importance
+cat__term_ 36 months,26.432754516601562
+cat__home_ownership_MORTGAGE,23.082521438598633
+num__fico_range_high,17.821378707885742
+num__revol_bal,17.553205490112305
+num__loan_amnt,16.3547420501709
+num__inq_last_6mths,15.079111099243164
+num__dti,9.588478088378906
+cat__verification_status_Not Verified,8.938756942749023
+num__fico_range_low,8.542743682861328
+cat__purpose_debt_consolidation,8.156293869018555
+cat__term_ 60 months,5.958587646484375
+num__credit_history_length,3.8086986541748047

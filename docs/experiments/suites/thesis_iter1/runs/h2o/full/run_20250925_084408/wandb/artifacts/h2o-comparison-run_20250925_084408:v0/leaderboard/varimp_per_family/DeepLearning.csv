@@ -1,0 +1,21 @@
+feature,relative_importance
+num__int_rate,1.0
+cat__grade_C,0.9845169186592102
+cat__grade_B,0.8672748804092407
+cat__sub_grade_A1,0.8248166441917419
+cat__term_ 60 months,0.8157072067260742
+cat__purpose_educational,0.7497332692146301
+cat__sub_grade_A2,0.7100673913955688
+cat__grade_D,0.6362379193305969
+cat__term_ 36 months,0.6281003355979919
+cat__purpose_debt_consolidation,0.6070091128349304
+cat__sub_grade_A3,0.606962263584137
+cat__sub_grade_A4,0.5920392274856567
+cat__emp_length_10+ years,0.5688410401344299
+cat__home_ownership_OTHER,0.550990641117096
+cat__purpose_credit_card,0.5187795758247375
+cat__addr_state_CA,0.4960332214832306
+num__installment,0.4924614727497101
+cat__sub_grade_A5,0.4917999505996704
+cat__home_ownership_RENT,0.4826502501964569
+num__dti,0.46911051869392395

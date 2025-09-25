@@ -1,0 +1,21 @@
+feature,relative_importance
+num__int_rate,483.1128234863281
+num__dti,215.81483459472656
+num__credit_history_length,152.7605438232422
+cat__term_ 60 months,138.87022399902344
+num__revol_bal,113.34406280517578
+num__installment,106.70409393310547
+num__loan_amnt,106.55109405517578
+cat__term_ 36 months,69.08108520507812
+cat__home_ownership_MORTGAGE,68.00991821289062
+num__fico_range_high,59.35849380493164
+num__inq_last_6mths,29.88625144958496
+num__fico_range_low,28.952550888061523
+cat__emp_length_5 years,25.954055786132812
+cat__addr_state_TX,19.406476974487305
+num__fico_avg,18.233016967773438
+cat__home_ownership_RENT,16.572399139404297
+cat__grade_A,15.840709686279297
+cat__verification_status_Source Verified,15.565387725830078
+cat__purpose_debt_consolidation,14.622831344604492
+cat__emp_length_2 years,13.061210632324219

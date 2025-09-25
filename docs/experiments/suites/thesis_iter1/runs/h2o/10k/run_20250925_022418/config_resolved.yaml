@@ -1,0 +1,200 @@
+data:
+  csv_path: data/raw/samples/thesis_data_sample_10k.csv
+  target_col: loan_status
+  target_mapping:
+    Charged Off: 0
+    Fully Paid: 1
+  parse_dates:
+  - issue_d
+  - earliest_cr_line
+  drop_leakage: true
+  leakage_cols:
+  - out_prncp
+  - out_prncp_inv
+  - total_pymnt
+  - total_pymnt_inv
+  - last_pymnt_d
+  - last_pymnt_amnt
+  - next_pymnt_d
+  - last_credit_pull_d
+  - collection_recovery_fee
+  - recoveries
+  - hardship_flag
+  - hardship_type
+  - hardship_reason
+  - hardship_status
+  - hardship_amount
+  - hardship_start_date
+  - hardship_end_date
+  - payment_plan_start_date
+  - hardship_length
+  - hardship_dpd
+  - hardship_loan_status
+  - orig_projected_additional_accrued_interest
+  - hardship_payoff_balance_amount
+  - hardship_last_payment_amount
+  - debt_settlement_flag
+  - debt_settlement_flag_date
+  - settlement_status
+  - settlement_date
+  - settlement_amount
+  - settlement_percentage
+  - settlement_term
+  features:
+  - addr_state
+  - term
+  - home_ownership
+  - emp_length
+  - verification_status
+  - dti
+  - purpose
+  - inq_last_6mths
+  - loan_amnt
+  - fico_range_high
+  - fico_range_low
+  - revol_bal
+  winsorize_enabled: true
+  winsorize:
+    annual_inc:
+      lower_quantile: 0.01
+      upper_quantile: 0.995
+    dti:
+      lower_value: 0.0
+      upper_quantile: 0.995
+    revol_util:
+      lower_value: 0.0
+      upper_quantile: 0.995
+    income_to_loan_ratio:
+      lower_value: 0.0
+      upper_quantile: 0.995
+    fico_spread:
+      lower_value: 0.0
+      upper_quantile: 0.99
+split:
+  method: time
+  time_col: issue_d
+  test_size: 0.2
+  random_state: 42
+  cv:
+    enabled: false
+    n_folds: 0
+    mode: expanding
+    initial_train_fraction: 0.4
+    validation_fraction: 0.2
+    gap: 0
+    shuffle_within_folds: false
+    train_full_after: false
+oversampling:
+  enabled: false
+  method: random_over_sampler
+  params: {}
+preprocessing:
+  categorical_encoder: one_hot
+  sparse_threshold: 0.3
+  numerical:
+    imputer: median
+    scaler: standard
+  categorical:
+    imputer: most_frequent
+    encoder_params:
+      handle_unknown: ignore
+model:
+  backend: h2o
+  architecture: mlp
+  layers:
+  - 256
+  - 128
+  - 64
+  - 32
+  dropout:
+  - 0.4
+  - 0.3
+  - 0.2
+  - 0.2
+  batchnorm: true
+  loss: binary_crossentropy
+  focal:
+    enabled: false
+    alpha: 0.25
+    gamma: 2.0
+  optimizer: adam
+  epochs: 30
+  batch_size: 128
+  val_split: 0.2
+  early_stopping_patience: 10
+automl:
+  backend: h2o
+  max_runtime_secs: 300
+  max_models: null
+  stopping_metric: AUC
+  project_name: null
+  balance_classes: true
+  max_after_balance_size: 5.0
+  seed: 42
+  nfolds: 0
+  keep_cross_validation_models: false
+  keep_cross_validation_predictions: false
+  keep_cross_validation_fold_assignment: false
+  exclude_algos: []
+  include_algos: []
+  sort_metric: AUCPR
+  nthreads: -1
+  max_mem_size: null
+  export_checkpoints_dir: null
+  log_dir: null
+  progress: false
+  log_level: WARN
+  suppress_dependency_warnings: true
+  leaderboard_extra_columns: ALL
+  leaderboard_make_test: true
+  explanation_plots:
+    model_correlation: true
+    varimp_heatmap: true
+    varimp_top_k: 20
+    varimp_winners_top_k: 35
+    varimp_winners_sort: mean
+    varimp_heatmap_row_height: 0.35
+    varimp_heatmap_fontsize: 9
+    per_family_varimp:
+      enabled: true
+      top_k: 20
+    partial_dependence:
+      enabled: true
+      top_k: 3
+      nbins: 20
+      data: train
+      ice: false
+  leaderboard_curve_top_n: 8
+output:
+  runs_root: local_runs
+  model_filename: loan_default_model.pt
+eval:
+  pos_label: 0
+  threshold:
+    strategy: youden_j
+    value: 0.5
+training:
+  class_weight: null
+tracking:
+  backend: wandb
+  wandb:
+    enabled: true
+    project: loan-risk-mlp
+    entity: null
+    mode: online
+    run_name: null
+    run_name_template: '{dataset}|{split}|{pos}|h2o[{leader_algo}]|{leader_id}|nc{nc}|auc{auc:.3f}'
+    group: null
+    group_template: '{dataset}|{split}|{pos}|{backend}'
+    job_type: train
+    job_type_template: null
+    tags: []
+    tag_templates:
+    - backend:{backend}
+    - leader_algo:{leader_algo_raw}
+    log_artifacts: true
+    ignore_globs:
+    - '**/*.csv'
+    - data/**
+    - local_runs/**/roc_points.csv
+    - local_runs/**/pr_points.csv

@@ -1,0 +1,21 @@
+feature,relative_importance
+cat__term_ 60 months,1.0
+cat__term_ 36 months,0.9620044231414795
+cat__purpose_debt_consolidation,0.9131882786750793
+cat__home_ownership_MORTGAGE,0.8847681283950806
+num__dti,0.8504932522773743
+cat__emp_length_10+ years,0.845577597618103
+num__income_to_loan_ratio,0.8154107928276062
+cat__addr_state_CA,0.797074019908905
+cat__home_ownership_RENT,0.7518510222434998
+cat__purpose_credit_card,0.7263666391372681
+num__fico_spread,0.7184879779815674
+num__loan_amnt,0.704068660736084
+num__inq_last_6mths,0.6298621892929077
+num__fico_range_high,0.6202999949455261
+cat__addr_state_TX,0.588520884513855
+cat__verification_status_Source Verified,0.5838061571121216
+num__credit_history_length,0.5661540627479553
+num__num_rev_tl_bal_gt_0,0.5588502883911133
+num__fico_range_low,0.5484300255775452
+cat__verification_status_Verified,0.5387207269668579
