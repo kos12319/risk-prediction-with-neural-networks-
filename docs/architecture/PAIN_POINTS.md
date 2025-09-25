@@ -3,7 +3,7 @@
 This list reflects the current high‑priority focus. Previous items have been archived at `docs/architecture/archives/PAIN_POINTS_2025-09-25.md`.
 
 ## High Priority
-Verification (2025-09-25): Re-ran tiny end-to-end checks to reconfirm the decoupled backends and guardrails are healthy. `make dryrun` (PyTorch, 2-fold CV smoke) and `make dryrun-h2o-cv` (H2O, 2-fold CV smoke; Java present) both executed and produced metrics/figures as expected. Also rebuilt the run catalog (`make run-catalog` + `make run-catalog-report`) to verify manifest/report generation.
+Verification (2025-09-25): Re-ran tiny end-to-end checks to reconfirm the decoupled backends and guardrails are healthy. `make dryrun-cv` (PyTorch, 2-fold CV smoke) and `make dryrun-h2o-cv` (H2O, 2-fold CV smoke; Java present) both executed and produced metrics as expected on `data/raw/samples/thesis_data_sample_1k.csv`. Run catalog was previously validated via `make run-catalog` + `make run-catalog-report` (local_runs present). Backend separation remains clean (no shared training CLI, backend-owned schemas/pipelines).
 - Backend decoupling (CLI/config/pipeline)
   - [done] Separate backend CLIs and configs; deprecate unified training/dryrun CLI.
     - Change: `python -m src.cli train|dryrun` now exits with guidance. Use `make train`/`make automl-h2o` or explicit modules `src.cli.pytorch.*` / `src.cli.h2o.*`.
