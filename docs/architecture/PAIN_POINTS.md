@@ -82,5 +82,11 @@ Verification (2025-09-25): Re-ran tiny end-to-end checks to reconfirm the decoup
     - Verification: `make dryrun` and `make dryrun-cv` completed on sample configs; CV metadata is emitted only for CV runs and now reflects the proper backend.
     - Caveat: None; behavior is unchanged for non-CV runs.
 
+- [done] Centralize evaluation writer
+  - Change: Introduced `src/training/evaluation_writer.py` with `write_basic_eval_artifacts` (CV folds) and `write_full_eval_artifacts` (single runs). Replaced duplicated plotting/metrics emission in `base_pipeline.py` and `cv.py` with calls into the new module. For single runs, CSV artifacts (roc_points/pr_points/threshold_metrics) are still available under `run_dir` for compatibility.
+  - Effect: Eliminates duplication and tightens separation: shared evaluation output is backend-agnostic, reducing pipeline size and easing future backend additions.
+  - Verification: Ran `make dryrun` and `make dryrun-cv` on sample CSV; metrics/figures/JSONs produced as before. Paths for CSVs remain compatible for single runs; CV fold artifacts unchanged.
+  - Caveat: None; functionality is a pure extraction. If the central writer import fails, both paths fall back to the previous inline writers.
+
 ## Notes
 - We will gate deeper refactors behind tests to pin behavior and artifacts. CV smoke tests must remain fast and artifact‑light.

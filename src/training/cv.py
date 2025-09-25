@@ -9,12 +9,8 @@ import pandas as pd
 
 from src.data.split import TemporalFold, time_based_kfold_splits
 from src.eval.binary import evaluate_binary_classification
-from src.eval.metrics import (
-    plot_learning_curves,
-    plot_pr_curve,
-    plot_roc_curve,
-    save_metrics,
-)
+from src.eval.metrics import save_metrics
+from src.training.evaluation_writer import write_basic_eval_artifacts
 from src.features.preprocess import preprocess_tabular_data
 from src.training.base_pipeline import (
     ArtifactManager,
@@ -162,41 +158,31 @@ def run_cv_fold(
     )
     eval_end = time.time()
 
-    # Save minimal artifacts under fold dir
-    save_metrics(eval_result.metrics, artifact_mgr.reports_dir / "metrics.json")
-    with open(artifact_mgr.reports_dir / "confusion.json", "w", encoding="utf-8") as f:
-        _json.dump(eval_result.confusion, f, indent=2)
-
-    # Plots (backend-agnostic)
+    # Save minimal artifacts under fold dir via centralized writer
     try:
-        plot_roc_curve(
+        write_basic_eval_artifacts(
+            evaluation=eval_result,
             y_true=y_test_np,
             y_prob=y_prob_aligned,
-            out_path=artifact_mgr.figures_dir / "roc_curve.png",
+            reports_dir=artifact_mgr.reports_dir,
+            figures_dir=artifact_mgr.figures_dir,
+            history=history_obj,
+            point=None,
         )
     except Exception:
-        logger.exception("[CV fold %s] Failed to plot ROC curve", fold.fold_id)
-    try:
-        plot_pr_curve(
-            y_true=y_test_np,
-            y_prob=y_prob_aligned,
-            out_path=artifact_mgr.figures_dir / "pr_curve.png",
-        )
-    except Exception:
-        logger.exception("[CV fold %s] Failed to plot PR curve", fold.fold_id)
-
+        # Fallback to direct JSON writes if central writer import fails
+        save_metrics(eval_result.metrics, artifact_mgr.reports_dir / "metrics.json")
+        try:
+            with open(artifact_mgr.reports_dir / "confusion.json", "w", encoding="utf-8") as f:
+                _json.dump(eval_result.confusion, f, indent=2)
+        except Exception:
+            pass
     durations = {
         "preprocess": float(split_result.metadata.get("preprocess_sec", 0.0)) if hasattr(split_result, "metadata") else 0.0,
         "train": float(train_end - train_start),
         "eval": float(eval_end - eval_start),
         "total": float(time.time() - start_time),
     }
-
-    # Learning curves (if available)
-    try:
-        plot_learning_curves(history_obj, artifact_mgr.figures_dir / "learning_curves.png")
-    except Exception:
-        pass
 
     fold_meta_out = {
         **fold_meta,

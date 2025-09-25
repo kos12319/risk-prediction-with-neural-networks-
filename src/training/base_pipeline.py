@@ -527,46 +527,37 @@ def _run_cv_fold(
 
     figures_dir = artifact_mgr.figures_dir
     run_dir = artifact_mgr.run_dir
-    save_metrics(metrics, artifact_mgr.metrics_path)
-    artifact_mgr.save_confusion(confusion)
-    plot_learning_curves(history_obj, figures_dir / "learning_curves.png")
-    plot_roc_curve(evaluation.y_true, evaluation.y_prob, figures_dir / "roc_curve.png", point=(confusion["fpr"], confusion["tpr"]))
-    plot_pr_curve(evaluation.y_true, evaluation.y_prob, figures_dir / "pr_curve.png", point=(confusion["precision"], confusion["recall"]))
-
+    # Centralized artifact writer
     try:
-        fpr, tpr, thr_roc = evaluation.roc_points
-        with open(run_dir / "roc_points.csv", "w", encoding="utf-8") as f:
-            f.write("threshold,fpr,tpr\n")
-            for idx in range(len(fpr)):
-                threshold_val = "" if idx == 0 else float(thr_roc[idx - 1])
-                f.write(f"{threshold_val},{float(fpr[idx])},{float(tpr[idx])}\n")
-        precision, recall, thr_pr = evaluation.pr_points
-        with open(run_dir / "pr_points.csv", "w", encoding="utf-8") as f:
-            f.write("threshold,precision,recall\n")
-            if len(precision) > 0:
-                f.write(f",{float(precision[0])},{float(recall[0])}\n")
-            for idx in range(1, len(precision)):
-                threshold_val = "" if idx - 1 >= len(thr_pr) else float(thr_pr[idx - 1])
-                f.write(f"{threshold_val},{float(precision[idx])},{float(recall[idx])}\n")
-        import numpy as _np
-        from src.eval.metrics import confusion_metrics_at_threshold as _cm_thr
+        from src.training.evaluation_writer import write_full_eval_artifacts as _write_full
 
-        thr_grid = _np.linspace(0.0, 1.0, 101)
-        with open(run_dir / "threshold_metrics.csv", "w", encoding="utf-8") as f:
-            f.write("threshold,precision,recall,tpr,fpr,specificity,f1\n")
-            y_true_eval = _np.asarray(evaluation.y_true).astype(int)
-            y_prob_eval = _np.asarray(evaluation.y_prob)
-            for th in thr_grid:
-                metrics_at_th = _cm_thr(y_true_eval, y_prob_eval, float(th))
-                prec_v = float(metrics_at_th.get("precision", 0.0))
-                rec_v = float(metrics_at_th.get("recall", 0.0))
-                tpr_v = float(metrics_at_th.get("tpr", 0.0))
-                fpr_v = float(metrics_at_th.get("fpr", 0.0))
-                spec_v = 1.0 - fpr_v
-                f1_v = (2 * prec_v * rec_v) / (prec_v + rec_v + 1e-12)
-                f.write(f"{th:.4f},{prec_v:.6f},{rec_v:.6f},{tpr_v:.6f},{fpr_v:.6f},{spec_v:.6f},{f1_v:.6f}\n")
+        _write_full(
+            evaluation=evaluation,
+            y_true=np.asarray(evaluation.y_true),
+            y_prob=np.asarray(evaluation.y_prob),
+            reports_dir=artifact_mgr.reports_dir,
+            figures_dir=artifact_mgr.figures_dir,
+            history=history_obj,
+            point=(confusion.get("fpr"), confusion.get("tpr")),
+        )
+        # Preserve legacy CSV placement under run_dir for compatibility
+        for name in ("roc_points.csv", "pr_points.csv", "threshold_metrics.csv"):
+            src = artifact_mgr.reports_dir / name
+            dst = run_dir / name
+            try:
+                if src.exists():
+                    import shutil as _shutil
+
+                    _shutil.copy2(src, dst)
+            except Exception:
+                pass
     except Exception:
-        pass
+        # Fallback to inline minimal writers if centralized writer import fails
+        save_metrics(metrics, artifact_mgr.metrics_path)
+        artifact_mgr.save_confusion(confusion)
+        plot_learning_curves(history_obj, figures_dir / "learning_curves.png")
+        plot_roc_curve(evaluation.y_true, evaluation.y_prob, figures_dir / "roc_curve.png", point=(confusion.get("fpr"), confusion.get("tpr")))
+        plot_pr_curve(evaluation.y_true, evaluation.y_prob, figures_dir / "pr_curve.png", point=(confusion.get("precision"), confusion.get("recall")))
 
     artifact_mgr.stage_run_artifacts(
         model_path,

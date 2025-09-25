@@ -58,9 +58,10 @@ Source: `src/training/base_pipeline.py`
    - Next: relocate `_run_cv_fold` as well and deduplicate plot/CSV emission via a shared evaluation writer.
    - Tests: existing CV smoke tests cover aggregation shape; consider adding unit tests for aggregation math (`roc_auc_mean/std`, `average_precision_mean/std`, confusion sums, `total_test_rows`).
 
-3) Centralize Evaluation Writer
-   - Implement `evaluation_writer.write_all(...)` used by both the single‑run and CV fold paths to eliminate duplication (figures + CSVs + JSONs + READMEs).
-   - Add a golden‑file test for a small sample run to catch content regressions.
+3) Centralize Evaluation Writer — DONE (first cut)
+   - Implemented `src/training/evaluation_writer.py` with `write_basic_eval_artifacts` (CV) and `write_full_eval_artifacts` (single run). Both paths now call into this module for plots and JSON/CSV emission.
+   - Preserved legacy CSV placement for single runs by copying generated CSVs into `run_dir` for compatibility.
+   - Next: consider adding golden-file tests to pin CSV schemas/paths and fold README contents.
 
 4) Thin Orchestrator
    - Move `_run_backend_pipeline` into `orchestrator.py`. Keep `BackendPipeline.run(...)` delegating to the new module. Re‑export for backwards compatibility.
