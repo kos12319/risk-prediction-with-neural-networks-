@@ -718,4 +718,71 @@ Table: C.4 — NN VarImp (DeepLearning) — full {#tbl:c4-nn-varimp-full}
 | cat__sub_grade_E4 | 4.90 |
 | cat__grade_C | 4.54 |
 
+# Appendix D — Excluded / Included Columns Policy (Leakage, Fairness, Cardinality)
+
+Table: D.1 — Leakage columns (post‑event; excluded end‑to‑end) {#tbl:d1-leakage}
+
+| Column | Category |
+|---|---|
+| out_prncp | post‑event balance |
+| out_prncp_inv | post‑event balance |
+| total_pymnt | payments (leaky) |
+| total_pymnt_inv | payments (leaky) |
+| last_pymnt_d | last payment date (leaky) |
+| last_pymnt_amnt | last payment amount (leaky) |
+| next_pymnt_d | next payment date (leaky) |
+| last_credit_pull_d | post‑event bureau pull |
+| collection_recovery_fee | collections/recovery |
+| recoveries | collections/recovery |
+| hardship_flag / type / reason / status | hardship (post‑event) |
+| hardship_amount / dates / length / dpd | hardship details |
+| hardship_loan_status | hardship outcome |
+| orig_projected_additional_accrued_interest | post‑event accrual |
+| hardship_payoff_balance_amount | hardship payoff |
+| hardship_last_payment_amount | hardship payment |
+| debt_settlement_flag / date | settlement |
+| settlement_status / date / amount / percentage / term | settlement details |
+
+Table: D.2 — Fairness / cardinality policy (examples) {#tbl:d2-fairness-card}
+
+| Column | Policy | Rationale |
+|---|---|---|
+| zip_code | exclude | fairness (granular geography), portability |
+| emp_title (free text) | exclude | high cardinality/noise; use `emp_length` instead |
+| addr_state | include | coarse geography acceptable; monitor drift |
+| purpose | include | underwriting context; monitor drift |
+| grade / sub_grade | aware only | policy/pricing signals; strong monotone/ordinal drivers |
+| int_rate | aware only | pricing for risk; drift‑sensitive; monotone driver |
+| installment | aware only | mostly deterministic from loan_amnt/term/int_rate |
+
+Table: D.3 — Included origination‑time signals (examples) {#tbl:d3-included}
+
+| Column | Category |
+|---|---|
+| loan_amnt | loan design |
+| term (36/60) | loan design (monotone risk) |
+| annual_inc | capacity |
+| dti | capacity (monotone risk) |
+| fico_range_low/high; fico_avg | credit score |
+| revol_bal; revol_util | utilization |
+| open_acc; total_acc | credit depth |
+| mort_acc; total_rev_hi_lim | capacity/depth |
+| emp_length | stability proxy |
+| home_ownership; verification_status; addr_state; purpose | context |
+
+Notes. When ambiguous, we prefer omission to avoid leakage and fairness concerns. In provider‑aware regimes, include pricing/grade with monotone priors and calibration to manage drift; in portable regimes, exclude them to improve generalization across lenders.
+
 # References
+## 10.1 Calibration & Reliability — Instrumentation and Expected Outcomes
+
+Why calibration. Threshold selection and expected‑loss estimation depend on well‑calibrated probabilities. A model with strong ROC but poor calibration can underperform at a fixed operating point.
+
+Instrumentation plan (100k, full).
+- Persist per‑row validation/test predicted probabilities alongside labels for the NN and GBM winners.
+- Fit post‑hoc calibrators on validation: Platt/Isotonic for GBM; temperature scaling for NNs.
+- Plot reliability curves and expected‑calibration error (ECE) on test; compare calibrated vs uncalibrated outputs.
+- Re‑evaluate the fixed threshold selection on validation and apply to test; report precision/recall deltas.
+
+Expected outcomes (based on literature and our figures).
+- GBM/XGB: modest improvement under Platt/Isotonic; threshold stability improves.
+- NNs: temperature scaling reduces over/under‑confidence and stabilizes the decision rule; AUCPR unchanged (ranking), but precision at the operating point can improve.
