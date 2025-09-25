@@ -222,8 +222,14 @@ class BackendPipeline(ABC):
         return []
 
     def run(self, cfg_path: str | Path, *, notes: Optional[str] = None):
-        """Execute the shared pipeline using this backend implementation."""
-        return _run_backend_pipeline(cfg_path, backend=self, notes=notes)
+        """Execute the shared pipeline using this backend implementation.
+
+        Delegates to the orchestrator shim to decouple callers from the
+        implementation location, preparing for a future move.
+        """
+        from src.training.orchestrator import run_backend_pipeline as _run
+
+        return _run(cfg_path, backend=self, notes=notes)
 
 def _collect_system_info() -> Dict[str, Any]:
     info: Dict[str, Any] = {}

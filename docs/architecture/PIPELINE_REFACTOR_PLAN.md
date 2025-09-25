@@ -63,8 +63,10 @@ Source: `src/training/base_pipeline.py`
    - Preserved legacy CSV placement for single runs by copying generated CSVs into `run_dir` for compatibility.
    - Next: consider adding golden-file tests to pin CSV schemas/paths and fold README contents.
 
-4) Thin Orchestrator
-   - Move `_run_backend_pipeline` into `orchestrator.py`. Keep `BackendPipeline.run(...)` delegating to the new module. Re‑export for backwards compatibility.
+4) Thin Orchestrator — in progress (shim added)
+   - Introduced `src/training/orchestrator.py` with `run_backend_pipeline(...)` delegating to the legacy `_run_backend_pipeline` to avoid behavior drift.
+   - Updated `BackendPipeline.run(...)` to call the orchestrator shim. Callers can now import a stable entrypoint while we gradually relocate the implementation.
+   - Next: fully move `_run_backend_pipeline` into the orchestrator and delete the legacy symbol from `base_pipeline.py` once tests and smoke runs confirm parity.
 
 5) Documentation & Cleanups
    - Update internal architecture docs and diagrams once modules settle. Avoid changing CLIs or Make targets.

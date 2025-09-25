@@ -79,7 +79,7 @@ Verification (2025-09-25): Re-ran tiny end-to-end checks to reconfirm the decoup
   - [done] Decouple backend validation and schemas from the shared CLI/validator.
     - Change: Backend pipelines own schema validation via Pydantic modules; CLIs no longer import the shared validator. The shared pipeline still enforces data/eval/split invariants.
     - Effect: Backends are more self-contained and ready for new entrants without touching shared code.
-- [done] Extract temporal CV orchestration to a dedicated module.
+  - [done] Extract temporal CV orchestration to a dedicated module.
     - Change: Moved temporal CV and fold logic into `src/training/cv.py` and delegated from `base_pipeline.py` without behavior changes.
     - Effect: Backends remain independent; the shared pipeline is thinner and easier to test. This is a step toward a slimmer orchestrator.
     - Verification: Ran `make dryrun-cv` and `make dryrun-h2o-cv`; both completed and emitted `cv_metrics.json` and summaries as before.
@@ -91,11 +91,17 @@ Verification (2025-09-25): Re-ran tiny end-to-end checks to reconfirm the decoup
     - Verification: `make dryrun` and `make dryrun-cv` completed on sample configs; CV metadata is emitted only for CV runs and now reflects the proper backend.
     - Caveat: None; behavior is unchanged for non-CV runs.
 
-- [done] Centralize evaluation writer
+  - [done] Centralize evaluation writer
   - Change: Introduced `src/training/evaluation_writer.py` with `write_basic_eval_artifacts` (CV folds) and `write_full_eval_artifacts` (single runs). Replaced duplicated plotting/metrics emission in `base_pipeline.py` and `cv.py` with calls into the new module. For single runs, CSV artifacts (roc_points/pr_points/threshold_metrics) are still available under `run_dir` for compatibility.
   - Effect: Eliminates duplication and tightens separation: shared evaluation output is backend-agnostic, reducing pipeline size and easing future backend additions.
   - Verification: Ran `make dryrun` and `make dryrun-cv` on sample CSV; metrics/figures/JSONs produced as before. Paths for CSVs remain compatible for single runs; CV fold artifacts unchanged.
   - Caveat: None; functionality is a pure extraction. If the central writer import fails, both paths fall back to the previous inline writers.
+
+  - [done] Introduce orchestrator shim to decouple callers from implementation.
+    - Change: Added `src/training/orchestrator.py` with `run_backend_pipeline(...)` delegating to the legacy implementation. Updated `BackendPipeline.run(...)` to call the shim.
+    - Effect: Stable import path for orchestration enables a safe, stepwise move of the heavy `_run_backend_pipeline` out of `base_pipeline.py` without breaking callers.
+    - Verification: Ran a tiny PyTorch dry run (`make dryrun`) on the 1k sample; metrics and artifacts emitted successfully.
+    - Caveat: Implementation still lives in `base_pipeline.py`; a follow-up will complete the move once parity is re-confirmed across smoke tests.
 
 ## Notes
 - We will gate deeper refactors behind tests to pin behavior and artifacts. CV smoke tests must remain fast and artifact‑light.
