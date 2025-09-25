@@ -63,11 +63,17 @@ This list reflects the current high‑priority focus. Previous items have been a
   - [done] Decouple backend validation and schemas from the shared CLI/validator.
     - Change: Backend pipelines own schema validation via Pydantic modules; CLIs no longer import the shared validator. The shared pipeline still enforces data/eval/split invariants.
     - Effect: Backends are more self-contained and ready for new entrants without touching shared code.
-  - [done] Extract temporal CV orchestration to a dedicated module.
+- [done] Extract temporal CV orchestration to a dedicated module.
     - Change: Moved temporal CV and fold logic into `src/training/cv.py` and delegated from `base_pipeline.py` without behavior changes.
     - Effect: Backends remain independent; the shared pipeline is thinner and easier to test. This is a step toward a slimmer orchestrator.
     - Verification: Ran `make dryrun-cv` and `make dryrun-h2o-cv`; both completed and emitted `cv_metrics.json` and summaries as before.
     - Caveat: Only the orchestration moved; evaluation writer remains embedded and will be extracted in a follow-up phase.
+
+  - [done] Remove implicit PyTorch fallback in CV metadata.
+    - Change: CV summary now records `backend` via the active backend instance (`backend.name`) instead of `model.backend` with a `'pytorch'` default.
+    - Effect: Eliminates a subtle coupling to PyTorch defaults and ensures correct backend attribution for H2O and any future backends.
+    - Verification: `make dryrun` and `make dryrun-cv` completed on sample configs; CV metadata is emitted only for CV runs and now reflects the proper backend.
+    - Caveat: None; behavior is unchanged for non-CV runs.
 
 ## Notes
 - We will gate deeper refactors behind tests to pin behavior and artifacts. CV smoke tests must remain fast and artifact‑light.

@@ -961,7 +961,8 @@ def _run_backend_pipeline(
             "cv_metrics_path": Path(cv_output["report_path"]).as_posix(),
             "run_dir": run_dir.as_posix(),
             "n_folds": len(cv_output["results"]),
-            "backend": model_cfg.get("backend", "pytorch"),
+            # Reflect the active backend explicitly to avoid implicit defaults
+            "backend": backend.name,
             "elapsed_sec": elapsed,
             "folds": fold_summaries,
             "aggregate": cv_output.get("aggregate"),
