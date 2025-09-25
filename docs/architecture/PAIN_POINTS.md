@@ -67,7 +67,11 @@ Verification (2025-09-25): Re-ran tiny end-to-end checks to reconfirm the decoup
     - Verification: Ran `make dryrun` on sample config; grouping preserved and run executed successfully.
     - Caveat: Backends that don't override the hook keep current behavior; no breaking changes.
   - Scope: see `docs/architecture/PIPELINE_REFACTOR_PLAN.md` for responsibilities, decomposition ideas, and a multi‑phase plan.
-  - Next (Phase 2 – prep for full separation): introduce thin per-backend orchestrators that call shared, backend-agnostic utilities, allowing `base_pipeline.py` to shrink further or become purely a library. This preserves common functionality while making a third backend fully plug-in with zero edits to shared code.
+  - [done] Phase 2 — introduce thin per-backend orchestrators that call shared, backend-agnostic utilities, allowing `base_pipeline.py` to shrink further or become purely a library. This preserves common functionality while making a third backend fully plug-in with zero edits to shared code.
+    - Change: Added backend-owned runner modules: `src/training/backends/pytorch/runner.py` and `src/training/backends/h2o/runner.py`. Public entrypoints (`src.training.backends.<backend>.train_from_config`) now resolve via these runners instead of the `pipeline` modules.
+    - Effect: Decouples external interface from the shared base pipeline and establishes backend-owned orchestration seams for future extraction.
+    - Verification: Executed `make dryrun` on sample CSV; run completed successfully with unchanged metrics and artifacts.
+    - Caveat: This is a no-functional-change structural step; orchestration still routes through the shared `_run_backend_pipeline` until subsequent phases migrate responsibilities out of `base_pipeline.py`.
   - [done] Backend-specific config rules moved out of shared validator.
     - Change: `validate_and_normalize_config` is now backend-agnostic (data/split/eval only). Backend CLIs/Pipelines enforce their own requirements via `validate_config`.
     - Effect: decouples config schema across backends and simplifies adding a third backend in the future. H2O oversampling behavior is no longer silently altered by the common layer; presets keep it disabled by default for H2O.
