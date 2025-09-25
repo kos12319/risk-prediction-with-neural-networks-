@@ -54,6 +54,8 @@ from src.features.preprocess import (
 from src.training.config import load_config_with_extends
 from src.training.resample import apply_resampling
 from src.utils.artifacts import ArtifactManager
+from src.training.probability import align_probabilities
+from src.training.env import apply_common_env_overrides
 from src.utils.seed import set_seed
 import platform
 
@@ -899,28 +901,10 @@ _FALSE_SET = {"0", "false", "no", "off", "disabled"}
 
 
 def _env_flag(name: str) -> Optional[bool]:
-    raw = os.environ.get(name)
-    if raw is None or not str(raw).strip():
-        return None
-    val = str(raw).strip().lower()
-    if val in _TRUE_SET:
-        return True
-    if val in _FALSE_SET:
-        return False
-    logger.warning("Ignoring invalid boolean override %s=%r", name, raw)
-    return None
+    # Backwards-compat shim for existing imports; prefer using env.env_flag directly where possible
+    from src.training.env import env_flag as _env_flag_impl
 
-
-def _apply_common_env_overrides(cfg: Dict[str, Any]) -> None:
-    os_cfg = cfg.setdefault("oversampling", {})
-    os_enabled = _env_flag("PIPELINE_OVERSAMPLING_ENABLED")
-    if os_enabled is not None:
-        os_cfg["enabled"] = os_enabled
-        logger.info("Overriding oversampling.enabled via PIPELINE_OVERSAMPLING_ENABLED=%s", os_enabled)
-    os_method = os.environ.get("PIPELINE_OVERSAMPLING_METHOD")
-    if os_method:
-        os_cfg["method"] = os_method
-        logger.info("Overriding oversampling.method via PIPELINE_OVERSAMPLING_METHOD=%s", os_method)
+    return _env_flag_impl(name)
 
 
 def _file_sha256(path: Path, chunk_size: int = 1024 * 1024) -> str:
@@ -935,14 +919,8 @@ def _file_sha256(path: Path, chunk_size: int = 1024 * 1024) -> str:
 
 
 def _align_probabilities(y_prob: np.ndarray | List[float], prob_label: Any, pos_label: int) -> np.ndarray:
-    probs = np.asarray(y_prob, dtype=float)
-    try:
-        label = int(prob_label)
-    except Exception:
-        label = 0 if str(prob_label).lower() in {"0", "charged off", "charged_off", "default"} else 1
-    if label == pos_label:
-        return probs
-    return 1.0 - probs
+    # Backwards-compat wrapper; delegate to shared helper
+    return align_probabilities(y_prob, prob_label, pos_label)
 
 
 def _run_backend_pipeline(
@@ -956,7 +934,7 @@ def _run_backend_pipeline(
 
     cfg = load_config_with_extends(cfg_path)
     cfg = _validate_cfg(cfg, cfg_path=cfg_path)
-    _apply_common_env_overrides(cfg)
+    apply_common_env_overrides(cfg)
     backend.apply_env_overrides(cfg)
     backend.validate_config(cfg)
     logger.info("Starting training pipeline | config=%s", cfg_path)

@@ -44,6 +44,11 @@ This list reflects the current high‑priority focus. Previous items have been a
       - Caveat: Bounds are conservative (only checks ranges/types); backend-specific contradictions remain validated by each backend schema.
 - Base pipeline refactor (phased)
   - Rationale: reduce cognitive load, improve testability, and constrain blast radius when adding features.
+  - [done] Extract shared helpers (Phase 1: low-risk pure moves)
+    - Change: Moved probability alignment to `src/training/probability.py` and env overrides to `src/training/env.py` (with a thin compat shim in `base_pipeline.py`).
+    - Effect: Reduces base pipeline surface and makes helpers reusable across backends without duplication.
+    - Validation: `make dryrun CONFIG=configs/pytorch_default.yaml` passes and emits metrics/figures as before.
+    - Caveat: Backends should prefer importing helpers from the new modules; legacy wrappers remain for now.
   - [progress] Removed backend-specific naming branches from the shared pipeline; run naming is now owned by each backend via `format_run_name`.
     - Implemented default naming in `src/training/backends/pytorch/pipeline.py` to mirror prior MLP-style names.
     - H2O pipeline already provided a backend-specific name; no change needed.
