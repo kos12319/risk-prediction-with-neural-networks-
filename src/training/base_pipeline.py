@@ -1960,9 +1960,6 @@ def _run_backend_pipeline(
                     layers_str = "-".join(str(x) for x in layers_cfg)
                 else:
                     layers_str = str(layers_cfg or "")
-                leader_id = raw_result.get("leader_id") if isinstance(raw_result, dict) else None
-                leader_algo = raw_result.get("leader_algo") if isinstance(raw_result, dict) else None
-                algo_tok = str(leader_algo).replace(" ", "_") if leader_algo else "auto"
                 try:
                     sha = _collect_env_metadata().get("git", {}).get("commit")
                 except Exception:
@@ -1978,9 +1975,6 @@ def _run_backend_pipeline(
                     "sha": sha or "",
                     "run_id": run_id,
                     "backend": backend.name,
-                    "leader_id": leader_id or "",
-                    "leader_algo": algo_tok,
-                    "leader_algo_raw": leader_algo or "",
                 }
                 template = wb_cfg.get("run_name_template")
                 name = None
@@ -2000,13 +1994,9 @@ def _run_backend_pipeline(
                     except Exception:
                         name = None
                 if not name:
-                    if backend.name == "pytorch" and layers_str:
-                        name = f"{csv_base}|{split_method}|{pos_tok}|mlp[{layers_str}]|nf{nf}|auc{auc:.3f}"
-                    elif backend.name == "h2o" and leader_id:
-                        leader_tok = str(leader_id).replace(" ", "_")
-                        name = f"{csv_base}|{split_method}|{pos_tok}|h2o[{algo_tok}]|{leader_tok}|auc{auc:.3f}"
-                    else:
-                        name = f"{csv_base}|{split_method}|{pos_tok}|{backend.name}|auc{auc:.3f}"
+                    # Backend-agnostic default; each backend should implement its own
+                    # format_run_name for richer naming when desired.
+                    name = f"{csv_base}|{split_method}|{pos_tok}|{backend.name}|auc{auc:.3f}"
                 if len(name) > 120:
                     name = name[:120]
                 wandb.run.name = name

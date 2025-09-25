@@ -41,9 +41,9 @@
   - `models/` — neural network (PyTorch)
   - `eval/` — metrics and plots
   - `training/`
-    - `base_pipeline.py` — shared utilities for data prep/eval reused by each backend pipeline
-    - `backends/pytorch/` — PyTorch-specific orchestration built on the shared utilities
-    - `backends/h2o/` — H2O AutoML orchestration built on the shared utilities
+    - `base_pipeline.py` — shared, backend-agnostic utilities for data prep/eval (no backend branching)
+    - `backends/pytorch/` — PyTorch-specific orchestration (owns run naming, tags, extras)
+    - `backends/h2o/` — H2O AutoML orchestration (owns run naming, tags, extras)
     - `train_nn.py`, `train_h2o.py` — backend-specific trainers
   - `cli/` — command-line entry points
 - `docs/exploration/` — exploratory notebooks and reports

@@ -20,6 +20,11 @@ This list reflects the current high‑priority focus. Previous items have been a
   - Provide clearer error messages and config linting hooks.
 - Base pipeline refactor (phased)
   - Rationale: reduce cognitive load, improve testability, and constrain blast radius when adding features.
+  - [progress] Removed backend-specific naming branches from the shared pipeline; run naming is now owned by each backend via `format_run_name`.
+    - Implemented default naming in `src/training/backends/pytorch/pipeline.py` to mirror prior MLP-style names.
+    - H2O pipeline already provided a backend-specific name; no change needed.
+    - Result: `base_pipeline.py` no longer inspects backend types to construct names, reducing coupling.
+    - Caveat: If a backend does not implement `format_run_name` and no `run_name_template` is configured, a generic `{dataset}|{split}|{pos}|{backend}|auc{auc}` name is used.
   - Scope: see `docs/architecture/PIPELINE_REFACTOR_PLAN.md` for responsibilities, decomposition ideas, and a multi‑phase plan.
 
 ## Notes

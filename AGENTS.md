@@ -39,7 +39,8 @@ This guide adds repo‑specific guardrails and conventions that are easy to miss
 - Naming: snake_case (functions/variables), PascalCase (classes), UPPER_SNAKE (constants).
 - Keep modules cohesive and small; prefer pure functions over side effects.
 - Design to avoid leakage: time-split, train-only oversampling, drop post-origination features (`data.drop_leakage`).
-- Shared pipeline utilities live in `src/training/base_pipeline.py`; backend-specific orchestration sits in `src/training/backends/{pytorch,h2o}/pipeline.py`.
+- Shared pipeline utilities live in `src/training/base_pipeline.py`.
+- Backend-specific orchestration sits in `src/training/backends/{pytorch,h2o}/pipeline.py` and owns backend concerns (naming, tags, extra artifacts). The shared utilities must not branch on backend types.
 
 ## Testing
 - Use pytest; place tests under `tests/` as `test_*.py`.

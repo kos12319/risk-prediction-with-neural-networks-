@@ -155,6 +155,20 @@ class PyTorchPipeline(BackendPipeline):
         run_context: RunContext,
         cfg: Dict[str, Any],
     ) -> Optional[str]:
+        # Prefer a descriptive MLP-style naming if layers are available
+        try:
+            ds = str(base_context.get("dataset", ""))
+            split = str(base_context.get("split", ""))
+            pos = str(base_context.get("pos", ""))
+            layers = str(base_context.get("layers", "") or "")
+            nf = base_context.get("nf")
+            auc = float(base_context.get("auc", float("nan")))
+            if layers:
+                if nf is not None:
+                    return f"{ds}|{split}|{pos}|mlp[{layers}]|nf{int(nf)}|auc{auc:.3f}"
+                return f"{ds}|{split}|{pos}|mlp[{layers}]|auc{auc:.3f}"
+        except Exception:
+            pass
         return None
 
     def additional_wandb_tags(
