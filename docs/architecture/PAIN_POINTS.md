@@ -8,9 +8,10 @@ This list reflects the current high‑priority focus. Previous items have been a
     - Change: `python -m src.cli train|dryrun` now exits with guidance. Use `make train`/`make automl-h2o` or explicit modules `src.cli.pytorch.*` / `src.cli.h2o.*`.
     - Docs updated: removed references to `configs/default.yaml` and unified CLI; switched to Makefile-first and backend-specific examples.
     - Effect: Clear separation enables adding a third backend without touching others; users pick backend explicitly via Makefile/CLI.
+    - Verification: Ran `make dryrun`, `make dryrun-cv`, `make dryrun-h2o`, and `make dryrun-h2o-cv` on sample CSVs; all completed successfully with metrics and figures.
     - Caveat: Old notebooks or scripts calling `python -m src.cli train` will need to update; the error message points to replacements.
 - Tests and evaluation invariants
-  - [progress] Added pytest for threshold selection and `pos_label` handling; see tests/test_eval_thresholds.py. Existing tests cover time‑split monotonicity. Determinism and train‑only oversampling checks remain.
+  - [done] Added pytest for threshold selection and `pos_label` handling; see tests/test_eval_thresholds.py. Existing tests cover time‑split monotonicity.
   - [done] Validate temporal CV aggregation schema and artifact layout. Added tests/test_cv_artifacts.py to assert `cv_metrics.json` presence and minimal schema under CV smoke runs.
   - [done] Determinism and train‑only oversampling checks. Added tests/test_repro_and_oversampling.py:
     - `test_determinism_same_seed_same_metrics` runs two tiny single runs with identical seeds and asserts metrics.json equality.
@@ -35,7 +36,7 @@ This list reflects the current high‑priority focus. Previous items have been a
     - Effect: Quickly spot regressions/improvements across iterations within a setup.
     - Caveat: Plots require `matplotlib`; if unavailable, the report still renders tables without images. Sorting prefers run creation time when present; falls back to `run_id`.
 - Config schema hardening
-  - [progress] Introduce a stricter schema layer (Pydantic) for backend-specific configs.
+  - [done] Introduce a stricter schema layer (Pydantic) for backend-specific configs.
     - Change: Added `src/training/backends/pytorch/schema.py` and `src/training/backends/h2o/schema.py`; pipelines call these to validate backend-only options (e.g., PyTorch `training.class_weight`, H2O `automl.*`). Shared invariants remain in the common validator.
     - Effect: Clearer errors on type/shape issues without coupling backends; paves the way for a third backend.
     - [done] Extend shared guardrails for temporal CV and leakage.
@@ -49,7 +50,7 @@ This list reflects the current high‑priority focus. Previous items have been a
     - Effect: Reduces base pipeline surface and makes helpers reusable across backends without duplication.
     - Validation: `make dryrun CONFIG=configs/pytorch_default.yaml` passes and emits metrics/figures as before.
     - Caveat: Backends should prefer importing helpers from the new modules; legacy wrappers remain for now.
-  - [progress] Removed backend-specific naming branches from the shared pipeline; run naming is now owned by each backend via `format_run_name`.
+  - [done] Removed backend-specific naming branches from the shared pipeline; run naming is now owned by each backend via `format_run_name`.
     - Implemented default naming in `src/training/backends/pytorch/pipeline.py` to mirror prior MLP-style names.
     - H2O pipeline already provided a backend-specific name; no change needed.
     - Result: `base_pipeline.py` no longer inspects backend types to construct names, reducing coupling.
@@ -59,7 +60,7 @@ This list reflects the current high‑priority focus. Previous items have been a
     - Change: `validate_and_normalize_config` is now backend-agnostic (data/split/eval only). Backend CLIs/Pipelines enforce their own requirements via `validate_config`.
     - Effect: decouples config schema across backends and simplifies adding a third backend in the future. H2O oversampling behavior is no longer silently altered by the common layer; presets keep it disabled by default for H2O.
     - Caveat: configs that relied on the implicit H2O oversampling flip must keep `oversampling.enabled: false` (the default in `configs/h2o/base.yaml`).
-  - [progress] Decouple backend validation and schemas from the shared CLI/validator.
+  - [done] Decouple backend validation and schemas from the shared CLI/validator.
     - Change: Backend pipelines own schema validation via Pydantic modules; CLIs no longer import the shared validator. The shared pipeline still enforces data/eval/split invariants.
     - Effect: Backends are more self-contained and ready for new entrants without touching shared code.
 
