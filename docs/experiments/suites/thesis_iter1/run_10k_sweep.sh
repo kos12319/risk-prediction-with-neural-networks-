@@ -13,14 +13,16 @@ cd "$REPO_ROOT"
 NOTES_ARG=""
 PULL_ARG=""
 
+RESUME=0
 usage() {
-  echo "Usage: $(basename "$0") [-n \"notes text\"] [--pull]" >&2
+  echo "Usage: $(basename "$0") [-n \"notes text\"] [--pull] [--resume]" >&2
 }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -n|--notes) shift; NOTES_ARG="$1" ;;
     --pull) PULL_ARG=1 ;;
+    --resume) RESUME=1 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown argument: $1" >&2; usage; exit 1 ;;
   esac
@@ -28,20 +30,42 @@ while [[ $# -gt 0 ]]; do
 done
 
 declare -a CONFIGS=(
-  "docs/experiments/suites/thesis_iter1/h2o/10k/agnostic.yaml"
-  "docs/experiments/suites/thesis_iter1/h2o/10k/selected.yaml"
-  "docs/experiments/suites/thesis_iter1/h2o/10k/aware.yaml"
-  "docs/experiments/suites/thesis_iter1/h2o/10k/selected_plus_providers.yaml"
+  "docs/experiments/suites/thesis_iter1/h2o/10k/agnostic_time.yaml"
+  "docs/experiments/suites/thesis_iter1/h2o/10k/selected_time.yaml"
+  "docs/experiments/suites/thesis_iter1/h2o/10k/aware_time.yaml"
+  "docs/experiments/suites/thesis_iter1/h2o/10k/selected_plus_providers_time.yaml"
 )
+
+# If resuming, skip configs already marked OK in the existing log.
+LOG_PATH="logs/run_10k_sweep.log"
+if [[ "$RESUME" -eq 1 && -f "$LOG_PATH" ]]; then
+  mapfile -t DONE_CFGS < <(rg -h '^OK: ' "$LOG_PATH" | sed -E 's/^OK: (.*)$/\1/' | sort -u)
+  if [[ ${#DONE_CFGS[@]} -gt 0 ]]; then
+    TMP=( )
+    for c in "${CONFIGS[@]}"; do
+      skip=0
+      for d in "${DONE_CFGS[@]}"; do [[ "$c" == "$d" ]] && skip=1 && break; done
+      [[ $skip -eq 0 ]] && TMP+=("$c") || true
+    done
+    CONFIGS=("${TMP[@]}")
+  fi
+fi
 
 for cfg in "${CONFIGS[@]}"; do
   echo "--- Running $cfg"
   if [[ -n "$NOTES_ARG" ]]; then
-    make automl-h2o AUTOML_CONFIG="$cfg" NOTES="$NOTES_ARG" ${PULL_ARG:+PULL=1}
+    if make automl-h2o AUTOML_CONFIG="$cfg" NOTES="$NOTES_ARG" ${PULL_ARG:+PULL=1}; then
+      echo "OK: $cfg"
+    else
+      echo "FAILED: $cfg (continuing)" >&2
+    fi
   else
-    make automl-h2o AUTOML_CONFIG="$cfg" ${PULL_ARG:+PULL=1}
+    if make automl-h2o AUTOML_CONFIG="$cfg" ${PULL_ARG:+PULL=1}; then
+      echo "OK: $cfg"
+    else
+      echo "FAILED: $cfg (continuing)" >&2
+    fi
   fi
 done
 
 echo "10k sweep finished."
-

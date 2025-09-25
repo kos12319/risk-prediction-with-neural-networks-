@@ -1,0 +1,24 @@
+extends: ../../../../../../configs/default_automl
+
+data:
+  csv_path: data/raw/samples/thesis_data_sample_1k.csv
+  # Selected features — L1 (independent) best batch from 10k report
+  features:
+    - addr_state
+    - term
+    - home_ownership
+    - emp_length
+    - verification_status
+    - dti
+    - purpose
+    - inq_last_6mths
+    - loan_amnt
+    - fico_range_high
+    - fico_range_low
+    - revol_bal
+
+automl:
+  max_runtime_secs: 60
+  leaderboard_extra_columns: ALL
+  leaderboard_make_test: true
+  leaderboard_curve_top_n: 5

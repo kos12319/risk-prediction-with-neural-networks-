@@ -1,0 +1,10 @@
+extends: ../../../../../../configs/default_automl
+
+data:
+  csv_path: data/raw/samples/thesis_data_sample_1k.csv
+
+automl:
+  max_runtime_secs: 60
+  leaderboard_extra_columns: ALL
+  leaderboard_make_test: true
+  leaderboard_curve_top_n: 5

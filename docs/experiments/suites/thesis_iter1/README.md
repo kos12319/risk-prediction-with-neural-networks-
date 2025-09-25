@@ -12,19 +12,19 @@ Makefile-first commands (examples):
 - `make select CONFIG=configs/default.yaml METHOD=mi`
 - `make select CONFIG=configs/default.yaml METHOD=l1`
 
-2) Run H2O on 1k:
-- `make automl-h2o AUTOML_CONFIG=docs/experiments/suites/thesis_iter1/h2o/1k/agnostic.yaml`
-- `make automl-h2o AUTOML_CONFIG=docs/experiments/suites/thesis_iter1/h2o/1k/selected.yaml`
-- `make automl-h2o AUTOML_CONFIG=docs/experiments/suites/thesis_iter1/h2o/1k/aware.yaml`
-- `make automl-h2o AUTOML_CONFIG=docs/experiments/suites/thesis_iter1/h2o/1k/selected_plus_providers.yaml`
+2) Run H2O on 1k (time‑budgeted):
+- `make automl-h2o AUTOML_CONFIG=docs/experiments/suites/thesis_iter1/h2o/1k/agnostic_time.yaml`
+- `make automl-h2o AUTOML_CONFIG=docs/experiments/suites/thesis_iter1/h2o/1k/selected_time.yaml`
+- `make automl-h2o AUTOML_CONFIG=docs/experiments/suites/thesis_iter1/h2o/1k/aware_time.yaml`
+- `make automl-h2o AUTOML_CONFIG=docs/experiments/suites/thesis_iter1/h2o/1k/selected_plus_providers_time.yaml`
 
 Helper scripts (from repo root):
-- 1k: `./docs/experiments/suites/thesis_iter1/run_1k_sweep.sh [-n "notes"] [--pull]`
-- 10k: `./docs/experiments/suites/thesis_iter1/run_10k_sweep.sh [-n "notes"] [--pull]`
-- 100k: `./docs/experiments/suites/thesis_iter1/run_100k_sweep.sh [-n "notes"] [--pull]`
-- full: `./docs/experiments/suites/thesis_iter1/run_full_sweep.sh [-n "notes"] [--pull]`
+- 1k: `./docs/experiments/suites/thesis_iter1/run_1k_sweep.sh [-n "notes"] [--pull]` (60s/run)
+- 10k: `./docs/experiments/suites/thesis_iter1/run_10k_sweep.sh [-n "notes"] [--pull]` (300s/run)
+- 100k: `./docs/experiments/suites/thesis_iter1/run_100k_sweep.sh [-n "notes"] [--pull]` (900s/run)
+- full: `./docs/experiments/suites/thesis_iter1/run_full_sweep.sh [-n "notes"] [--pull]` (5400s/run)
 
-3) Scale up (10k, 100k, full) using analogous configs under `h2o/<size>/`.
+3) Scale up (10k, 100k, full) using the `_time.yaml` configs under `h2o/<size>/` with budgets: 10k=300s, 100k=900s, full=5400s.
 
 Notes:
 - Ensure dataset paths exist locally (see README about LFS and samples). The 100k CSV may need to be unzipped to `data/raw/samples/thesis_data_sample_100k.csv`.

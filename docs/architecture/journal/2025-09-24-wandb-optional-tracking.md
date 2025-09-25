@@ -13,8 +13,7 @@ Integrated Weights & Biases (W&B) as an optional experiment tracking backend wit
 ## Impact
 - Config: `tracking.backend: wandb` or `tracking.wandb.enabled: true` to enable.
 - Make: `wandb-login`, `pull-run`, `pull-all`, `clean-cloud-history`.
-- Code: `src/training/pipeline.py` conditional init and artifact logging; `src/cli/wandb_*` helpers.
+- Code: shared logic lives in `src/training/base_pipeline.py`; adapter-specific logging hooks are implemented in `src/training/backends/*/pipeline.py`. CLI helpers remain under `src/cli/wandb_*`.
 
 ## Next
 - Consider toggling selection CLI to optionally log to W&B in the future.
-

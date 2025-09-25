@@ -38,7 +38,7 @@ Context: local run group `local_runs/thesis_data_sample_1k|time|co|h2o`, W&B pro
 - Code: `src/eval/metrics.py`.
 
 ## 6) Leaderboard and Pareto front not visible on W&B
-- Expected logging: tables/images are logged in `src/training/pipeline.py` when backend is H2O.
+- Expected logging: tables/images are logged via the H2O adapter (`src/training/backends/h2o/pipeline.py`), which builds on the shared orchestration in `src/training/base_pipeline.py`.
   - Tables: `h2o_leaderboard` (if CSV present).
   - Images: `h2o_leaderboard_{auc,logloss,rmse}`, `comparison/{roc,pr,model_correlation,varimp_heatmap,pareto_front}`.
   - Also logged as an artifact bundle `h2o-comparison-<run_id>`.
@@ -51,7 +51,7 @@ Context: local run group `local_runs/thesis_data_sample_1k|time|co|h2o`, W&B pro
 ## 8) W&B shows 4 runs, `local_runs` has only 3
 - Root cause: run directory name collision — two runs started within the same second and shared `run_id`.
 - Fix: Training pipeline now guarantees a unique `run_id`/`run_dir` by appending a numeric suffix when a directory already exists.
-- Code: `src/training/pipeline.py` (post‑resolution of `run_dir`). Applies to all future runs.
+- Code: run directory resolution is handled in `src/training/base_pipeline.py` and reused by backend adapters.
 
 ## Next steps
 - Re‑run the 1k suite with the new configs (no runtime cap) and confirm:
@@ -59,4 +59,3 @@ Context: local run group `local_runs/thesis_data_sample_1k|time|co|h2o`, W&B pro
   - Leaderboard/Pareto figures visible in W&B and present in the run folder.
   - New “best per category” figure generated.
 - If you want the same changes for 10k/100k, I can apply them and queue runs.
-
