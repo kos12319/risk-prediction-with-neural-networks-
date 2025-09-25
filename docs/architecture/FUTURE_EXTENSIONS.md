@@ -13,6 +13,7 @@ The refactor introduced new modular boundaries so upcoming enhancements can plug
   - Surface actionable error messages (`make train`, `make automl-h2o`, `make select`) when configs violate invariants. Backend selection can be implied by the CLI (PyTorch/H2O); config validators should allow omitted `model.backend` when the entrypoint already fixes the backend.
 - **Temporal CV orchestrator** (`src/training/base_pipeline.py`, `src/training/backends/*/pipeline.py`)
   - Expose dedicated Make targets (e.g., `make cv-train`, `make cv-automl`) that wrap the orchestrator with backend-specific adapters.
+    - Status: added `make cv-train` (PyTorch, smoke config) using `configs/pytorch/cv_full_train_smoke.yaml`; H2O target pending Java availability checks.
   - Clarify artifact contract for CV across backends in docs (fold dirs, cv_metrics.json schema, naming). Tests already pin schema; extend as needed for a third backend.
 - **Run catalog & artifact manifest** (`local_runs/`, `src/cli/run_catalog.py`)
   - Markdown summary implemented: `src/cli/run_catalog_report.py` with `make run-catalog-report` renders `local_runs/index.md`.

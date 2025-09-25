@@ -44,6 +44,7 @@ help:
 	@echo "  dryrun-h2o     Run H2O AutoML as a dry run (no artifacts persisted)"
 	@echo "  dryrun-h2o-cv  Run H2O AutoML temporal CV smoke test (2 folds; no artifacts)"
 	@echo "  dryrun-cv      Run PyTorch temporal CV smoke test (2 folds; no artifacts persisted)"
+	@echo "  cv-train       Run PyTorch temporal CV then full training (smoke config)"
 	@echo "  run-catalog    Index local_runs and emit _catalog.json (RUNS_ROOT=local_runs)"
 	@echo "  wandb-login    Login to W&B using env (WANDB_API_KEY, WANDB_ENTITY)"
 	@echo "  pull-run       Download a W&B run into ./wandb-history/<run_id> (RUN=entity/project/run_id | project/run_id | run_id)"
@@ -165,6 +166,10 @@ dryrun-h2o-cv: venv
 # Usage: make dryrun-cv (uses a tiny CV config; PyTorch backend)
 dryrun-cv: venv
 	$(SAFE_ENV) $(PY) -m src.cli.pytorch.dryrun --config configs/pytorch/cv_smoke.yaml
+
+# Usage: make cv-train (PyTorch backend; temporal CV followed by full-data training)
+cv-train: venv
+	$(SAFE_ENV) $(PY) -m src.cli.pytorch.train --config configs/pytorch/cv_full_train_smoke.yaml $(if $(NOTES),--notes "$(NOTES)",)
 
 # Usage: make run-catalog [RUNS_ROOT=local_runs] [OUT=path]
 RUNS_ROOT ?= local_runs

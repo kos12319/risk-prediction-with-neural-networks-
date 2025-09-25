@@ -107,6 +107,10 @@
   ```bash
   make dryrun-cv
   ```
+ - Temporal CV + full training (PyTorch, smoke config):
+   ```bash
+   make cv-train
+   ```
 - Temporal CV smoke test (H2O AutoML, 2 folds, fast, no artifacts persisted; requires Java):
   ```bash
   make dryrun-h2o-cv
