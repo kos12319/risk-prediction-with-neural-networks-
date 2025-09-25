@@ -3,6 +3,12 @@
 This list reflects the current high‑priority focus. Previous items have been archived at `docs/architecture/archives/PAIN_POINTS_2025-09-25.md`.
 
 ## High Priority
+- Backend decoupling (CLI/config/pipeline)
+  - [done] Separate backend CLIs and configs; deprecate unified training/dryrun CLI.
+    - Change: `python -m src.cli train|dryrun` now exits with guidance. Use `make train`/`make automl-h2o` or explicit modules `src.cli.pytorch.*` / `src.cli.h2o.*`.
+    - Docs updated: removed references to `configs/default.yaml` and unified CLI; switched to Makefile-first and backend-specific examples.
+    - Effect: Clear separation enables adding a third backend without touching others; users pick backend explicitly via Makefile/CLI.
+    - Caveat: Old notebooks or scripts calling `python -m src.cli train` will need to update; the error message points to replacements.
 - Tests and evaluation invariants
   - [progress] Added pytest for threshold selection and `pos_label` handling; see tests/test_eval_thresholds.py. Existing tests cover time‑split monotonicity. Determinism and train‑only oversampling checks remain.
   - [done] Validate temporal CV aggregation schema and artifact layout. Added tests/test_cv_artifacts.py to assert `cv_metrics.json` presence and minimal schema under CV smoke runs.

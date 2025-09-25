@@ -69,6 +69,7 @@
 ## Documentation
 - Agent Guide: `AGENTS.md`
 - ADRs: `docs/architecture/ADRs/` (legacy index at `docs/ADRs/`)
+- Note: Unified training/dryrun CLI entries are deprecated; use Make targets or backend-specific CLIs.
 
 ## Docs & Architecture Governance
 - Single-source flow:

@@ -40,9 +40,11 @@ This document explains how the work done in `main.ipynb` has been incorporated i
 - Drops post‑origination fields (repayment/collection/hardship/settlement) to prevent leakage.
 
 ## Reproducibility and CLI
-- Config‑driven runs: `python -m src.cli.train --config configs/default.yaml`.
-- Configs support `extends` (e.g., `pytorch/provider_agnostic.yaml` can inherit from `default.yaml`).
-- Artifacts are saved under `models/` and `reports/`.
+- Makefile-first: use `make train CONFIG=configs/pytorch_default.yaml` for PyTorch, or `make automl-h2o AUTOML_CONFIG=configs/h2o_default.yaml` for H2O.
+- Backend CLIs (advanced): `python -m src.cli.pytorch.train --config configs/pytorch_default.yaml` or `python -m src.cli.h2o.train --config configs/h2o_default.yaml`.
+- The unified `python -m src.cli train` entry is deprecated; prefer backend-specific commands.
+- Configs support `extends` (e.g., `configs/pytorch/provider_agnostic.yaml` can inherit from `configs/pytorch/base.yaml`).
+- Artifacts are saved under `local_runs/` (timestamped run folders) when `output.runs_root` is set; legacy `models/` and `reports/` paths are deprecated.
 
 ## Intentional Differences vs Notebook
 - Oversampling moved after the split (fixes leakage).

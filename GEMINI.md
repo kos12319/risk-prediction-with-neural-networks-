@@ -79,7 +79,7 @@ make dryrun-h2o-cv                                       # H2O temporal CV (2 fo
 
 ## Development Conventions
 
-*   **Makefile-First Policy:** ALWAYS use `make` for running tasks. Do not call `python -m src.cli...` directly.
+*   **Makefile-First Policy:** ALWAYS use `make` for running tasks. Do not call `python -m src.cli...` directly. The unified `src.cli train|dryrun` entries are deprecated; use backend-specific CLIs if you must call modules directly.
 *   **Configuration:** All parameters (data paths, model hyperparameters, features) are managed via YAML files in `configs/` (`configs/pytorch/` for PyTorch bases, `configs/h2o/` for AutoML). Do not hardcode paths or parameters in scripts.
 *   **Data Splitting:** The default and required method for test sets is a time-based split on the `issue_d` column to prevent lookahead bias. Validation sets are carved from the training data *before* oversampling.
 *   **Leakage Prevention:** A strict leakage policy is enforced. Only features available at the time of loan origination are used. A list of known leaky columns is maintained in the configuration and dropped automatically.

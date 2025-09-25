@@ -150,9 +150,23 @@ def main() -> None:
 
     # Dispatch
     if cmd == "train":
-        sys.exit(_run_module_with_argv("src.cli.train", remainder))
+        sys.stderr.write(
+            "The unified 'train' command is deprecated. Use Make targets or backend CLIs:\n"
+            "  - make train               # PyTorch backend\n"
+            "  - make automl-h2o          # H2O AutoML backend\n"
+            "  python -m src.cli.pytorch.train --config <yaml>\n"
+            "  python -m src.cli.h2o.train     --config <yaml>\n"
+        )
+        sys.exit(2)
     if cmd == "dryrun":
-        sys.exit(_run_module_with_argv("src.cli.dryrun", remainder))
+        sys.stderr.write(
+            "The unified 'dryrun' command is deprecated. Use Make targets or backend CLIs:\n"
+            "  - make dryrun              # PyTorch smoke test\n"
+            "  - make dryrun-h2o          # H2O smoke test\n"
+            "  python -m src.cli.pytorch.dryrun --config <yaml>\n"
+            "  python -m src.cli.h2o.dryrun     --config <yaml>\n"
+        )
+        sys.exit(2)
     if cmd == "select":
         sys.exit(_run_module_with_argv("src.cli.select", remainder))
     if cmd == "gen-column-dict":

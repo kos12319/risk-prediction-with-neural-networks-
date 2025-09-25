@@ -50,14 +50,14 @@ Notes:
 
 ## How To Run
 - Mutual Information:
-  - `python -m src.cli.select --config configs/default.yaml --method mi`
+  - `make select CONFIG=configs/pytorch_default.yaml METHOD=mi`
 - L1 Logistic:
-  - `python -m src.cli.select --config configs/default.yaml --method l1`
+  - `make select CONFIG=configs/pytorch_default.yaml METHOD=l1`
 - Useful flags:
   - `--target_coverage 0.98` to relax required coverage.
   - `--missingness_threshold 0.5` to drop high‑missing features up front.
   - `--max_features 50` to cap size.
-  - `--outdir selection_runs` to point at a custom root for artifacts.
+- `--outdir selection_runs` to point at a custom root for artifacts.
   - `--run-name my_selector` to force a specific run folder name.
 
 Artifacts are saved under `selection_runs/run_<timestamp>_select/<method>/`:
@@ -69,7 +69,7 @@ Artifacts are saved under `selection_runs/run_<timestamp>_select/<method>/`:
 ## Applying the Result
 1) Open the saved JSON and copy `selected_features`.
 2) Paste into `data.features` in your YAML config.
-3) Train with the updated config and compare metrics/curves to the full set.
+3) Train with the updated config and compare metrics/curves to the full set (e.g., `make train CONFIG=configs/pytorch_default.yaml`).
 
 ## Reproducibility
 - Time split and preprocessing match training.
