@@ -115,6 +115,20 @@ Probability calibration matters for threshold stability and expected‑loss esti
 
 To quantify vintage sensitivity, we will run expanding‑window CV (e.g., 5 folds) with aggregate metrics and variance bands, then refit on the full training period (`train_full_after`). This captures drift impacts and reduces over‑reliance on a single cut of time.
 
+## 2.8 Leakage and Fairness Constraints (Definitions and Policy)
+
+Leakage (what it is). Any feature that contains information not available at origination time (or that is causally downstream of the outcome) causes target leakage. Examples in LendingClub data include payments/recoveries, last payment dates, hardship/settlement flags, and collection‑stage balances. Including them produces inflated apparent performance (see [Figure E12](#fig:eda-corr-leaky)).
+
+Our leakage policy. We drop all post‑event fields end‑to‑end and restrict modeling to origination‑time variables (EDA [Figures E11–E14](#fig:eda-corr-orig)). Where ambiguity remains, we err on the safe side and omit columns.
+
+Fairness and sensitive proxies. Some fields act as demographic/geographic proxies (e.g., ZIP Code). Even when predictive, they can create disparate impact and reduce portability. In this iteration, we omit such fields by default and focus on underwriting‑relevant signals (capacity, credit history, pricing). We include coarse geography (`addr_state`) but avoid granular ZIP‑like signals.
+
+High cardinality and noise. Free‑text or ultra‑granular categoricals (e.g., `emp_title`) explode the one‑hot space, add noise, and increase variance. Unless we use robust encodings (embeddings, target encoding) and strong regularization, we prefer omitted or coarsened versions (e.g., `emp_length`).
+
+Practical examples in this thesis.
+- Dropped for leakage/sensitivity: payments/recoveries/last_* dates, hardship/settlement, collection fees; granular location (ZIP) excluded for fairness/portability.
+- Dropped/coarsened for cardinality/noise: `emp_title` (free text) omitted; `emp_length` (binned categorical) retained; `purpose` used with monitoring; `addr_state` retained; `grade/sub_grade` included only in provider‑aware regimes.
+
 # 3 Dataset Exploration (EDA)
 
 We provide an early, self-contained view of the dataset to ground modeling decisions. Each figure is chosen to answer a specific question about class balance, leakage risks, signal strength, or temporal stability; each is referenced in the text where we use the insight.
@@ -205,6 +219,26 @@ Gradient-Boosted Trees (GBM) and XGBoost. Additive trees trained stage-wise exce
 Deep Neural Networks (MLP). Fully-connected networks approximate complex functions given sufficient data and regularization. They require careful design for tabular data: robust preprocessing, categorical encodings (embeddings or one-hot), batch normalization, dropout, early stopping, and calibrated outputs. They can model interactions naturally but can lag boosting unless architecture and training are tuned to tabular idiosyncrasies. Recent studies demonstrate hybrid or carefully-regularized NNs achieving competitive performance on credit-like tasks [@li2022evaluation; @wang2024hybrid].
 
 Why NNs matter here. NNs offer a single, end-to-end model that can incorporate learned embeddings for categorical grades, side-channel text (e.g., loan descriptions), and additional modalities in future iterations. With calibration and monotonic priors, they can become competitive and more portable across providers.
+
+## 4.1 Feature Selection Procedure (How We Curate Inputs)
+
+Objective. Reduce variance and drift sensitivity while preserving predictive power, under the same time‑based protocol as training.
+
+Method (baseline). We use filter methods—mutual information (MI) and L1‑regularized logistic regression—as first‑pass selectors (see docs/feature_selection/FEATURE_SELECTION.md):
+- Evaluation protocol: time‑based split on `issue_d`; validation carved from the training period only; no lookahead to test; invariants match training (imputation, winsorization, encoding).
+- Ranking: MI for non‑linear dependency; L1 for sparse linear signal. We aggregate or compare to stabilize against idiosyncratic ties.
+- Stopping rules: cap by target feature count (e.g., 12/16/39/43 regimes) and/or MI elbow; confirm AUC/PR vs full set on validation.
+- Outputs: selected feature list, full ranking, and AUC/PR curves; these drive the compact regimes used in the experiments.
+
+Engineering toggles. Engineered features (e.g., `fico_avg`, `fico_spread`, `income_to_loan_ratio`) can be included/excluded explicitly to quantify their lift. Selection runs mirror training preprocessing so that downstream metrics remain comparable.
+
+## 4.2 Feature Regimes: Provider‑Agnostic vs Provider‑Aware (Why Two Tracks)
+
+Provider‑agnostic (portable) regime. Excludes provider pricing/scoring features (e.g., `int_rate`, `grade`, `sub_grade`, `installment`). Rationale: portability across lenders/policies and reduced drift risk. EDA shows these fields are predictive but can encode policy and macro effects; omitting them improves generalization when policy changes.
+
+Provider‑aware (in‑provider accuracy) regime. Includes pricing/grade; improves AUCPR/ROC at 10k/100k/full by leveraging monotone and ordinal signals. Rationale: if deployment is tied to the same provider, these features capture underwriting decisions that correlate with risk. We monitor drift (PSI) and use calibration/threshold selection to maintain decision quality.
+
+Trade‑offs. Accuracy vs portability; monotonicity vs policy sensitivity; fairness considerations (avoid granular geography like ZIP). Our results show where each regime wins, and the NN roadmap targets closing the gap in the agnostic setting via representations and monotone priors.
 
 4.1 Primer on Algorithm Families (Self-Contained)
 
