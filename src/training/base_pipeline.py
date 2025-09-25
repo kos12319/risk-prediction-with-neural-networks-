@@ -62,174 +62,13 @@ import platform
 
 logger = logging.getLogger(__name__)
 
-
-@dataclass
-class TrainingRunResult:
-    """Bundle summary for a single training/evaluation run (fold or holdout)."""
-
-    run_id: str
-    evaluation: BinaryEvaluationResult
-    metrics: Dict[str, Any]
-    confusion: Dict[str, Any]
-    model_path: Path
-    durations: Dict[str, float]
-    fold_meta: Optional[Dict[str, Any]] = None
-
-
-@dataclass
-class DatasetBundle:
-    """Preprocessed arrays ready for backend training."""
-
-    X_train: np.ndarray
-    y_train: np.ndarray
-    X_val: Optional[np.ndarray]
-    y_val: Optional[np.ndarray]
-    X_test: np.ndarray
-    y_test: np.ndarray
-    feature_names: Sequence[str]
-
-
-@dataclass
-class BackendTrainingResult:
-    """Standardized payload returned by backend pipelines."""
-
-    y_prob: np.ndarray
-    prob_label: int
-    model_path: Path
-    history: Any
-    raw: Dict[str, Any]
-
-
-@dataclass
-class RunContext:
-    """Lightweight context shared with backend pipelines."""
-
-    run_id: str
-    run_dir: Path
-    artifact_mgr: ArtifactManager
-
-
-class BackendPipeline(ABC):
-    """Abstract orchestration contract implemented by each backend."""
-
-    name: str = "backend"
-
-    @abstractmethod
-    def validate_config(self, cfg: Dict[str, Any]) -> None:
-        """Validate backend-specific portions of the config before running."""
-
-    def apply_env_overrides(self, cfg: Dict[str, Any]) -> None:
-        """Apply backend-specific environment overrides (optional)."""
-        return None
-
-    @abstractmethod
-    def resolve_model_path(
-        self,
-        *,
-        out_cfg: Dict[str, Any],
-        artifact_mgr: ArtifactManager,
-        fold_meta: Optional[Dict[str, Any]] = None,
-    ) -> Path:
-        """Return the destination path for the trained model artifact."""
-
-    def prepare_model_config(
-        self,
-        *,
-        model_cfg: Dict[str, Any],
-        training_cfg: Dict[str, Any],
-        y_train: np.ndarray,
-    ) -> Dict[str, Any]:
-        """Optionally adjust the model config before training."""
-        return dict(model_cfg)
-
-    @abstractmethod
-    def train(
-        self,
-        *,
-        dataset: DatasetBundle,
-        model_cfg: Dict[str, Any],
-        training_cfg: Dict[str, Any],
-        eval_cfg: Dict[str, Any],
-        run_context: RunContext,
-        model_path: Path,
-        random_seed: int,
-        pos_label: int,
-        fold_meta: Optional[Dict[str, Any]] = None,
-        wandb_run: Any | None = None,
-        wandb_enabled: bool = False,
-        cfg: Dict[str, Any] | None = None,
-    ) -> BackendTrainingResult:
-        """Backend-specific training implementation."""
-
-    def log_wandb(
-        self,
-        *,
-        wandb_run: Any,
-        dataset: DatasetBundle,
-        model_cfg: Dict[str, Any],
-        training_cfg: Dict[str, Any],
-        eval_cfg: Dict[str, Any],
-        training_result: BackendTrainingResult,
-        metrics: Dict[str, Any],
-        confusion: Dict[str, Any],
-        run_context: RunContext,
-        notes: Optional[str],
-    ) -> None:
-        """Optional extra W&B logging beyond the shared summary."""
-
-    def extra_artifact_lines(
-        self,
-        *,
-        training_result: BackendTrainingResult,
-        run_context: RunContext,
-        cfg: Dict[str, Any],
-    ) -> Iterable[str]:
-        """Additional lines to include in the README artifact."""
-        return []
-
-    def format_run_name(
-        self,
-        *,
-        base_context: Dict[str, Any],
-        training_result: BackendTrainingResult,
-        metrics: Dict[str, Any],
-        run_context: RunContext,
-        cfg: Dict[str, Any],
-    ) -> Optional[str]:
-        """Optional override for the W&B run name format."""
-        return None
-
-    def format_group_name(
-        self,
-        *,
-        base_context: Dict[str, Any],
-        cfg: Dict[str, Any],
-    ) -> Optional[str]:
-        """Optional override for group name used in local runs and W&B.
-
-        Returning ``None`` preserves the shared default formatting logic.
-        """
-        return None
-
-    def additional_wandb_tags(
-        self,
-        *,
-        training_result: BackendTrainingResult,
-        run_context: RunContext,
-        cfg: Dict[str, Any],
-    ) -> Iterable[str]:
-        """Optional additional W&B tags for this backend."""
-        return []
-
-    def run(self, cfg_path: str | Path, *, notes: Optional[str] = None):
-        """Execute the shared pipeline using this backend implementation.
-
-        Delegates to the orchestrator shim to decouple callers from the
-        implementation location, preparing for a future move.
-        """
-        from src.training.orchestrator import run_backend_pipeline as _run
-
-        return _run(cfg_path, backend=self, notes=notes)
+from src.training.interfaces import (
+    BackendPipeline,
+    BackendTrainingResult,
+    DatasetBundle,
+    RunContext,
+    TrainingRunResult,
+)
 
 def _collect_system_info() -> Dict[str, Any]:
     info: Dict[str, Any] = {}
@@ -520,7 +359,7 @@ def _run_cv_fold(
     prob_label_raw = int(training_result.prob_label)
 
     y_true_pos_test = (y_test_np.astype(int) == pos_label_int).astype(int)
-    y_prob_pos_test = _align_probabilities(y_prob, prob_label_raw, pos_label_int)
+    y_prob_pos_test = align_probabilities(y_prob, prob_label_raw, pos_label_int)
 
     y_true_pos_val = None
     y_prob_pos_val = None
@@ -530,7 +369,7 @@ def _run_cv_fold(
         if isinstance(raw_result, dict):
             val_buf = raw_result.get("y_prob_val")
         if val_buf is not None:
-            y_prob_pos_val = _align_probabilities(val_buf, prob_label_raw, pos_label_int)
+            y_prob_pos_val = align_probabilities(val_buf, prob_label_raw, pos_label_int)
 
     evaluation = evaluate_binary_classification(
         y_true=y_true_pos_test,
@@ -558,17 +397,6 @@ def _run_cv_fold(
             history=history_obj,
             point=(confusion.get("fpr"), confusion.get("tpr")),
         )
-        # Preserve legacy CSV placement under run_dir for compatibility
-        for name in ("roc_points.csv", "pr_points.csv", "threshold_metrics.csv"):
-            src = artifact_mgr.reports_dir / name
-            dst = run_dir / name
-            try:
-                if src.exists():
-                    import shutil as _shutil
-
-                    _shutil.copy2(src, dst)
-            except Exception:
-                pass
     except Exception:
         # Fallback to inline minimal writers if centralized writer import fails
         save_metrics(metrics, artifact_mgr.metrics_path)
@@ -688,43 +516,7 @@ def _run_cv_fold(
     )
 
 
-def _run_temporal_cv(
-    *,
-    cfg: Dict[str, Any],
-    df: pd.DataFrame,
-    feature_inputs: Sequence[str],
-    data_cfg: Dict[str, Any],
-    split_cfg: Dict[str, Any],
-    model_cfg: Dict[str, Any],
-    os_cfg: Dict[str, Any],
-    eval_cfg: Dict[str, Any],
-    training_cfg: Dict[str, Any],
-    tracking_cfg: Dict[str, Any],
-    out_cfg: Dict[str, Any],
-    artifact_mgr: ArtifactManager,
-    run_id: str,
-    notes: Optional[str],
-    backend: BackendPipeline,
-) -> List[TrainingRunResult]:
-    from src.training.cv import run_temporal_cv as _cv_run_temporal_cv
-
-    return _cv_run_temporal_cv(
-        cfg=cfg,
-        df=df,
-        feature_inputs=feature_inputs,
-        data_cfg=data_cfg,
-        split_cfg=split_cfg,
-        model_cfg=model_cfg,
-        os_cfg=os_cfg,
-        eval_cfg=eval_cfg,
-        training_cfg=training_cfg,
-        tracking_cfg=tracking_cfg,
-        out_cfg=out_cfg,
-        artifact_mgr=artifact_mgr,
-        run_id=run_id,
-        notes=notes,
-        backend=backend,
-    )
+## Removed legacy _run_temporal_cv shim; callers now import from src.training.cv directly.
 def _resolve_torch_device(force_cpu: bool) -> tuple["torch.device", Dict[str, Any]]:
     """Best-effort accelerator selection with CPU fallback."""
     import torch
@@ -781,13 +573,6 @@ _TRUE_SET = {"1", "true", "yes", "on", "enabled"}
 _FALSE_SET = {"0", "false", "no", "off", "disabled"}
 
 
-def _env_flag(name: str) -> Optional[bool]:
-    # Backwards-compat shim for existing imports; prefer using env.env_flag directly where possible
-    from src.training.env import env_flag as _env_flag_impl
-
-    return _env_flag_impl(name)
-
-
 def _file_sha256(path: Path, chunk_size: int = 1024 * 1024) -> str:
     h = hashlib.sha256()
     with open(path, "rb") as f:
@@ -797,11 +582,6 @@ def _file_sha256(path: Path, chunk_size: int = 1024 * 1024) -> str:
                 break
             h.update(chunk)
     return h.hexdigest()
-
-
-def _align_probabilities(y_prob: np.ndarray | List[float], prob_label: Any, pos_label: int) -> np.ndarray:
-    # Backwards-compat wrapper; delegate to shared helper
-    return align_probabilities(y_prob, prob_label, pos_label)
 
 
 def _run_backend_pipeline(
@@ -943,6 +723,7 @@ def _run_backend_pipeline(
             int(cv_cfg.get("n_folds", 0)),
             cv_cfg.get("mode", "expanding"),
         )
+        from src.training.cv import run_temporal_cv as _run_temporal_cv
         cv_output = _run_temporal_cv(
             cfg=cfg,
             df=df,
@@ -1229,7 +1010,7 @@ def _run_backend_pipeline(
     prob_label_raw = int(training_result.prob_label)
 
     y_true_pos_test = (y_test_np.astype(int) == pos_label_int).astype(int)
-    y_prob_pos_test = _align_probabilities(y_prob, prob_label_raw, pos_label_int)
+    y_prob_pos_test = align_probabilities(y_prob, prob_label_raw, pos_label_int)
 
     y_true_pos_val = None
     y_prob_pos_val = None
@@ -1237,7 +1018,7 @@ def _run_backend_pipeline(
         y_true_pos_val = (y_val_np.astype(int) == pos_label_int).astype(int)
         val_buf = raw_result.get("y_prob_val") if isinstance(raw_result, dict) else None
         if val_buf is not None:
-            y_prob_pos_val = _align_probabilities(val_buf, prob_label_raw, pos_label_int)
+            y_prob_pos_val = align_probabilities(val_buf, prob_label_raw, pos_label_int)
         elif y_true_pos_val is not None and y_true_pos_val.size > 0:
             y_prob_pos_val = None
 

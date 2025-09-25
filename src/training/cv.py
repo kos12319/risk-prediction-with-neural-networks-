@@ -12,13 +12,9 @@ from src.eval.binary import evaluate_binary_classification
 from src.eval.metrics import save_metrics
 from src.training.evaluation_writer import write_basic_eval_artifacts
 from src.features.preprocess import preprocess_tabular_data
-from src.training.base_pipeline import (
-    ArtifactManager,
-    BackendPipeline,
-    DatasetBundle,
-    RunContext,
-    TrainingRunResult,
-)
+from src.utils.artifacts import ArtifactManager
+from src.training.interfaces import BackendPipeline, DatasetBundle, RunContext, TrainingRunResult
+from src.training.probability import align_probabilities
 from src.training.resample import apply_resampling
 from src.utils.seed import set_seed
 
@@ -146,13 +142,14 @@ def run_cv_fold(
     history_obj = training_result.history
     raw_result = training_result.raw or {}
 
-    y_prob_aligned = training_result.y_prob
-    prob_label = training_result.prob_label
+    # Align to configured positive class (probability and labels)
+    y_true_pos_test = (y_test_np.astype(int) == pos_label_int).astype(int)
+    y_prob_pos_test = align_probabilities(training_result.y_prob, training_result.prob_label, pos_label_int)
 
     eval_start = time.time()
     eval_result = evaluate_binary_classification(
-        y_true=y_test_np,
-        y_prob=y_prob_aligned,
+        y_true=y_true_pos_test,
+        y_prob=y_prob_pos_test,
         threshold_cfg=(eval_cfg.get("threshold", {}) or {}),
         pos_label=pos_label_int,
     )

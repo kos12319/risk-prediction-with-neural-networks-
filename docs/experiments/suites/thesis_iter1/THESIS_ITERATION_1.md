@@ -4,7 +4,7 @@ This thesis iteration investigates default risk prediction on the LendingClub co
 
 # 1. Introduction
 
-Peer‑to‑peer lending platforms like LendingClub have catalyzed a rich literature on credit risk modeling, feature selection, and evaluation under class imbalance, with impactful baselines built on this specific dataset (Emekter et al., 2015; Serrano‑Cinca et al., 2015; Jagtiani & Lemieux, 2019; Croux et al., 2020). We study the problem of loan default prediction and, in particular: which feature subsets and model families—including neural networks—perform best under robust, time‑aware evaluation.
+Peer‑to‑peer lending platforms like LendingClub have catalyzed a rich literature on credit risk modeling, feature selection, and evaluation under class imbalance, with impactful baselines built on this specific dataset (Emekter et al., 2015; Serrano‑Cinca et al., 2015; Jagtiani & Lemieux, 2019; Croux et al., 2020) [@Emekter2015; @SerranoCinca2015; @Jagtiani2019FM; @Croux2020JEBO]. We study the problem of loan default prediction and, in particular: which feature subsets and model families—including neural networks—perform best under robust, time‑aware evaluation.
 
 Objectives:
 - Identify the best architecture per feature subset and dataset size under a time‑based split.
@@ -18,9 +18,9 @@ Contributions:
 
 # 2. Background and Related Work
 
-LendingClub default prediction has been widely studied as a benchmark for P2P credit modeling (Emekter et al., 2015; Serrano‑Cinca et al., 2015; Nunez‑Mora et al., 2023). Traditional baselines rely on logistic regression or tree ensembles (Malekipirbazari & Aksakalli, 2015), while more recent work explores richer features, profit‑aware objectives, and alternative data (Serrano‑Cinca & Gutiérrez‑Nieto, 2016; Jagtiani & Lemieux, 2019; Croux et al., 2020).
+LendingClub default prediction has been widely studied as a benchmark for P2P credit modeling (Emekter et al., 2015; Serrano‑Cinca et al., 2015; Nunez‑Mora et al., 2023). Traditional baselines rely on logistic regression or tree ensembles (Malekipirbazari & Aksakalli, 2015), while more recent work explores richer features, profit‑aware objectives, and alternative data (Serrano‑Cinca & Gutiérrez‑Nieto, 2016; Jagtiani & Lemieux, 2019; Croux et al., 2020) [@Emekter2015; @SerranoCinca2015; @NunezMora2023; @Malekipirbazari2015; @SerranoCinca2016; @Jagtiani2019FM; @Croux2020JEBO].
 
-Neural networks for credit risk have shown promise when supplied with sufficient data and regularization, including deep MLPs and hybrid CNN/LSTM variants for sequence‑like signals (e.g., Li et al., 2022; Wang & Wang, 2024). However, on tabular data with strong monotonic signals, gradient‑boosted trees often excel out‑of‑the‑box, necessitating careful NN design, calibration, and feature engineering to compete.
+Neural networks for credit risk have shown promise when supplied with sufficient data and regularization, including deep MLPs and hybrid CNN/LSTM variants for sequence‑like signals (e.g., Li et al., 2022; Wang & Wang, 2024) [@li2022evaluation; @wang2024hybrid]. However, on tabular data with strong monotonic signals, gradient‑boosted trees often excel out‑of‑the‑box, necessitating careful NN design, calibration, and feature engineering to compete.
 
 Citations used in this iteration draw from the curated bibliographies under `docs/thesis/bibliography/`, including LendingClub‑focused and NN‑for‑credit‑risk sources.
 
@@ -32,7 +32,7 @@ Dataset: LendingClub consumer installment loans, vintages 2007–2018, with fund
 - Leakage policy: Post‑event fields (payments, recoveries, last_* dates, hardship/settlement) are dropped consistently.
 - Splits: Older → train; newer → test. Validation is carved from the training period only.
 
-References: Emekter et al. (2015); Serrano‑Cinca et al. (2015); Jagtiani & Lemieux (2019); Croux et al. (2020).
+References: Emekter et al. (2015); Serrano‑Cinca et al. (2015); Jagtiani & Lemieux (2019); Croux et al. (2020) [@Emekter2015; @SerranoCinca2015; @Jagtiani2019FM; @Croux2020JEBO].
 
 # 4. Methodology
 
@@ -159,7 +159,7 @@ This iteration finds that pricing/grade features materially improve discriminati
   - Explore self‑supervised/contrastive pretraining for tabular signals.
 - Evaluation:
   - Temporal CV with `train_full_after: true` for stability; calibration checks.
-  - Profit‑aware metrics alongside AUCPR/ROC (Serrano‑Cinca & Gutiérrez‑Nieto, 2016).
+  - Profit‑aware metrics alongside AUCPR/ROC (Serrano‑Cinca & Gutiérrez‑Nieto, 2016) [@SerranoCinca2016].
 - Features:
   - Standardize `credit_history_length`; expand ratio features and interaction terms subject to leakage policy.
 - Robustness:
@@ -169,14 +169,85 @@ Feature selection track:
 - Integrate the selector registry and artifacts (docs/feature_selection/FEATURE_SELECTION.md) so selection runs reuse preprocessing/evaluation from training.
 - Quantify engineered feature lift via paired selection/training with engineered toggles; add stability analysis (bootstrap / time‑blocked resampling).
 
-# References (selection)
-- Emekter, R., Tu, Y., Jirasakuldech, B., & Lu, M. (2015). Evaluating Credit Risk and Loan Performance in Online Peer‑to‑Peer Lending. Applied Economics. (BibTeX: `Emekter2015`)
-- Serrano‑Cinca, C., Gutiérrez‑Nieto, B., & López‑Palacios, L. (2015). Determinants of Default in P2P Lending. PLoS ONE. (`SerranoCinca2015`)
-- Jagtiani, J., & Lemieux, C. (2019). The Roles of Alternative Data and Machine Learning in Fintech Lending. Financial Management. (`Jagtiani2019FM`)
-- Croux, C., Jagtiani, J., Korivi, T., & Vulanovic, M. (2020). Important Factors Determining Fintech Loan Default. JEBO. (`Croux2020JEBO`)
-- Nunez‑Mora, J. A., et al. (2023). Loan Default Prediction: A Complete Revision of LendingClub. REMEF. (`NunezMora2023`)
-- Malekipirbazari, M., & Aksakalli, V. (2015). Risk Assessment in Social Lending via Random Forests. ESWA. (`Malekipirbazari2015`)
-- Li, H., Sun, J., & Li, A. (2022). CNN‑LSTM‑ATT for Credit Risk. Electronics. (`li2022evaluation`)
-- Wang, Y., & Wang, J. (2024). Hybrid CNN‑LSTM for Bond Default. J. Computational Science. (`wang2024hybrid`)
+## Appendix A — Variable Importance Tables
 
-Notes: Full BibTeX entries are available under `docs/thesis/bibliography/`.
+## Appendix A.1 — Top Variable Importance (GBM) — 1k
+
+| Feature | Relative Importance (%) |
+|---|---:|
+| cat__term_ 60 months | 10.79 |
+| cat__term_ 36 months | 10.57 |
+| num__dti | 6.73 |
+| num__annual_inc | 5.82 |
+| num__tot_hi_cred_lim | 5.61 |
+| num__bc_util | 5.15 |
+| num__income_to_loan_ratio | 4.98 |
+| num__revol_util | 4.69 |
+| num__fico_range_high | 4.57 |
+| num__inq_last_6mths | 4.38 |
+
+## Appendix A.2 — Top Variable Importance (GBM) — 10k
+
+| Feature | Relative Importance (%) |
+|---|---:|
+| num__int_rate | 25.09 |
+| cat__term_ 60 months | 7.64 |
+| num__dti | 6.48 |
+| num__loan_amnt | 6.35 |
+| num__income_to_loan_ratio | 5.77 |
+| cat__term_ 36 months | 4.58 |
+| cat__grade_E | 3.76 |
+| num__num_actv_rev_tl | 3.62 |
+| num__credit_history_length | 3.51 |
+| num__total_rev_hi_lim | 3.49 |
+
+## Appendix A.3 — Top Variable Importance (GBM) — 100k
+
+| Feature | Relative Importance (%) |
+|---|---:|
+| num__int_rate | 57.51 |
+| cat__term_ 36 months | 10.71 |
+| cat__term_ 60 months | 9.18 |
+| num__dti | 2.95 |
+| cat__grade_A | 2.24 |
+| num__num_rev_tl_bal_gt_0 | 1.84 |
+| num__tot_hi_cred_lim | 1.53 |
+| cat__grade_B | 1.51 |
+| num__loan_amnt | 1.47 |
+| cat__grade_C | 1.34 |
+
+## Appendix A.4 — Top Variable Importance (GBM) — full
+
+| Feature | Relative Importance (%) |
+|---|---:|
+| num__int_rate | 39.28 |
+| cat__term_ 60 months | 17.89 |
+| cat__grade_A | 6.39 |
+| cat__term_ 36 months | 6.20 |
+| cat__grade_B | 4.58 |
+| num__dti | 3.91 |
+| num__income_to_loan_ratio | 2.49 |
+| num__fico_avg | 2.48 |
+| num__mort_acc | 2.11 |
+| num__annual_inc | 1.78 |
+
+## Appendix A.5 — Common Drivers Across Datasets
+
+Features appearing in at least 2 of the 4 top‑10 lists:
+
+| Feature | Datasets (out of 4) |
+|---|---:|
+| cat__term_ 36 months | 4 |
+| num__dti | 4 |
+| cat__term_ 60 months | 4 |
+| num__income_to_loan_ratio | 3 |
+| num__int_rate | 3 |
+| num__tot_hi_cred_lim | 2 |
+| num__annual_inc | 2 |
+| num__loan_amnt | 2 |
+| cat__grade_B | 2 |
+| cat__grade_A | 2 |
+
+# References
+
+References are generated via Pandoc citeproc from `docs/thesis/bibliography/`.

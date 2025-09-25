@@ -20,10 +20,11 @@ steps to strengthen neural network performance and interpretability.</p>
 literature on credit risk modeling, feature selection, and evaluation
 under class imbalance, with impactful baselines built on this specific
 dataset (Emekter et al., 2015; Serrano‑Cinca et al., 2015; Jagtiani
-&amp; Lemieux, 2019; Croux et al., 2020). We study the problem of loan
-default prediction and, in particular: which feature subsets and model
-families—including neural networks—perform best under robust, time‑aware
-evaluation.</p>
+&amp; Lemieux, 2019; Croux et al., 2020) [@Emekter2015;
+@SerranoCinca2015; @Jagtiani2019FM; @Croux2020JEBO]. We study the
+problem of loan default prediction and, in particular: which feature
+subsets and model families—including neural networks—perform best under
+robust, time‑aware evaluation.</p>
 <p>Objectives:</p>
 <ul>
 <li>Identify the best architecture per feature subset and dataset size
@@ -52,14 +53,16 @@ for P2P credit modeling (Emekter et al., 2015; Serrano‑Cinca et al.,
 regression or tree ensembles (Malekipirbazari &amp; Aksakalli, 2015),
 while more recent work explores richer features, profit‑aware
 objectives, and alternative data (Serrano‑Cinca &amp; Gutiérrez‑Nieto,
-2016; Jagtiani &amp; Lemieux, 2019; Croux et al., 2020).</p>
+2016; Jagtiani &amp; Lemieux, 2019; Croux et al., 2020) [@Emekter2015;
+@SerranoCinca2015; @NunezMora2023; @Malekipirbazari2015;
+@SerranoCinca2016; @Jagtiani2019FM; @Croux2020JEBO].</p>
 <p>Neural networks for credit risk have shown promise when supplied with
 sufficient data and regularization, including deep MLPs and hybrid
 CNN/LSTM variants for sequence‑like signals (e.g., Li et al., 2022; Wang
-&amp; Wang, 2024). However, on tabular data with strong monotonic
-signals, gradient‑boosted trees often excel out‑of‑the‑box,
-necessitating careful NN design, calibration, and feature engineering to
-compete.</p>
+&amp; Wang, 2024) [@li2022evaluation; @wang2024hybrid]. However, on
+tabular data with strong monotonic signals, gradient‑boosted trees often
+excel out‑of‑the‑box, necessitating careful NN design, calibration, and
+feature engineering to compete.</p>
 <p>Citations used in this iteration draw from the curated bibliographies
 under <code>docs/thesis/bibliography/</code>, including
 LendingClub‑focused and NN‑for‑credit‑risk sources.</p>
@@ -78,7 +81,8 @@ dates, hardship/settlement) are dropped consistently.</li>
 training period only.</li>
 </ul>
 <p>References: Emekter et al. (2015); Serrano‑Cinca et al. (2015);
-Jagtiani &amp; Lemieux (2019); Croux et al. (2020).</p>
+Jagtiani &amp; Lemieux (2019); Croux et al. (2020) [@Emekter2015;
+@SerranoCinca2015; @Jagtiani2019FM; @Croux2020JEBO].</p>
 <h1 id="4-methodology">4. Methodology</h1>
 <p>4.1 Protocol and Invariants</p>
 <ul>
@@ -284,7 +288,7 @@ shifts.</li>
 <li>Image:
 <code>docs/exploration/figures/top_corr_numeric_orig.png</code></li>
 <li>Finding: FICO measures (avg/low/high) are strongest anti‑correlates
-(~−0.13); DTI and utilization are positively associated.</li>
+(~-0.13); DTI and utilization are positively associated.</li>
 </ul></li>
 <li>Mutual Information (origination‑only):
 <ul>
@@ -345,7 +349,7 @@ signals.</li>
 <li>Temporal CV with <code>train_full_after: true</code> for stability;
 calibration checks.</li>
 <li>Profit‑aware metrics alongside AUCPR/ROC (Serrano‑Cinca &amp;
-Gutiérrez‑Nieto, 2016).</li>
+Gutiérrez‑Nieto, 2016) [@SerranoCinca2016].</li>
 </ul></li>
 <li>Features:
 <ul>
@@ -367,30 +371,269 @@ preprocessing/evaluation from training.</li>
 engineered toggles; add stability analysis (bootstrap / time‑blocked
 resampling).</li>
 </ul>
-<h1 id="references-selection">References (selection)</h1>
-<ul>
-<li>Emekter, R., Tu, Y., Jirasakuldech, B., &amp; Lu, M. (2015).
-Evaluating Credit Risk and Loan Performance in Online Peer‑to‑Peer
-Lending. Applied Economics. (BibTeX: <code>Emekter2015</code>)</li>
-<li>Serrano‑Cinca, C., Gutiérrez‑Nieto, B., &amp; López‑Palacios, L.
-(2015). Determinants of Default in P2P Lending. PLoS ONE.
-(<code>SerranoCinca2015</code>)</li>
-<li>Jagtiani, J., &amp; Lemieux, C. (2019). The Roles of Alternative
-Data and Machine Learning in Fintech Lending. Financial Management.
-(<code>Jagtiani2019FM</code>)</li>
-<li>Croux, C., Jagtiani, J., Korivi, T., &amp; Vulanovic, M. (2020).
-Important Factors Determining Fintech Loan Default. JEBO.
-(<code>Croux2020JEBO</code>)</li>
-<li>Nunez‑Mora, J. A., et al. (2023). Loan Default Prediction: A
-Complete Revision of LendingClub. REMEF.
-(<code>NunezMora2023</code>)</li>
-<li>Malekipirbazari, M., &amp; Aksakalli, V. (2015). Risk Assessment in
-Social Lending via Random Forests. ESWA.
-(<code>Malekipirbazari2015</code>)</li>
-<li>Li, H., Sun, J., &amp; Li, A. (2022). CNN‑LSTM‑ATT for Credit Risk.
-Electronics. (<code>li2022evaluation</code>)</li>
-<li>Wang, Y., &amp; Wang, J. (2024). Hybrid CNN‑LSTM for Bond Default.
-J. Computational Science. (<code>wang2024hybrid</code>)</li>
-</ul>
-<p>Notes: Full BibTeX entries are available under
+<h2 id="appendix-a--variable-importance-tables">Appendix A — Variable
+Importance Tables</h2>
+<h2 id="appendix-a1--top-variable-importance-gbm--1k">Appendix A.1 — Top
+Variable Importance (GBM) — 1k</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th style="text-align: right;">Relative Importance (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cat__term_ 60 months</td>
+<td style="text-align: right;">10.79</td>
+</tr>
+<tr>
+<td>cat__term_ 36 months</td>
+<td style="text-align: right;">10.57</td>
+</tr>
+<tr>
+<td>num__dti</td>
+<td style="text-align: right;">6.73</td>
+</tr>
+<tr>
+<td>num__annual_inc</td>
+<td style="text-align: right;">5.82</td>
+</tr>
+<tr>
+<td>num__tot_hi_cred_lim</td>
+<td style="text-align: right;">5.61</td>
+</tr>
+<tr>
+<td>num__bc_util</td>
+<td style="text-align: right;">5.15</td>
+</tr>
+<tr>
+<td>num__income_to_loan_ratio</td>
+<td style="text-align: right;">4.98</td>
+</tr>
+<tr>
+<td>num__revol_util</td>
+<td style="text-align: right;">4.69</td>
+</tr>
+<tr>
+<td>num__fico_range_high</td>
+<td style="text-align: right;">4.57</td>
+</tr>
+<tr>
+<td>num__inq_last_6mths</td>
+<td style="text-align: right;">4.38</td>
+</tr>
+</tbody>
+</table>
+<h2 id="appendix-a2--top-variable-importance-gbm--10k">Appendix A.2 —
+Top Variable Importance (GBM) — 10k</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th style="text-align: right;">Relative Importance (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>num__int_rate</td>
+<td style="text-align: right;">25.09</td>
+</tr>
+<tr>
+<td>cat__term_ 60 months</td>
+<td style="text-align: right;">7.64</td>
+</tr>
+<tr>
+<td>num__dti</td>
+<td style="text-align: right;">6.48</td>
+</tr>
+<tr>
+<td>num__loan_amnt</td>
+<td style="text-align: right;">6.35</td>
+</tr>
+<tr>
+<td>num__income_to_loan_ratio</td>
+<td style="text-align: right;">5.77</td>
+</tr>
+<tr>
+<td>cat__term_ 36 months</td>
+<td style="text-align: right;">4.58</td>
+</tr>
+<tr>
+<td>cat__grade_E</td>
+<td style="text-align: right;">3.76</td>
+</tr>
+<tr>
+<td>num__num_actv_rev_tl</td>
+<td style="text-align: right;">3.62</td>
+</tr>
+<tr>
+<td>num__credit_history_length</td>
+<td style="text-align: right;">3.51</td>
+</tr>
+<tr>
+<td>num__total_rev_hi_lim</td>
+<td style="text-align: right;">3.49</td>
+</tr>
+</tbody>
+</table>
+<h2 id="appendix-a3--top-variable-importance-gbm--100k">Appendix A.3 —
+Top Variable Importance (GBM) — 100k</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th style="text-align: right;">Relative Importance (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>num__int_rate</td>
+<td style="text-align: right;">57.51</td>
+</tr>
+<tr>
+<td>cat__term_ 36 months</td>
+<td style="text-align: right;">10.71</td>
+</tr>
+<tr>
+<td>cat__term_ 60 months</td>
+<td style="text-align: right;">9.18</td>
+</tr>
+<tr>
+<td>num__dti</td>
+<td style="text-align: right;">2.95</td>
+</tr>
+<tr>
+<td>cat__grade_A</td>
+<td style="text-align: right;">2.24</td>
+</tr>
+<tr>
+<td>num__num_rev_tl_bal_gt_0</td>
+<td style="text-align: right;">1.84</td>
+</tr>
+<tr>
+<td>num__tot_hi_cred_lim</td>
+<td style="text-align: right;">1.53</td>
+</tr>
+<tr>
+<td>cat__grade_B</td>
+<td style="text-align: right;">1.51</td>
+</tr>
+<tr>
+<td>num__loan_amnt</td>
+<td style="text-align: right;">1.47</td>
+</tr>
+<tr>
+<td>cat__grade_C</td>
+<td style="text-align: right;">1.34</td>
+</tr>
+</tbody>
+</table>
+<h2 id="appendix-a4--top-variable-importance-gbm--full">Appendix A.4 —
+Top Variable Importance (GBM) — full</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th style="text-align: right;">Relative Importance (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>num__int_rate</td>
+<td style="text-align: right;">39.28</td>
+</tr>
+<tr>
+<td>cat__term_ 60 months</td>
+<td style="text-align: right;">17.89</td>
+</tr>
+<tr>
+<td>cat__grade_A</td>
+<td style="text-align: right;">6.39</td>
+</tr>
+<tr>
+<td>cat__term_ 36 months</td>
+<td style="text-align: right;">6.20</td>
+</tr>
+<tr>
+<td>cat__grade_B</td>
+<td style="text-align: right;">4.58</td>
+</tr>
+<tr>
+<td>num__dti</td>
+<td style="text-align: right;">3.91</td>
+</tr>
+<tr>
+<td>num__income_to_loan_ratio</td>
+<td style="text-align: right;">2.49</td>
+</tr>
+<tr>
+<td>num__fico_avg</td>
+<td style="text-align: right;">2.48</td>
+</tr>
+<tr>
+<td>num__mort_acc</td>
+<td style="text-align: right;">2.11</td>
+</tr>
+<tr>
+<td>num__annual_inc</td>
+<td style="text-align: right;">1.78</td>
+</tr>
+</tbody>
+</table>
+<h2 id="appendix-a5--common-drivers-across-datasets">Appendix A.5 —
+Common Drivers Across Datasets</h2>
+<p>Features appearing in at least 2 of the 4 top‑10 lists:</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th style="text-align: right;">Datasets (out of 4)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cat__term_ 36 months</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td>num__dti</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td>cat__term_ 60 months</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td>num__income_to_loan_ratio</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td>num__int_rate</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td>num__tot_hi_cred_lim</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td>num__annual_inc</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td>num__loan_amnt</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td>cat__grade_B</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td>cat__grade_A</td>
+<td style="text-align: right;">2</td>
+</tr>
+</tbody>
+</table>
+<h1 id="references">References</h1>
+<p>References are generated via Pandoc citeproc from
 <code>docs/thesis/bibliography/</code>.</p>
