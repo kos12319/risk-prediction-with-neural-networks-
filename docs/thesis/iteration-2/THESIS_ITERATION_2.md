@@ -1,6 +1,6 @@
 ---
 title: "Credit Risk Modeling Platform for LendingClub Default Prediction: Neural Networks, Feature Regimes, and Time‑Aware Evaluation"
-author: "MSc Thesis Iteration 2"
+author: "Konstantinos Lambropoulos"
 date: "2025-09-25"
 bibliography:
   - docs/thesis/bibliography/lendingclub_subtopics_white.bib
