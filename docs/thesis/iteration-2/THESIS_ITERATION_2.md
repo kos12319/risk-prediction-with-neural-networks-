@@ -476,7 +476,9 @@ Winner and rationale. The winner uses 43 features (broad + pricing/grade). Avera
 
 ![10k — Leaderboard (PR-sorted).](reports/10k/figures/h2o_leaderboard_pr.png){#fig:10k-lbpr}
 
-![10k — VarImp heatmap (winners).](reports/10k/figures/h2o_varimp_heatmap_winners.png){#fig:10k-varimp}
+![10k — Variable importance heatmap (winners). Relative, model‑derived importance from H2O winners (GBM/XGBoost: split gain; DeepLearning: sensitivity‑based). Not pairwise correlation; captures non‑linear effects.](reports/10k/figures/h2o_varimp_heatmap_winners.png){#fig:10k-varimp}
+
+Method. GBM/XGB importance reflects cumulative gain across splits; NN importance is sensitivity‑based. Values are normalized per model and stacked for comparison (see Appendix A/C for exact tables).
 
 Curves (why shown). At 10k, enrichment improves both threshold‑sensitive performance (PR) and threshold‑free ranking (ROC), suggesting a genuine gain rather than a threshold artifact (see Figures \ref{fig:10k-pr} and \ref{fig:10k-roc}).
 
@@ -496,7 +498,8 @@ Winner and rationale. The winner uses 43 features (broad + pricing/grade). Avera
 
 ![100k — Leaderboard (ROC-sorted).](reports/100k/figures/h2o_leaderboard_roc.png){#fig:100k-lbroc}
 
-![100k — VarImp heatmap (winners).](reports/100k/figures/h2o_varimp_heatmap_winners.png){#fig:100k-varimp}
+![100k — Variable importance heatmap (winners). Relative, model‑derived importance (GBM/XGBoost: split gain; DeepLearning: sensitivity‑based). Not pairwise correlation.](reports/100k/figures/h2o_varimp_heatmap_winners.png){#fig:100k-varimp}
+Method. Importance is normalized per model; compare ranks across winners for robustness.
 
 Curves (why shown). At 100k, enrichment sustains PR gains while maintaining high ROC AUC, indicating robustness rather than a narrow operating‑point win (see Figures \ref{fig:100k-pr} and \ref{fig:100k-roc}).
 
@@ -518,7 +521,8 @@ Winner and rationale. The winner uses 43 features (broad + pricing/grade). Avera
 
 ![Full — Leaderboard (ROC-sorted).](reports/full/figures/h2o_leaderboard_roc.png){#fig:full-lbroc}
 
-![Full — VarImp heatmap (winners).](reports/full/figures/h2o_varimp_heatmap_winners.png){#fig:full-varimp}
+![Full — Variable importance heatmap (winners). Relative, model‑derived importance (GBM/XGBoost: split gain; DeepLearning: sensitivity‑based). Not pairwise correlation.](reports/full/figures/h2o_varimp_heatmap_winners.png){#fig:full-varimp}
+Method. Importance summarizes contribution within each family; see Appendix A/C for top‑10 tables.
 
 Curves (why shown). On the full dataset, both PR and ROC document performance and anchor the fixed threshold to the PR shape (see Figures \ref{fig:full-pr} and \ref{fig:full-roc}).
 
