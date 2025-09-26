@@ -1482,15 +1482,28 @@ data without sacrificing out-of-time precision.</p>
 <h1 id="extended-analysis-empirical-signals-and-data-drift">12 Extended
 Analysis: Empirical Signals and Data Drift</h1>
 <p>Correlation and MI at origination. Correlations show FICO averages as
-strong anti-correlates (~-0.13), with DTI and utilization positively
+strong anti‑correlates (~−0.13), with DTI and utilization positively
 associated. Mutual information highlights <code>fico_spread</code>,
 <code>term</code>, <code>fico_avg</code>,
 <code>income_to_loan_ratio</code>, <code>loan_amnt</code>, and
-inquiry/depth features as high-signal drivers.</p>
-<p>The EDA section already illustrates these signals and risks visually
-(correlations at origination only vs leaky features, and PSI for numeric
-and categorical variables). We reference those figures here to motivate
-the extended analysis without duplicating them.</p>
+inquiry/depth features as high‑signal drivers. These patterns are
+visible in the origination‑only correlation panel (Figure ).</p>
+<p>Leakage demonstration. Including post‑event features (e.g.,
+<code>total_pymnt</code>, <code>recoveries</code>,
+<code>last_pymnt_d</code>) yields spuriously high correlations and
+mutual information with the target. This inflates apparent performance
+and breaks causal ordering; therefore, such fields are strictly
+excluded. Compare the leaky correlation panel (Figure ) against the
+origination‑only counterpart (Figure ).</p>
+<p>Temporal drift (PSI). Credit‑depth and limit features shift across
+vintages, and categorical composition (e.g., <code>purpose</code>)
+drifts modestly. Pricing‑related variables require careful monitoring
+and, if used, periodic recalibration. See the numeric PSI snapshot
+(Figure ) and categorical PSI snapshot (Figure ).</p>
+<p>Implications. Adopt time‑based validation with a fixed,
+validation‑chosen threshold and schedule periodic retraining. Monitor
+PSI on top drivers and recalibrate probabilities and thresholds as
+distributions shift to preserve decision quality.</p>
 <h1 id="limitations-and-threats-to-validity">13 Limitations and Threats
 to Validity</h1>
 <p>Right-censoring. Recent vintages may be partially observed;

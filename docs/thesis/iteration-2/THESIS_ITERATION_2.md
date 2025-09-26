@@ -580,9 +580,13 @@ Takeaway. Better AUCPR at 10k vs 100k/full is a strong indicator that drift domi
 
 # 12 Extended Analysis: Empirical Signals and Data Drift
 
-Correlation and MI at origination. Correlations show FICO averages as strong anti-correlates (~-0.13), with DTI and utilization positively associated. Mutual information highlights `fico_spread`, `term`, `fico_avg`, `income_to_loan_ratio`, `loan_amnt`, and inquiry/depth features as high-signal drivers.
+Correlation and MI at origination. Correlations show FICO averages as strong anti‑correlates (~−0.13), with DTI and utilization positively associated. Mutual information highlights `fico_spread`, `term`, `fico_avg`, `income_to_loan_ratio`, `loan_amnt`, and inquiry/depth features as high‑signal drivers. These patterns are visible in the origination‑only correlation panel (Figure \ref{fig:eda-corr-orig}).
 
-The EDA section already illustrates these signals and risks visually (correlations at origination only vs leaky features, and PSI for numeric and categorical variables). We reference those figures here to motivate the extended analysis without duplicating them.
+Leakage demonstration. Including post‑event features (e.g., `total_pymnt`, `recoveries`, `last_pymnt_d`) yields spuriously high correlations and mutual information with the target. This inflates apparent performance and breaks causal ordering; therefore, such fields are strictly excluded. Compare the leaky correlation panel (Figure \ref{fig:eda-corr-leaky}) against the origination‑only counterpart (Figure \ref{fig:eda-corr-orig}).
+
+Temporal drift (PSI). Credit‑depth and limit features shift across vintages, and categorical composition (e.g., `purpose`) drifts modestly. Pricing‑related variables require careful monitoring and, if used, periodic recalibration. See the numeric PSI snapshot (Figure \ref{fig:eda-psi-num}) and categorical PSI snapshot (Figure \ref{fig:eda-psi-cat}).
+
+Implications. Adopt time‑based validation with a fixed, validation‑chosen threshold and schedule periodic retraining. Monitor PSI on top drivers and recalibrate probabilities and thresholds as distributions shift to preserve decision quality.
 
 # 13 Limitations and Threats to Validity
 
