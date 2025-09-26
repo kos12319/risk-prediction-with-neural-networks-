@@ -1,7 +1,0 @@
-extends: ../../../../configs/pytorch/default_full
-
-split:
-  method: random
-  test_size: 0.2
-  random_state: 42
-

@@ -1,13 +1,12 @@
-extends: ./l1_on_mi_subset_time
+extends: ./provider_aware_l1
 
 split:
   cv:
     enabled: true
     n_folds: 5
     mode: expanding
-    initial_train_fraction: 0.4
+    initial_train_fraction: 0.5
     validation_fraction: 0.2
     gap: 0
     shuffle_within_folds: false
     train_full_after: true
-

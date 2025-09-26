@@ -1,0 +1,13 @@
+extends: ../../../../../configs/h2o_default
+
+data:
+  csv_path: data/raw/full/thesis_data_full.csv
+  winsorize_enabled: true
+
+automl:
+  max_runtime_secs: 36000  # 10 hours
+  leaderboard_extra_columns: ALL
+  leaderboard_make_test: true
+  balance_classes: true
+  max_after_balance_size: 5.0
+  seed: 42

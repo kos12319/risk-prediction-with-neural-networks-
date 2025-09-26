@@ -1,8 +1,12 @@
 # AGENTS — Working Guide (Read README First)
 
-Start here: open README.md and follow Quick Start and Makefile Targets. Treat README as the authoritative source for setup, CLI usage, and Makefile commands.
+Start here: open README.md and READ it. READ the Makefile help and the Makefile Targets if you want to run an action. Treat README as the authoritative source for setup and repo information index. Read the Makefile for CLI usage, and Makefile commands.
 
 This guide adds repo‑specific guardrails and conventions that are easy to miss. Avoid hardcoding paths; everything is config‑driven.
+
+## Maintenance Policy
+- Backward compatibility is not required; prefer simplifying the codebase over preserving deprecated behavior.
+- Remove dead code paths and leftover files as part of routine changes so agents and contributors inherit a clean tree.
 
 ## Makefile‑First Policy
 - Always run workflows via the Makefile. Do not call `python -m src...` directly in routine use.

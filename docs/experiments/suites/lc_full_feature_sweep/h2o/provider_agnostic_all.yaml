@@ -1,7 +1,6 @@
-extends: ../../../../configs/h2o/full_dataset
+extends: ./common
 
 data:
-  # Provider-aware feature set derived from PyTorch config
   features:
     - loan_amnt
     - term
@@ -11,14 +10,6 @@ data:
     - verification_status
     - home_ownership
     - addr_state
-
-    # Lender pricing/scoring
-    - int_rate
-    - grade
-    - sub_grade
-    - installment
-
-    # Credit profile
     - dti
     - delinq_2yrs
     - pub_rec
@@ -30,8 +21,6 @@ data:
     - fico_range_low
     - fico_range_high
     - mort_acc
-
-    # Depth/limits and risk indicators
     - total_rev_hi_lim
     - bc_open_to_buy
     - bc_util
@@ -50,8 +39,27 @@ data:
     - num_tl_90g_dpd_24m
     - pub_rec_bankruptcies
     - tax_liens
-
-    # Dates for engineering/splitting (not fed)
     - issue_d
     - earliest_cr_line
-
+  winsorize:
+    annual_inc:
+      lower_quantile: 0.01
+      upper_quantile: 0.995
+    loan_amnt:
+      lower_quantile: 0.01
+      upper_quantile: 0.995
+    dti:
+      lower_value: 0.0
+      upper_quantile: 0.995
+    revol_util:
+      lower_value: 0.0
+      upper_quantile: 0.995
+    revol_bal:
+      lower_value: 0.0
+      upper_quantile: 0.995
+    income_to_loan_ratio:
+      lower_value: 0.0
+      upper_quantile: 0.995
+    fico_spread:
+      lower_value: 0.0
+      upper_quantile: 0.99

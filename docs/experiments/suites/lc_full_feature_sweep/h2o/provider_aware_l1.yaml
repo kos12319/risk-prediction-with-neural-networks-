@@ -1,0 +1,45 @@
+extends: ./common
+
+data:
+  features:
+    - addr_state
+    - term
+    - home_ownership
+    - emp_length
+    - verification_status
+    - dti
+    - purpose
+    - inq_last_6mths
+    - loan_amnt
+    - fico_range_high
+    - fico_range_low
+    - revol_bal
+    - int_rate
+    - grade
+    - sub_grade
+    - installment
+  winsorize:
+    loan_amnt:
+      lower_quantile: 0.01
+      upper_quantile: 0.995
+    dti:
+      lower_value: 0.0
+      upper_quantile: 0.995
+    revol_bal:
+      lower_value: 0.0
+      upper_quantile: 0.995
+    int_rate:
+      lower_quantile: 0.005
+      upper_quantile: 0.995
+    installment:
+      lower_quantile: 0.01
+      upper_quantile: 0.995
+    fico_range_high:
+      lower_quantile: 0.005
+      upper_quantile: 0.995
+    fico_range_low:
+      lower_quantile: 0.005
+      upper_quantile: 0.995
+    fico_spread:
+      lower_value: 0.0
+      upper_quantile: 0.99

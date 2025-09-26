@@ -52,9 +52,9 @@
 - `docs/exploration/` — exploratory notebooks and reports
 
 ## Local Artifacts
-- All new runs save to `local_runs/run_YYYYMMDD_HHMMSS/` (gitignored).
-- Legacy `reports/` and `models/` are deprecated and ignored.
-- Each run folder contains model, metrics, figures, config snapshot, provenance, and optionally a `wandb/` subfolder with downloaded W&B data.
+- Runs are grouped under `local_runs/<dataset>|<split>|<pos>|<backend>/run_YYYYMMDD_HHMMSS/` (gitignored). Example: `local_runs/thesis_data_sample_10k|time|co|h2o/run_<…>` or `…|pytorch/run_<…>`.
+- Each run folder captures model weights, metrics, config snapshot, provenance (`data_manifest.json`, `features.json`), threshold sweeps, and when enabled, W&B metadata.
+- See `docs/architecture/RUN_ARTIFACTS.md` for the full artifact inventory (PyTorch + H2O specifics, CV layout, leaderboard exports).
 
 ### Run Catalog
 - Build a lightweight catalog for comparison and dashboards:
@@ -74,8 +74,9 @@
 - Note: Unified training/dryrun CLI entries have been removed. Use Make targets or backend-specific CLIs.
  - Thesis docs:
    - Brainstorming (overview): `docs/thesis/THESIS_BRAINSTORMING.md`
-   - Iteration 1 (feature-set optimization, H2O): `docs/thesis/iteration-1/THESIS_PROPOSAL_ITERATION_1.md` and `docs/thesis/iteration-1/`
-   - Iteration 2 (neural-centric refinement, temporal CV): `docs/thesis/iteration-2/THESIS_PROPOSAL_ITERATION_2.md` and `docs/thesis/iteration-2/`
+  - Iteration 1 (feature-set optimization, H2O): `docs/thesis/iteration-1/THESIS_PROPOSAL_ITERATION_1.md` and `docs/thesis/iteration-1/`
+  - Iteration 2 (model comparison benchmark): `docs/thesis/iteration-2/THESIS_PROPOSAL_ITERATION_2.md` and `docs/thesis/iteration-2/`
+  - Iteration 3 (neural-centric refinement, temporal CV): `docs/thesis/iteration-3/THESIS_ITERATION_3_SUGGESTIONS.md` and `docs/thesis/iteration-3/`
 
 ## Docs & Architecture Governance
 - Single-source flow:
@@ -317,6 +318,3 @@ Note: both backend CLIs perform a lightweight config validation step that checks
 - Oversampling applies only to the training split to avoid leakage.
 - Engineered features: `credit_history_length` (months from `earliest_cr_line` to `issue_d`), `income_to_loan_ratio`, `fico_avg`, `fico_spread`.
 - Post‑origination columns are dropped by default (configurable).
-
-## Notebook Integration
-- See `docs/NOTEBOOK_INTEGRATION.md` for mapping from the original notebook to this project, including preserved parts and fixes.
