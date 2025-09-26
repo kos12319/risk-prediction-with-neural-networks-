@@ -582,19 +582,7 @@ Takeaway. Better AUCPR at 10k vs 100k/full is a strong indicator that drift domi
 
 Correlation and MI at origination. Correlations show FICO averages as strong anti-correlates (~-0.13), with DTI and utilization positively associated. Mutual information highlights `fico_spread`, `term`, `fico_avg`, `income_to_loan_ratio`, `loan_amnt`, and inquiry/depth features as high-signal drivers.
 
-![Exploration — Top |corr| with target (origination only). Why shown: validates capacity/credit-depth intuition; FICO anti-correlates while DTI/utilization correlate positively, consistent with risk theory.](../../exploration/figures/top_corr_numeric_orig.png){#fig:expl-corr-orig}
-
-Leakage demonstration. Including post-event features (e.g., `total_pymnt`, `recoveries`, `last_pymnt_d`) yields spurious correlations and MI—hence the strict exclusion policy.
-
-![Exploration — Top |corr| with target (all features, leaky; do not use). Why shown: demonstrates leakage—post-event features dominate spuriously; motivates strict origination-only policy.](../../exploration/figures/top_corr_numeric.png){#fig:expl-corr-leaky}
-
-Temporal drift (PSI). Credit-depth features shift over time; `purpose` shows modest drift. Pricing variables require monitoring and possible recalibration.
-
-![Exploration — PSI, numeric (origination only). Why shown: quantifies temporal drift; depth/limit features shift across vintages; motivates time-based validation and recalibration.](../../exploration/figures/psi_numeric_top_orig.png){#fig:expl-psi-num}
-
-![Exploration — PSI, categorical (origination only). Why shown: flags categorical drift (e.g., purpose) and underlines the need to monitor pricing-related shifts.](../../exploration/figures/psi_categorical_top_orig.png){#fig:expl-psi-cat}
-
-Implications. Adopt time-based validation and periodic retraining; monitor PSI and recalibrate thresholds as distributions shift.
+The EDA section already illustrates these signals and risks visually (correlations at origination only vs leaky features, and PSI for numeric and categorical variables). We reference those figures here to motivate the extended analysis without duplicating them.
 
 # 13 Limitations and Threats to Validity
 
@@ -610,7 +598,7 @@ Omitted modalities. Rejects data and free-text fields were not modeled in this i
 
 Threshold selection and business alignment. We select the operating point on validation using Youden J (maximizes TPR − FPR) and apply it unchanged to test. This is a robust, distribution-agnostic default that balances sensitivity to the positive class (Charged Off) with specificity, and is appropriate when we aim to prioritize default detection without explicit cost weights. However, if business utility places asymmetric value on precision or recall (or uses expected profit), Youden J may be suboptimal. Sensitivity checks versus F1, precision at fixed recalls, and simple cost/utility curves should be included alongside Youden J to demonstrate stability and to support policy choices.
 
-Calibration gaps. We do not include calibration curves or reliability metrics (e.g., Brier score [@brier1950], Expected Calibration Error) for the reported models. Poor calibration can destabilize threshold transfer from validation to test and degrade decision quality under drift. Future iterations should add validation-fit calibration (Platt/Isotonic for trees; temperature scaling for NNs) and report post-calibration performance on test.
+Calibration gaps. We do not include calibration curves or reliability metrics (e.g., Brier score, Expected Calibration Error) for the reported models. Poor calibration can destabilize threshold transfer from validation to test and degrade decision quality under drift. Future iterations should add validation-fit calibration (Platt/Isotonic for trees; temperature scaling for NNs) and report post-calibration performance on test.
 
 NN variable-importance caveat. H2O DeepLearning varimp is sensitivity-based and can be noisier and less stable than tree-based importances. Interpret NN varimp qualitatively and corroborate with partial dependence/ICE where possible.
 

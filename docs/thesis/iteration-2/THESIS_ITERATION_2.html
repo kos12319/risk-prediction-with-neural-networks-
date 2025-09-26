@@ -1487,46 +1487,10 @@ associated. Mutual information highlights <code>fico_spread</code>,
 <code>term</code>, <code>fico_avg</code>,
 <code>income_to_loan_ratio</code>, <code>loan_amnt</code>, and
 inquiry/depth features as high-signal drivers.</p>
-<figure id="fig:expl-corr-orig">
-<img src="../../exploration/figures/top_corr_numeric_orig.png"
-alt="Exploration — Top |corr| with target (origination only). Why shown: validates capacity/credit-depth intuition; FICO anti-correlates while DTI/utilization correlate positively, consistent with risk theory." />
-<figcaption aria-hidden="true">Exploration — Top |corr| with target
-(origination only). Why shown: validates capacity/credit-depth
-intuition; FICO anti-correlates while DTI/utilization correlate
-positively, consistent with risk theory.</figcaption>
-</figure>
-<p>Leakage demonstration. Including post-event features (e.g.,
-<code>total_pymnt</code>, <code>recoveries</code>,
-<code>last_pymnt_d</code>) yields spurious correlations and MI—hence the
-strict exclusion policy.</p>
-<figure id="fig:expl-corr-leaky">
-<img src="../../exploration/figures/top_corr_numeric.png"
-alt="Exploration — Top |corr| with target (all features, leaky; do not use). Why shown: demonstrates leakage—post-event features dominate spuriously; motivates strict origination-only policy." />
-<figcaption aria-hidden="true">Exploration — Top |corr| with target (all
-features, leaky; do not use). Why shown: demonstrates leakage—post-event
-features dominate spuriously; motivates strict origination-only
-policy.</figcaption>
-</figure>
-<p>Temporal drift (PSI). Credit-depth features shift over time;
-<code>purpose</code> shows modest drift. Pricing variables require
-monitoring and possible recalibration.</p>
-<figure id="fig:expl-psi-num">
-<img src="../../exploration/figures/psi_numeric_top_orig.png"
-alt="Exploration — PSI, numeric (origination only). Why shown: quantifies temporal drift; depth/limit features shift across vintages; motivates time-based validation and recalibration." />
-<figcaption aria-hidden="true">Exploration — PSI, numeric (origination
-only). Why shown: quantifies temporal drift; depth/limit features shift
-across vintages; motivates time-based validation and
-recalibration.</figcaption>
-</figure>
-<figure id="fig:expl-psi-cat">
-<img src="../../exploration/figures/psi_categorical_top_orig.png"
-alt="Exploration — PSI, categorical (origination only). Why shown: flags categorical drift (e.g., purpose) and underlines the need to monitor pricing-related shifts." />
-<figcaption aria-hidden="true">Exploration — PSI, categorical
-(origination only). Why shown: flags categorical drift (e.g., purpose)
-and underlines the need to monitor pricing-related shifts.</figcaption>
-</figure>
-<p>Implications. Adopt time-based validation and periodic retraining;
-monitor PSI and recalibrate thresholds as distributions shift.</p>
+<p>The EDA section already illustrates these signals and risks visually
+(correlations at origination only vs leaky features, and PSI for numeric
+and categorical variables). We reference those figures here to motivate
+the extended analysis without duplicating them.</p>
 <h1 id="limitations-and-threats-to-validity">13 Limitations and Threats
 to Validity</h1>
 <p>Right-censoring. Recent vintages may be partially observed;
@@ -1557,14 +1521,12 @@ precision at fixed recalls, and simple cost/utility curves should be
 included alongside Youden J to demonstrate stability and to support
 policy choices.</p>
 <p>Calibration gaps. We do not include calibration curves or reliability
-metrics (e.g., Brier score <span class="citation"
-data-cites="brier1950">(<a href="#ref-brier1950"
-role="doc-biblioref">Brier, 1950</a>)</span>, Expected Calibration
-Error) for the reported models. Poor calibration can destabilize
-threshold transfer from validation to test and degrade decision quality
-under drift. Future iterations should add validation-fit calibration
-(Platt/Isotonic for trees; temperature scaling for NNs) and report
-post-calibration performance on test.</p>
+metrics (e.g., Brier score, Expected Calibration Error) for the reported
+models. Poor calibration can destabilize threshold transfer from
+validation to test and degrade decision quality under drift. Future
+iterations should add validation-fit calibration (Platt/Isotonic for
+trees; temperature scaling for NNs) and report post-calibration
+performance on test.</p>
 <p>NN variable-importance caveat. H2O DeepLearning varimp is
 sensitivity-based and can be noisier and less stable than tree-based
 importances. Interpret NN varimp qualitatively and corroborate with
@@ -2614,10 +2576,6 @@ prediction. <em>Computational Statistics &amp; Data Analysis</em>,
 Boz, A., &amp; Ozcan, K. (2023). <em>Generalist credit scoring through
 large language models</em>. <a
 href="https://doi.org/10.48550/arXiv.2306.07758">https://doi.org/10.48550/arXiv.2306.07758</a>
-</div>
-<div id="ref-brier1950" class="csl-entry" role="listitem">
-Brier, G. W. (1950). Verification of forecasts expressed in terms of
-probability. <em>Monthly Weather Review</em>, <em>78</em>(1), 1–3.
 </div>
 <div id="ref-van2023synthesizing" class="csl-entry" role="listitem">
 Burg, G. van der, &amp; Bruin, J. de. (2023). Synthesizing credit data
