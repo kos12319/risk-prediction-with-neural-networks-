@@ -18,10 +18,10 @@ href="#ref-grinsztajn2022why" role="doc-biblioref">Grinsztajn et al.,
 role="doc-biblioref">Shwartz-Ziv &amp; Armon, 2022</a>)</span>. We
 analyze why this pattern emerges and provide a practical blueprint to
 strengthen neural networks on this task (embeddings, monotonic cues,
-regularization, calibration, temporal CV). The deliverables include
-per-dataset reports with curves and variable-importance analyses and a
-consolidated cross-dataset comparison. The study closes with a roadmap
-for neural-first improvements and robustness under temporal drift.</p>
+regularization, calibration). The deliverables include per-dataset
+reports with curves and variable-importance analyses and a consolidated
+cross-dataset comparison. The study closes with a roadmap for
+neural-first improvements and robustness under temporal drift.</p>
 <h1 id="introduction">1 Introduction</h1>
 <p>Peer-to-peer lending platforms such as LendingClub have catalyzed a
 rich literature on credit risk modeling, feature selection, and
@@ -289,7 +289,7 @@ probabilities for threshold‑based decisions, (d) validates temporally,
 and (e) leverages text via BERT/LLM encoders when available.</p>
 <h1 id="dataset-task-and-evaluation-protocol">3 Dataset, Task, and
 Evaluation Protocol</h1>
-<p>2.1 Dataset</p>
+<h2 id="dataset">3.1 Dataset</h2>
 <p>We use the LendingClub consumer installment loans dataset spanning
 2007–2018 vintages. Each record represents a funded loan at origination
 (accepted-loans cohort). Labels are derived from final outcomes: Fully
@@ -362,13 +362,14 @@ discretionary spending). 15) Credit depth/limits (e.g.,
 <code>mort_acc</code>, <code>total_rev_hi_lim</code>,
 <code>num_rev_tl_bal_gt_0</code>): Indicators of history with credit,
 available headroom, and active trade lines.</p>
-<p>2.2 Target and Positive Class</p>
+<h2 id="target-and-positive-class">3.2 Target and Positive Class</h2>
 <p>Binary classification: predict whether a loan will charge off
 (default) versus fully pay. We adopt the convention
 <code>pos_label = 0</code> for Charged Off. All metrics, curves, and
 thresholding respect this convention to avoid label inversion
 errors.</p>
-<p>2.3 Chronological Split and Validation</p>
+<h2 id="chronological-split-and-validation">3.3 Chronological Split and
+Validation</h2>
 <p>We split by origination date (<code>issue_d</code>): earlier loans
 form training, later loans form test. Validation is carved from the
 training period only. This enforces causal ordering and avoids
@@ -381,7 +382,7 @@ single decision threshold on validation using the Youden J statistic
 data-cites="youden1950index">(<a href="#ref-youden1950index"
 role="doc-biblioref">Youden, 1950</a>)</span>, then apply that fixed
 threshold to the test set for fair reporting.</p>
-<p>2.4 Metrics</p>
+<h2 id="metrics">3.4 Metrics</h2>
 <ul>
 <li>AUCPR (Average Precision): Summary of the precision–recall curve;
 sensitive to class imbalance and actionable for default detection <span
@@ -394,10 +395,52 @@ role="doc-biblioref">Saito &amp; Rehmsmeier, 2015</a>)</span>.</li>
 <li>Thresholded metrics at the selected operating point: precision,
 recall (TPR), FPR, confusion counts.</li>
 </ul>
-<h2
-id="decision-thresholding-and-business-metrics-why-youden-j-what-else">3.5
-Decision Thresholding and Business Metrics (Why Youden J, What
-Else)</h2>
+<h2 id="final-status-filter-and-censoring-cutoff">3.5 Final-Status
+Filter and Censoring Cutoff</h2>
+<p>We restrict the cohort to loans with final outcomes at evaluation
+time to avoid right-censoring leakage. Specifically, we keep Fully Paid
+and Charged Off, and exclude operational/intermediate statuses (e.g.,
+Current, Late, In Grace Period, Default/Issued).</p>
+<div id="tbl:final-status-filter">
+<table>
+<caption>Final-status filter for accepted-loans cohort</caption>
+<thead>
+<tr>
+<th>Status</th>
+<th>Policy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fully Paid</td>
+<td>keep</td>
+</tr>
+<tr>
+<td>Charged Off</td>
+<td>keep</td>
+</tr>
+<tr>
+<td>Current</td>
+<td>exclude</td>
+</tr>
+<tr>
+<td>In Grace Period / Late</td>
+<td>exclude</td>
+</tr>
+<tr>
+<td>Default / Issued / Other transitional</td>
+<td>exclude</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Date cutoff. Our primary safeguard against censoring is the
+final-status filter; no additional calendar cutoff is applied beyond the
+dataset’s coverage through 2018. This ensures reported performance
+reflects completed outcomes while retaining as much history as
+possible.</p>
+<h2 id="decision-thresholding-and-business-metrics">3.6 Decision
+Thresholding and Business Metrics</h2>
 <p>In imbalanced credit settings, downstream utility depends on a fixed
 operating point (threshold). We choose the threshold on validation
 (carved from train) to avoid optimistic bias and apply it unchanged to
@@ -460,8 +503,7 @@ from validation)</caption>
 operating point used for policy decisions. If utility/cost weights are
 available, the same table feeds expected‑value analysis to pick
 profit‑optimal thresholds on validation and lock them for test.</p>
-<!-- 2.6 and 2.7 (Planned) moved to Future Work -->
-<h2 id="leakage-and-fairness-constraints-definitions-and-policy">3.8
+<h2 id="leakage-and-fairness-constraints-definitions-and-policy">3.7
 Leakage and Fairness Constraints (Definitions and Policy)</h2>
 <p>Leakage (what it is). Any feature that contains information not
 available at origination time (or that is causally downstream of the
@@ -753,8 +795,8 @@ role="doc-biblioref">Platt, 1999</a>; <a
 href="#ref-zadrozny2001obtaining" role="doc-biblioref">Zadrozny &amp;
 Elkan, 2001</a>)</span>, they can become competitive and more portable
 across providers.</p>
-<h2 id="feature-selection-procedure-how-we-curate-inputs">6.1 Feature
-Selection Procedure (How We Curate Inputs)</h2>
+<h2 id="feature-selection-procedure">6.1 Feature Selection
+Procedure</h2>
 <p>Objective. Reduce variance and drift sensitivity while preserving
 predictive power, under the same time‑based protocol as training.</p>
 <p>Method (baseline). We use filter methods—mutual information (MI) and
@@ -773,10 +815,8 @@ used in the experiments.</p>
 <code>income_to_loan_ratio</code>) can be included/excluded explicitly
 to quantify their lift. Selection runs mirror training preprocessing so
 that downstream metrics remain comparable.</p>
-<h2
-id="feature-regimes-provideragnostic-vs-provideraware-why-two-tracks">6.2
-Feature Regimes: Provider‑Agnostic vs Provider‑Aware (Why Two
-Tracks)</h2>
+<h2 id="feature-regimes-provideragnostic-vs-provideraware">6.2 Feature
+Regimes: Provider‑Agnostic vs Provider‑Aware</h2>
 <p>Provider‑agnostic (portable) regime. Excludes provider
 pricing/scoring features (e.g., <code>int_rate</code>,
 <code>grade</code>, <code>sub_grade</code>, <code>installment</code>).
@@ -794,8 +834,8 @@ sensitivity; fairness considerations (avoid granular geography like
 ZIP). Our results show where each regime wins, and the NN roadmap
 targets closing the gap in the agnostic setting via representations and
 monotone priors.</p>
-<h2 id="primer-on-algorithm-families-self-contained">4.3 Primer on
-Algorithm Families (Self-Contained)</h2>
+<h2 id="primer-on-algorithm-families">6.3 Primer on Algorithm
+Families</h2>
 <p>Logistic Regression (GLM). A generalized linear model mapping a
 linear combination of inputs through a logistic link to produce
 probabilities. Pros: simplicity, interpretability, and fast training.
@@ -834,8 +874,7 @@ approve/decline), well-calibrated probabilities matter. Platt scaling
 (logistic regression on logits), isotonic regression (non-parametric),
 or temperature scaling (for NNs) align predicted probabilities to
 empirical frequencies on validation.</p>
-<h1 id="experimental-setup-self-contained">7 Experimental Setup
-(Self-Contained)</h1>
+<h1 id="experimental-setup">7 Experimental Setup</h1>
 <p>Data handling and leakage control. We exclude post-origination
 features (payments, recoveries, last_* dates, hardship/settlement) from
 all runs. This aligns with best practices and prior empirical audits on
@@ -1129,7 +1168,8 @@ quality and precision at relevant recall levels.</p>
 with Inline Figures</h1>
 <p>We now analyze each dataset size (10k, 100k, full), include curves
 and explainability figures, and interpret takeaways.</p>
-<p>8.2 10k subset (medium-sample regime)</p>
+<h2 id="k-subset-medium-sample-regime">9.1 10k subset (medium-sample
+regime)</h2>
 <p>Winner and rationale. The winner uses 43 features (broad +
 pricing/grade). Average Precision is 0.4601; ROC AUC is 0.7591. At this
 scale, enriched pricing/grade features tend to lift PR in the
@@ -1179,7 +1219,8 @@ ranking <code>int_rate</code> as sharply as GBM. This suggests NNs can
 leverage generalizable capacity/depth cues but may require explicit
 encoding/regularization to fully exploit pricing/grade at this
 scale.</p>
-<p>8.3 100k subset (large-sample regime)</p>
+<h2 id="k-subset-large-sample-regime">9.2 100k subset (large-sample
+regime)</h2>
 <p>Winner and rationale. The winner uses 43 features (broad +
 pricing/grade). Average Precision is 0.4524; ROC AUC is 0.7435. With
 more data, the model can exploit richer interactions embedded in
@@ -1225,7 +1266,8 @@ more distributed across sub-grades and home-ownership states compared to
 GBM’s sharper focus on <code>int_rate</code> and term. This is
 consistent with NNs learning broader categorical embeddings that capture
 latent structure.</p>
-<p>8.4 Full dataset (production-like benchmark)</p>
+<h2 id="full-dataset-production-like-benchmark">9.3 Full dataset
+(production-like benchmark)</h2>
 <p>Winner and rationale. The winner uses 43 features (broad +
 pricing/grade). Average Precision is 0.3934; ROC AUC is 0.7093.
 Threshold (Youden J, selected on validation): 0.1765. Confusion (test):
@@ -1441,6 +1483,27 @@ search budgets designed for reproducibility.</p>
 <p>Omitted modalities. Rejects data and free-text fields were not
 modeled in this iteration; both can affect selection bias and
 incremental lift estimates.</p>
+<p>Threshold selection and business alignment. We select the operating
+point on validation using Youden J (maximizes TPR − FPR) and apply it
+unchanged to test. This is a robust, distribution-agnostic default that
+balances sensitivity to the positive class (Charged Off) with
+specificity, and is appropriate when we aim to prioritize default
+detection without explicit cost weights. However, if business utility
+places asymmetric value on precision or recall (or uses expected
+profit), Youden J may be suboptimal. Sensitivity checks versus F1,
+precision at fixed recalls, and simple cost/utility curves should be
+included alongside Youden J to demonstrate stability and to support
+policy choices.</p>
+<p>Calibration gaps. We do not include calibration curves or reliability
+metrics (e.g., Brier score, ECE) for the reported models. Poor
+calibration can destabilize threshold transfer from validation to test
+and degrade decision quality under drift. Future iterations should add
+validation-fit calibration (Platt/Isotonic for trees; temperature
+scaling for NNs) and report post-calibration performance on test.</p>
+<p>NN variable-importance caveat. H2O DeepLearning varimp is
+sensitivity-based and can be noisier and less stable than tree-based
+importances. Interpret NN varimp qualitatively and corroborate with
+partial dependence/ICE where possible.</p>
 <h1 id="conclusions">14 Conclusions</h1>
 <p>This iteration benchmarked default prediction on LendingClub across
 dataset scales (10k, 100k, full), feature regimes (compact vs broad,
@@ -1527,98 +1590,28 @@ role="doc-biblioref">Shwartz-Ziv &amp; Armon, 2022</a>; <a
 href="#ref-siddiqi2006credit" role="doc-biblioref">Siddiqi,
 2006</a>)</span>. With these, we obtain robust, interpretable gains and
 a clear roadmap to strengthen neural models further.</p>
-<h1 id="future-work-neural-first-track">15 Future Work: Neural-First
-Track</h1>
-<p>Enriching with pricing/grade features materially improves
-discrimination at moderate-to-large scales. Tree ensembles constitute
-strong baselines on structured, tabular data and lead on 10k/100k/full.
-Neural networks compete on small samples and, with the proposed
-roadmap—embeddings for categorical features, monotonic priors,
-well-regularized training, calibration, and temporal CV—can close the
-gap and potentially surpass boosting, especially when integrating text
-and additional modalities.</p>
-<p>15.1 Neural roadmap (moved from Section 9)</p>
-<p>Architecture. Start with MLPs that combine residual blocks, GELU/SiLU
-activations, BatchNorm, and dropout. Introduce categorical embeddings
-for grade/term/purpose/state and optionally learned numeric feature
-scalers. Explore shallow attention layers over feature tokens (tabular
-transformers) once strong MLP baselines are in place.</p>
-<p>Training protocol. Use temporal CV; monitor AUCPR/ROC and thresholded
-metrics on validation; adopt cosine decay or OneCycle LR schedules with
-warmup; add early stopping with patience tuned via CV.</p>
-<p>Calibration and thresholds. Evaluate Platt/Isotonic on the validation
-slice; choose thresholds via Youden J or utility-optimized criteria;
-always fix the threshold before scoring the test set.</p>
-<p>Interpretability. Log permutation/SHAP varimp for the NN; compare to
-tree varimp to validate learned representations. Partial dependence
-(ICE) on top drivers (<code>int_rate</code>, <code>dti</code>,
-<code>term</code>, grade) should demonstrate monotonic trends.</p>
-<p>15.2 Practical blueprint for NN experiments (moved from Section
-9)</p>
-<ol type="1">
-<li>Start with a baseline MLP (2–4 hidden layers, 256–128–64–32),
-BatchNorm after each hidden layer, dropout 0.2–0.4, AdamW optimizer,
-cosine-annealed LR with warmup.</li>
-<li>Replace one-hot categoricals with embeddings:
-<code>grade/sub_grade</code> (dim 4–8), <code>term</code> (dim 2),
-<code>purpose</code> (dim 8), <code>addr_state</code> (dim 8) <span
-class="citation" data-cites="guo2016entity">(<a
-href="#ref-guo2016entity" role="doc-biblioref">Guo &amp; Berkhahn,
-2016</a>)</span>. Concatenate embeddings with normalized numeric
-features.</li>
-<li>Add residual connections (pre-activation) to stabilize deeper
-stacks; use GELU activations.</li>
-<li>Monitor validation AUCPR and early-stop with patience 10–20 epochs;
-always select test threshold from validation.</li>
-<li>Evaluate BCE vs focal loss (γ=2, α tuned) with class weighting;
-prefer BCE if calibration is a priority; otherwise calibrate
-post-hoc.</li>
-<li>Quantify drift with PSI; adopt a retrain cadence and recheck
-calibration/thresholds per vintage <span class="citation"
-data-cites="siddiqi2006credit">(<a href="#ref-siddiqi2006credit"
-role="doc-biblioref">Siddiqi, 2006</a>)</span>.</li>
+<h1 id="future-work-high-level-roadmap">15 Future Work: High-Level
+Roadmap</h1>
+<ul>
+<li>Temporal CV and recency-aware validation to quantify stability
+across vintages and improve hyperparameter selection.</li>
+<li>Post‑hoc calibration (Platt/Isotonic, temperature scaling) and
+reliability reporting (Brier/ECE) to stabilize thresholds and
+decisions.</li>
+<li>Neural network upgrades in PyTorch: categorical embeddings, monotone
+regularization for <code>int_rate</code>/<code>dti</code>, strong
+regularization, and calibrated outputs.</li>
+<li>Ensembling and blending of calibrated models under the same
+time‑aware protocol.</li>
+<li>Threshold analysis extensions: precision at fixed recalls, top‑k
+precision, and simple expected‑profit curves on validation.</li>
+</ul>
+<ol start="2" type="1">
+<li>Integrate text fields (loan descriptions) via lightweight encoders;
+assess incremental lift and calibration.</li>
+<li>Neural feature selection (stochastic gates, hard-concrete) to learn
+compact, stable subsets.</li>
 </ol>
-<p>14.3 Feature engineering catalogue (moved from Extended Analysis)</p>
-<p>Used now: <code>income_to_loan_ratio</code> (annual_inc / loan_amnt);
-<code>fico_avg</code> (mean of low/high); winsorized <code>dti</code>,
-<code>revol_util</code>, and ratio features.</p>
-<p>Proposed next:
-<code>credit_history_length = issue_d - earliest_cr_line</code> (in
-months); debt service ratio variants normalized by income; interaction
-indicators (e.g., <code>term_60 * high_dti</code>); monotone transforms
-on skewed counts (log1p) to stabilize NN training.</p>
-<p>14.4 Threshold selection in practice (moved from Extended
-Analysis)</p>
-<p>Use a single operating point via Youden J on validation for
-consistency. In asymmetric cost settings, optimize expected utility on
-validation; always freeze the threshold before test scoring.</p>
-<p>14.5 Calibration &amp; reliability instrumentation (moved)</p>
-<p>Persist per‑row validation/test predicted probabilities; fit post‑hoc
-calibrators on validation (Platt/Isotonic for GBM, temperature scaling
-for NNs) <span class="citation"
-data-cites="platt1999probabilistic zadrozny2001obtaining guo2017calibration">(<a
-href="#ref-guo2017calibration" role="doc-biblioref">Guo et al.,
-2017</a>; <a href="#ref-platt1999probabilistic"
-role="doc-biblioref">Platt, 1999</a>; <a
-href="#ref-zadrozny2001obtaining" role="doc-biblioref">Zadrozny &amp;
-Elkan, 2001</a>)</span>; plot reliability curves and ECE on test;
-re‑evaluate the fixed threshold selection under calibrated
-probabilities.</p>
-<p>Short term (4–6 weeks). 1) Implement a PyTorch MLP with categorical
-embeddings for <code>grade/sub_grade</code>, <code>term</code>,
-<code>purpose</code>, and <code>addr_state</code>, plus residual blocks
-and calibrated outputs. Compare against H2O DeepLearning on identical
-splits. 2) Add temporal CV (expanding window) with aggregate reports and
-<code>train_full_after</code> refits; adopt early stopping and LR
-schedules tuned via CV. 3) Evaluate focal vs BCE losses and post-hoc
-calibration (Platt, Isotonic, temperature scaling) for threshold
-stability.</p>
-<p>Medium term (6–12 weeks). 1) Explore tabular transformers (feature
-tokenization) and monotonic-regularized layers for key drivers
-(<code>int_rate</code>, <code>dti</code>). 2) Integrate text fields
-(loan descriptions) via lightweight encoders; assess incremental lift
-and calibration. 3) Neural feature selection (stochastic gates,
-hard-concrete) to learn compact, stable subsets.</p>
 <p>Long term. 1) Utility-optimized thresholds aligned with policy
 constraints; profit-aware metrics in parallel with AUCPR. 2) Robustness
 under drift: PSI-triggered recalibration/retraining; uncertainty
