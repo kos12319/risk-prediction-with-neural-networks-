@@ -183,7 +183,7 @@ We restrict the cohort to loans with final outcomes at evaluation time to avoid 
 | In Grace Period / Late | exclude |
 | Default / Issued / Other transitional | exclude |
 
-: Final-status filter for accepted-loans cohort
+: Final-status filter for the accepted‑loans cohort used in this study. We retain only loans with final outcomes (Fully Paid or Charged Off) at the evaluation cutoff to avoid right‑censoring leakage from in‑flight accounts. Removing intermediate statuses (e.g., Current, Late/Grace) ensures that labels reflect realized outcomes and that thresholded metrics on test align with deployment, where only origination‑time information is available.
 :::
 
 Date cutoff. Our primary safeguard against censoring is the final-status filter; no additional calendar cutoff is applied beyond the dataset’s coverage through 2018. This ensures reported performance reflects completed outcomes while retaining as much history as possible.
@@ -206,7 +206,7 @@ In imbalanced credit settings, downstream utility depends on a fixed operating p
 | Recall (TPR) | 0.646 |
 | False Positive Rate (FPR) | 0.344 |
 
-: Thresholded confusion and rates (Full dataset, fixed threshold from validation)
+: Thresholded confusion counts and derived rates on the full dataset at the single operating point selected on validation (Youden J) and transferred unchanged to test. This captures the business‑relevant trade‑off between catching Charged Off loans (recall/TPR) and avoiding false approvals (precision/FPR). Counts are impacted by class imbalance and by prevalence drift across vintages; use in tandem with AUCPR and ROC AUC.
 :::
 
 Why report this table. It anchors PR/ROC figures with the concrete operating point used for policy decisions. If utility/cost weights are available, the same table feeds expected‑value analysis to pick profit‑optimal thresholds on validation and lock them for test.
@@ -241,7 +241,7 @@ We provide an early, self-contained view of the dataset to ground modeling decis
 | Non‑final dropped | 832,763 (e.g., Current 799,583; Late/Grace 30,373) |
 | Positive class (Charged Off) | 19.76% overall |
 
-: EDA - Dataset snapshot (accepted‑loans cohort after final‑status filtering)
+: EDA — Snapshot of the accepted‑loans cohort after the final‑status filter. Summarizes population size, outcome mix, and key filters applied prior to modeling. The positive class is Charged Off; its prevalence sets the PR baseline and guides interpretation of precision at a given recall. These cohort characteristics remain consistent across subsequent analyses (EDA, modeling, and thresholding).
 :::
 
 ::: {#tbl:eda-features}
@@ -251,46 +251,46 @@ We provide an early, self-contained view of the dataset to ground modeling decis
 | Categorical features | 21 | grade/sub_grade, term, purpose, home_ownership, verification_status, addr_state, etc. |
 | Parse‑as‑date | 2 | `issue_d` (split), `earliest_cr_line` (credit history) |
 
-: EDA - Column mix and scale
+: EDA — Column types and scale after leakage‑aware selection. Numeric features include capacity and credit history measures; categorical features include grade/sub_grade, term, purpose, and state. Understanding type/scale mix informs encoding choices (one‑hot vs embeddings), regularization, and monotone cues; it also highlights columns to monitor for drift.
 :::
 
 Class balance over time (why shown). Default base rates shift materially across vintages; @fig:eda-class-balance makes explicit the trend we must respect with time‑based validation and fixed thresholds selected on validation.
 
-![Positive rate by year (class balance). Highlights rising defaults into 2016-2017, then a dip in 2018 due to right‑censoring/volume changes.](../../exploration/figures/class_balance_over_time.png){#fig:eda-class-balance}
+![Class balance over time (positive = Charged Off). This figure shows the yearly prevalence of the positive class under the time‑based protocol (train on older vintages, validation carved from train, test on newer vintages). The baseline of the Precision–Recall curve equals this prevalence; rising default rates into 2016–2017 followed by a 2018 dip (right‑censoring/volume effects) explain why we emphasize AUCPR and fix thresholds from validation rather than tuning on test. Interpreting model precision at a given recall must account for these shifts; deployment should monitor prevalence and re‑assess thresholds when the base rate changes.](../../exploration/figures/class_balance_over_time.png){#fig:eda-class-balance}
 
 Missingness and leakage (why shown). @fig:eda-missingness surfaces high‑missing, post‑event operational fields that must be excluded to avoid leakage.
 
-![Top missingness by column. Post‑event fields (e.g., hardship/settlement, last payment) are high‑missing and leaky; exclude for origination‑time modeling.](../../exploration/figures/missingness_top.png){#fig:eda-missingness}
+![Top missingness by column (origination‑time perspective). The highest‑missing fields cluster around post‑event operations (e.g., hardship/settlement, recoveries, last payment dates). These variables are not available at origination and act as leakage if included, spuriously inflating metrics. Our policy drops such columns end‑to‑end so that models learn only from information available when the decision is made. Mild missingness in origination‑time fields is handled by the pipeline’s imputation steps.](../../exploration/figures/missingness_top.png){#fig:eda-missingness}
 
 Distributions (why shown). Histograms contextualize ranges, outliers, and monotonic expectations—inputs to winsorization and monotone priors for NNs (see @fig:eda-hist-loan, @fig:eda-hist-int, @fig:eda-hist-fico, and @fig:eda-hist-dti).
 
-![Loan amount distribution by class. Used to motivate ratio features and outlier handling.](../../exploration/figures/hist_loan_amnt_orig.png){#fig:eda-hist-loan}
+![Loan amount distribution by class. This histogram contrasts loan sizes for Fully Paid vs Charged Off under the origination‑only feature set. Heavier right tails motivate winsorization and derived ratios (e.g., income‑to‑loan) to stabilize scale effects. While loan amount is informative, its contribution is moderated once pricing (`int_rate`) and term are included, since installment mechanically relates to these variables.](../../exploration/figures/hist_loan_amnt_orig.png){#fig:eda-hist-loan}
 
-![Interest rate distribution by class. Higher rates associate with higher default; a key monotone driver.](../../exploration/figures/hist_int_rate_orig.png){#fig:eda-hist-int}
+![Interest rate distribution by class. Higher interest rates associate with higher default rates, reflecting risk‑based pricing. This monotone relationship guides our use of monotonic cues for neural networks and explains why provider‑aware regimes (with `int_rate`) deliver sizeable AUCPR gains. Because pricing can drift with macro conditions and policy, we monitor this feature for distribution shifts over time.](../../exploration/figures/hist_int_rate_orig.png){#fig:eda-hist-int}
 
-![FICO average distribution by class. Lower FICO aligns with higher default; a top origination‑time signal.](../../exploration/figures/hist_fico_avg_orig.png){#fig:eda-hist-fico}
+![FICO average distribution by class. Lower FICO aligns with higher default and remains a top origination‑time signal across dataset scales. The separation validates simple monotone expectations and supports mild winsorization to control outliers. FICO’s stability over vintages makes it a reliable baseline driver, complementing pricing and term.](../../exploration/figures/hist_fico_avg_orig.png){#fig:eda-hist-fico}
 
-![DTI distribution by class. Guides winsorization and monotone treatment in NN priors.](../../exploration/figures/hist_dti_orig.png){#fig:eda-hist-dti}
+![DTI distribution by class. Debt‑to‑income (DTI) exhibits skew and heavier tails for Charged Off loans. This justifies winsorization and motivates soft monotonic regularization in NNs (higher DTI → higher risk, all else equal). Interactions with credit limits and utilization are captured naturally by tree ensembles and, with sufficient data, by NNs.](../../exploration/figures/hist_dti_orig.png){#fig:eda-hist-dti}
 
 Categoricals (why shown). Bar plots reveal ordinal monotonicity (grade/sub_grade), policy signals (term), and context (purpose, home ownership) (see @fig:eda-cat-grade, @fig:eda-cat-subgrade, @fig:eda-cat-term, and @fig:eda-cat-purpose).
 
-![Grade - counts and default rates. Default increases A->G; volume concentrated in B-D.](../../exploration/figures/cat_grade_orig.png){#fig:eda-cat-grade}
+![Grade — counts and default rates. Default increases from A→G, with origination volume concentrated in B–D. Grade encapsulates provider policy and pricing; its ordinal structure is well suited to learned embeddings in NNs and to split ordering in trees. Because grade can drift with underwriting policy, production use should track its population stability.](../../exploration/figures/cat_grade_orig.png){#fig:eda-cat-grade}
 
-![Sub‑grade - counts and default rates. Smooth within‑grade monotonicity; highly informative for NNs via embeddings.](../../exploration/figures/cat_sub_grade_orig.png){#fig:eda-cat-subgrade}
+![Sub‑grade — counts and default rates. Within‑grade monotonicity is smooth, making sub_grade a high‑signal categorical. For NNs, embeddings capture within‑grade proximity and interactions with other variables; for trees, ordered splits recover similar structure. As with grade, shifts in the sub_grade mix warrant drift monitoring.](../../exploration/figures/cat_sub_grade_orig.png){#fig:eda-cat-subgrade}
 
-![Term - counts and default rates. 60‑month loans are riskier than 36‑month loans; a crisp monotone split.](../../exploration/figures/cat_term_orig.png){#fig:eda-cat-term}
+![Term — counts and default rates. 60‑month loans carry higher default risk than 36‑month loans, producing a crisp monotone split that tree models exploit efficiently. For NNs, one‑hot or small embeddings suffice; interactions with `int_rate` and loan size explain much of the term effect.](../../exploration/figures/cat_term_orig.png){#fig:eda-cat-term}
 
-![Purpose - counts and default rates. Captures intent heterogeneity; useful but drifts modestly.](../../exploration/figures/cat_purpose_orig.png){#fig:eda-cat-purpose}
+![Purpose — counts and default rates. Purpose categories capture heterogeneity in borrowing intent (e.g., debt consolidation vs small business). Signal is useful but exhibits modest drift over vintages; careful regularization and monitoring help maintain portability. Low‑volume categories should be grouped to avoid sparsity.](../../exploration/figures/cat_purpose_orig.png){#fig:eda-cat-purpose}
 
 Leakage demonstration and signal strength (why shown). We include two correlation panels and two PSI panels to (i) contrast origination‑only vs leaky features and (ii) quantify temporal drift (see @fig:eda-corr-orig, @fig:eda-corr-leaky, @fig:eda-psi-num, and @fig:eda-psi-cat).
 
-![Top |corr| with target (origination‑only). FICO anti‑correlates; DTI/utilization correlate positively.](../../exploration/figures/top_corr_numeric_orig.png){#fig:eda-corr-orig}
+![Top |corr| with target (origination‑only). Correlations computed on origination‑time numerics show strong anti‑correlation for FICO and positive associations for DTI/utilization. These relationships justify monotone cues and feature scaling choices; they also provide a leakage‑free sanity check for signal strength before modeling.](../../exploration/figures/top_corr_numeric_orig.png){#fig:eda-corr-orig}
 
-![Top |corr| with target (all numerics). Leaky post‑event features dominate spuriously, motivating strict exclusion.](../../exploration/figures/top_corr_numeric.png){#fig:eda-corr-leaky}
+![Top |corr| with target (all numerics). When post‑event fields are included, they dominate spuriously due to direct outcome information (e.g., recoveries), inflating apparent performance. This panel illustrates why we exclude such variables and restrict modeling to origination‑time data to prevent leakage.](../../exploration/figures/top_corr_numeric.png){#fig:eda-corr-leaky}
 
-![PSI - numeric (origination‑only). Depth/limit features shift across time; motivates time‑based validation and recalibration.](../../exploration/figures/psi_numeric_top_orig.png){#fig:eda-psi-num}
+![PSI — numeric (origination‑only). Population Stability Index (PSI) by vintage highlights drift in depth/limit variables and moderate shifts in utilization. We treat PSI > 0.1 as moderate and > 0.25 as large; observed changes motivate time‑based validation and, in deployment, recalibration or retraining triggers tied to drift thresholds.](../../exploration/figures/psi_numeric_top_orig.png){#fig:eda-psi-num}
 
-![PSI - categorical (origination‑only). Purpose shows modest drift; monitor pricing variables for shifts.](../../exploration/figures/psi_categorical_top_orig.png){#fig:eda-psi-cat}
+![PSI — categorical (origination‑only). Purpose exhibits modest drift over time, while grade/term mixes vary with macro conditions and platform policy. For production, we recommend PSI‑based monitors on pricing/grade and key operational categoricals, with a recalibration playbook when thresholds are breached.](../../exploration/figures/psi_categorical_top_orig.png){#fig:eda-psi-cat}
 
 How EDA informs modeling. The figures @fig:eda-class-balance–@fig:eda-psi-cat collectively justify: (i) time‑based splits and fixed thresholds, (ii) leakage exclusion policies, (iii) winsorization and monotone priors for NNs on `int_rate` and `dti`, (iv) embeddings for ordinal categoricals (grade/sub_grade), and (v) drift monitoring (PSI) with recalibration or retraining.
 
@@ -426,7 +426,7 @@ Implications for this thesis. H2O’s DL search explores shallow‑to‑moderate
 | 100k | ~900 s | AUCPR | 42 | GBM, XGB, DRF, GLM, DeepLearning | Youden J on validation |
 | full | ~5,400 s | AUCPR | 42 | GBM, XGB, DRF, GLM, DeepLearning | Youden J on validation |
 
-: AutoML settings per dataset (budgets, sorting, thresholding)
+: AutoML settings per dataset size, including training budgets, leaderboard sorting (PR vs ROC), and thresholding policy. Sorting by AUCPR emphasizes class‑imbalance‑aware ranking, while all models adopt a fixed operating threshold chosen on validation (Youden J) for test reporting. Settings are harmonized across sizes to support fair comparison.
 :::
 
 Notes. Budgets scale with dataset size (cf. suite run scripts); leaderboard sorting is AUCPR to reflect class imbalance; thresholds are always chosen on validation and fixed for test.
@@ -442,7 +442,7 @@ Notes. Budgets scale with dataset size (cf. suite run scripts); leaderboard sort
 | 100k | XGBoost           | Broad+Pricing/Grade (43)     | 0.4524 | 0.7435 |
 | full | GBM               | Broad+Pricing/Grade (43)     | 0.3934 | 0.7093 |
 
-: Winners by dataset size (best AUCPR per size) - model family and feature regime
+: Winners by dataset size (best AUCPR per size), including model family and feature regime. Use alongside PR/ROC figures to confirm envelope dominance and to understand how adding provider‑aware features (pricing/grade) shifts performance. Family clustering indicates whether gaps come from features, modeling, or both.
 :::
 
 See @tbl:winners for a compact overview; detailed curves and model explainability are analyzed next. We emphasize PR (precision–recall) as the primary metric due to class imbalance [@saito2015precision; @davis2006relationship]: it directly reflects precision at relevant recall levels for default detection. ROC AUC complements PR by showing overall ranking quality irrespective of threshold.
@@ -467,13 +467,13 @@ We now analyze each dataset size (10k, 100k, full), include curves and explainab
 
 Winner and rationale. The winner uses 43 features (broad + pricing/grade). Average Precision is 0.4601; ROC AUC is 0.7591. At this scale, enriched pricing/grade features tend to lift PR in the high-recall region where false positives are costly.
 
-![10k - Precision-Recall curve (winner). Winner: GBM (Broad+Pricing/Grade, 43 features). The curve sustains higher precision across actionable recall levels for the positive class (Charged Off, pos=0), indicating fewer false approvals at comparable catch rates.](reports/10k/figures/pr_curve.png){#fig:10k-pr}
+![10k — Precision–Recall curve (winner). This panel shows the PR curve on the 10k subset for the winning GBM trained with the Broad+Pricing/Grade regime (43 features). The positive class is Charged Off; the horizontal baseline equals the test prevalence. The fixed operating threshold, selected on validation (Youden J), lies on the winner’s envelope where precision remains meaningfully higher at the same recall compared with compact regimes, implying fewer false approvals for a given catch rate.](reports/10k/figures/pr_curve.png){#fig:10k-pr}
 
-![10k - ROC curve (winner). Winner: GBM. High ranking quality (ROC AUC) supports stable ordering of applicants; this underpins threshold transfer for Charged Off detection when prevalence shifts.](reports/10k/figures/roc_curve.png){#fig:10k-roc}
+![10k — ROC curve (winner). The ROC plot complements PR by assessing ranking quality independent of threshold. The GBM winner achieves high ROC AUC, indicating stable ordering of applicants across operating points. Combined with a validation‑chosen threshold, this supports transferring the operating point to the test period without overfitting to a particular prevalence.](reports/10k/figures/roc_curve.png){#fig:10k-roc}
 
-![10k - Leaderboard (PR-sorted). GBM leads on Average Precision with the Broad+Pricing/Grade regime; higher AP reflects better precision at recall for Charged Off, the operational target.](reports/10k/figures/h2o_leaderboard_pr.png){#fig:10k-lbpr}
+![10k — Leaderboard (PR‑sorted). The PR‑sorted leaderboard ranks H2O models by AUCPR on the 10k subset. GBM leads with the Broad+Pricing/Grade regime, followed by other tree ensembles and then the neural baseline. Higher AUCPR reflects better precision across recalls and aligns with the operational objective of screening Charged Off.](reports/10k/figures/h2o_leaderboard_pr.png){#fig:10k-lbpr}
 
-![10k - Variable importance heatmap (winners). Relative, model‑derived importance from H2O winners (GBM/XGBoost: split gain; DeepLearning: sensitivity‑based). Not pairwise correlation; captures non‑linear effects.](reports/10k/figures/h2o_varimp_heatmap_winners.png){#fig:10k-varimp}
+![10k — Variable‑importance heatmap (winners). Relative importances are normalized per model (GBM/XGBoost by split gain; DeepLearning by sensitivity). Pricing (`int_rate`), term, and grade/sub_grade dominate, with DTI and credit depth adding lift. This pattern motivates using provider‑aware features when portability permits and suggests embedding‑based encodings for NNs to better exploit ordinal structure.](reports/10k/figures/h2o_varimp_heatmap_winners.png){#fig:10k-varimp}
 
 Method. GBM/XGB importance reflects cumulative gain across splits; NN importance is sensitivity‑based. Values are normalized per model and stacked for comparison (see Appendix A/C for exact tables).
 
@@ -489,13 +489,13 @@ Interpretation and NN contrast. Adding pricing/grade yields a noticeable AUCPR l
 
 Winner and rationale. The winner uses 43 features (broad + pricing/grade). Average Precision is 0.4524; ROC AUC is 0.7435. With more data, the model can exploit richer interactions embedded in pricing/grade without overfitting.
 
-![100k - Precision-Recall curve (winner). Winner: XGBoost (Broad+Pricing/Grade, 43 features). PR dominance indicates improved screening for Charged Off by maintaining precision at relevant recalls on a larger sample.](reports/100k/figures/pr_curve.png){#fig:100k-pr}
+![100k — Precision–Recall curve (winner). The XGBoost winner (Broad+Pricing/Grade, 43 features) achieves a wider PR envelope on the 100k subset, maintaining higher precision at relevant recalls. With more data, the model leverages interactions among pricing/grade, term, and capacity signals without overfitting, improving screening for Charged Off at fixed review capacity.](reports/100k/figures/pr_curve.png){#fig:100k-pr}
 
-![100k - ROC curve (winner). Winner: XGBoost. Strong ROC confirms robust ranking; combined with fixed validation-chosen thresholds, this supports consistent Charged Off decisions.](reports/100k/figures/roc_curve.png){#fig:100k-roc}
+![100k — ROC curve (winner). Strong ROC AUC confirms robust ranking for the XGBoost winner. Paired with a validation‑selected threshold, this supports consistent Charged Off decisions on the test period and improves robustness to slight prevalence changes.](reports/100k/figures/roc_curve.png){#fig:100k-roc}
 
-![100k - Leaderboard (ROC-sorted). XGBoost tops ROC AUC while tree ensembles cluster closely; strong ranking supports downstream thresholding for Charged Off identification.](reports/100k/figures/h2o_leaderboard_roc.png){#fig:100k-lbroc}
+![100k — Leaderboard (ROC‑sorted). ROC‑sorted rankings on the 100k subset show XGBoost at the top with tree ensembles clustered closely, indicating similar ranking quality across families. This supports downstream thresholding choices derived on validation for Charged Off identification.](reports/100k/figures/h2o_leaderboard_roc.png){#fig:100k-lbroc}
 
-![100k - Variable importance heatmap (winners). Relative, model‑derived importance (GBM/XGBoost: split gain; DeepLearning: sensitivity‑based). Not pairwise correlation.](reports/100k/figures/h2o_varimp_heatmap_winners.png){#fig:100k-varimp}
+![100k — Variable‑importance heatmap (winners). Importance concentrates further on pricing (`int_rate`), term, and grade/sub_grade at this scale, with DTI and credit limits contributing incremental lift. NN attributions appear more distributed across sub‑grades and states, consistent with learned embeddings capturing finer‑grained structure.](reports/100k/figures/h2o_varimp_heatmap_winners.png){#fig:100k-varimp}
 
 Method. Importance is normalized per model; compare ranks across winners for robustness.
 
@@ -511,15 +511,15 @@ Interpretation and NN contrast. With more data, pricing and grading fully domina
 
 Winner and rationale. The winner uses 43 features (broad + pricing/grade). Average Precision is 0.3934; ROC AUC is 0.7093. Threshold (Youden J, selected on validation): 0.1765. Confusion (test): tp=36,227; tn=129,969; fp=68,284; fn=19,876 (Precision 0.347; Recall 0.646; FPR 0.344). We report PR and ROC because they serve complementary roles: PR guides action under imbalance; ROC validates stable ranking.
 
-![Full - Precision-Recall curve (winner). Winner: GBM (Broad+Pricing/Grade). The PR envelope is widest for the winner, yielding better precision at the fixed validation-selected threshold for detecting Charged Off.](reports/full/figures/pr_curve.png){#fig:full-pr}
+![Full — Precision–Recall curve (winner). On the full cohort, the GBM winner (Broad+Pricing/Grade) forms the widest PR envelope. The fixed operating threshold (from validation) lands on a region of the curve that balances catch rate and false approvals in a way consistent with deployment. Because prevalence and mix drift over the long time span, PR is the primary lens for business‑aligned performance.](reports/full/figures/pr_curve.png){#fig:full-pr}
 
-![Full - ROC curve (winner). Winner: GBM. ROC complements PR by confirming ranking stability at production scale, important when prevalence and drift vary.](reports/full/figures/roc_curve.png){#fig:full-roc}
+![Full — ROC curve (winner). ROC complements PR by confirming ranking stability at production scale across thresholds. High ROC AUC supports confidence that the validation‑chosen threshold can be transferred to the test period without excessive sensitivity to small shifts in score distributions.](reports/full/figures/roc_curve.png){#fig:full-roc}
 
-![Full - Leaderboard (PR-sorted). GBM achieves the highest Average Precision with Broad+Pricing/Grade; this directly translates to fewer false approvals for Charged Off at comparable recall.](reports/full/figures/h2o_leaderboard_pr.png){#fig:full-lbpr}
+![Full — Leaderboard (PR‑sorted). The PR‑sorted leaderboard for the full dataset shows GBM at the top with the Broad+Pricing/Grade regime, translating into fewer false approvals at comparable recall for Charged Off. Close clustering among tree ensembles indicates that the choice of boosting library matters less than feature regime and evaluation protocol.](reports/full/figures/h2o_leaderboard_pr.png){#fig:full-lbpr}
 
-![Full - Leaderboard (ROC-sorted). Tree ensembles dominate ROC; consistent ranking enables reliable threshold selection for Charged Off detection on out-of-time data.](reports/full/figures/h2o_leaderboard_roc.png){#fig:full-lbroc}
+![Full — Leaderboard (ROC‑sorted). Tree ensembles dominate ROC on the full dataset, underscoring their strong ranking ability on tabular credit data. This supports reliable threshold selection on validation and stable performance out‑of‑time, even as prevalence varies.](reports/full/figures/h2o_leaderboard_roc.png){#fig:full-lbroc}
 
-![Full - Variable importance heatmap (winners). Relative, model‑derived importance (GBM/XGBoost: split gain; DeepLearning: sensitivity‑based). Not pairwise correlation.](reports/full/figures/h2o_varimp_heatmap_winners.png){#fig:full-varimp}
+![Full — Variable‑importance heatmap (winners). At production scale, pricing (`int_rate`) remains the dominant driver with term and grade/sub_grade close behind; DTI and credit depth contribute secondary lift. NN attribution highlights finer granularity within sub‑grades and selected states/purposes, consistent with embedding‑based representations. Since pricing/grade reflect provider policy, portability requires monitoring drift and recalibrating as needed.](reports/full/figures/h2o_varimp_heatmap_winners.png){#fig:full-varimp}
 
 Method. Importance summarizes contribution within each family; see Appendix A/C for top‑10 tables.
 
@@ -670,7 +670,7 @@ These tables provide exact relative-importance percentages for the top features 
 | num__num_actv_rev_tl | 3.62 |
 | num__credit_history_length | 3.51 |
 | num__total_rev_hi_lim | 3.49 |
-: Top Variable Importance (GBM) - 10k
+: Top variable importance for the GBM winner on the 10k subset. Importance reflects split‑gain contributions normalized within the model; it is not a correlation measure. Pricing (`int_rate`) and term dominate, with DTI and loan size contributing additional lift—consistent with economic intuition and with PR/ROC gains when provider‑aware features are present.
 :::
 
 ::: {#tbl:a3-varimp-100k}
@@ -686,7 +686,7 @@ These tables provide exact relative-importance percentages for the top features 
 | cat__grade_B | 1.51 |
 | num__loan_amnt | 1.47 |
 | cat__grade_C | 1.34 |
-: Top Variable Importance (GBM) - 100k
+: Top variable importance for the GBM/XGBoost winners on the 100k subset. With more data, importance concentrates further on pricing/grade and term, while capacity and depth metrics fill out secondary ranks. Interpret with drift in mind: provider policy and macro conditions can shift these distributions, warranting monitoring and recalibration.
 :::
 
 ::: {#tbl:a4-varimp-full}
@@ -702,7 +702,7 @@ These tables provide exact relative-importance percentages for the top features 
 | num__fico_avg | 2.48 |
 | num__mort_acc | 2.11 |
 | num__annual_inc | 1.78 |
-: Top Variable Importance (GBM) - Full
+: Top variable importance for the GBM winner on the full dataset (production‑like benchmark). Pricing (`int_rate`) remains the primary driver, followed by term and grade bands; DTI and credit depth show stable but smaller contributions. This hierarchy aligns with underwriting practice and the PR/ROC edge observed for provider‑aware regimes.
 :::
 
 ::: {#tbl:a5-common}
@@ -718,7 +718,7 @@ These tables provide exact relative-importance percentages for the top features 
 | num__loan_amnt | 2 |
 | cat__grade_B | 2 |
 | cat__grade_A | 2 |
-: Common Drivers Across Datasets (appear in >= 2 top‑10 lists)
+: Common drivers across dataset sizes (appear in at least two top‑10 lists). The recurrence of `term`, `dti`, and `int_rate` underscores their robustness as origination‑time signals. Shared drivers help define a portable core feature set, while provider‑specific fields (pricing/grade) require drift monitoring and recalibration for deployment across contexts.
 :::
 
 # Appendix B - Per‑Dataset Run Metrics (Exact Values)
@@ -734,7 +734,7 @@ These tables list all runs per dataset with exact metrics corresponding to the A
 | run_20250925_023823 | 16 | 0.7523 | 0.4264 | 0.2034 |
 | run_20250925_021716 | 39 | 0.7467 | 0.4512 | 0.1315 |
 | run_20250925_022418 | 12 | 0.7360 | 0.4206 | 0.3879 |
-: 10k runs and metrics
+: 10k subset — exact test metrics for each evaluated configuration. Columns report feature count, ROC AUC, AUCPR, and the fixed threshold chosen on validation (Youden J) and applied to test. Use these alongside the 10k PR/ROC figures to interpret operating‑point trade‑offs; values are single‑run point estimates in Iteration 2 (no multi‑seed CIs).
 :::
 
 ::: {#tbl:b3-100k}
@@ -744,7 +744,7 @@ These tables list all runs per dataset with exact metrics corresponding to the A
 | run_20250925_033737 | 16 | 0.7392 | 0.4452 | 0.1922 |
 | run_20250925_030244 | 12 | 0.7252 | 0.4269 | 0.1652 |
 | run_20250925_024526 | 39 | 0.7304 | 0.4419 | 0.1709 |
-: 100k runs and metrics
+: 100k subset — exact test metrics for each evaluated configuration under the same time‑based protocol. AUCPR generally improves with richer features at this scale. Thresholds are fixed from validation to avoid overfitting to the test period; results are single‑run point estimates.
 :::
 
 ::: {#tbl:b4-full}
@@ -754,7 +754,7 @@ These tables list all runs per dataset with exact metrics corresponding to the A
 | run_20250925_035452 | 39 | 0.7002 | 0.3839 | 0.1649 |
 | run_20250925_053155 | 12 | 0.6815 | 0.3656 | 0.1725 |
 | run_20250925_084408 | 16 | 0.6999 | 0.3825 | 0.1644 |
-: Full runs and metrics
+: Full dataset — exact test metrics for evaluated configurations on the production‑like cohort. AUCPR reflects performance under substantial temporal drift; ROC AUC confirms ranking stability. Thresholds are fixed from validation; consider sensitivity to small threshold shifts (±0.02) when interpreting precision/recall counts.
 :::
 
 # Appendix C - Neural Network (DeepLearning) Variable-Importance Tables
@@ -777,7 +777,7 @@ These tables show top features for H2O DeepLearning (NN) per dataset, normalized
 | cat__addr_state_ND | 5.02 |
 | cat__addr_state_VT | 5.00 |
 | cat__addr_state_MT | 4.90 |
-: NN VarImp (DeepLearning) - 10k
+: Neural network variable importance (H2O DeepLearning) on the 10k subset using sensitivity‑based attribution. At this scale, attributions often spread across sub_grade levels, term, and engineered capacity features (e.g., `fico_spread`), reflecting embedding‑based representations and interactions captured by the network.
 :::
 \endgroup
 
@@ -795,7 +795,7 @@ These tables show top features for H2O DeepLearning (NN) per dataset, normalized
 | num__inq_last_6mths | 5.08 |
 | cat__purpose_debt_consolidation | 4.92 |
 | num__int_rate | 4.92 |
-: NN VarImp (DeepLearning) - 100k
+: Neural network variable importance on the 100k subset. With more data, the model elevates pricing/grade and term while retaining signal from capacity and geography. Attribution remains more diffuse than tree split‑gain, consistent with distributed embeddings; interpret with care across correlated categoricals.
 :::
 \endgroup
 
@@ -813,7 +813,7 @@ These tables show top features for H2O DeepLearning (NN) per dataset, normalized
 | cat__sub_grade_A5 | 5.01 |
 | cat__sub_grade_E4 | 4.90 |
 | cat__grade_C | 4.54 |
-: NN VarImp (DeepLearning) - full
+: Neural network variable importance on the full dataset. Focus remains on pricing (`int_rate`) and a hierarchy of sub‑grades alongside `addr_state` and `purpose`. The pattern complements GBM importance and highlights where embeddings capture within‑grade nuance that trees approximate via ordered splits.
 :::
 \endgroup
 
@@ -841,7 +841,7 @@ These tables show top features for H2O DeepLearning (NN) per dataset, normalized
 | hardship_last_payment_amount | hardship payment |
 | debt_settlement_flag / date | settlement |
 | settlement_status / date / amount / percentage / term | settlement details |
-: Leakage columns (post‑event; excluded end‑to‑end)
+: Leakage columns identified and excluded end‑to‑end because they contain post‑event information (payments, recoveries, last_* dates, hardship/settlement). Including any of these would leak target information and inflate apparent performance; removing them enforces origination‑time modeling discipline.
 :::
 \endgroup
 
@@ -856,7 +856,7 @@ These tables show top features for H2O DeepLearning (NN) per dataset, normalized
 | grade / sub_grade | aware only | policy/pricing signals; strong monotone/ordinal drivers |
 | int_rate | aware only | pricing for risk; drift‑sensitive; monotone driver |
 | installment | aware only | mostly deterministic from loan_amnt/term/int_rate |
-: Fairness / cardinality policy (examples)
+: Fairness and cardinality policy examples. Sensitive proxies (e.g., granular geography) are omitted to reduce disparate impact and improve portability; high‑cardinality categoricals are consolidated or embedded to manage sparsity. The policy balances predictive performance with governance constraints.
 :::
 \endgroup
 
@@ -874,7 +874,7 @@ These tables show top features for H2O DeepLearning (NN) per dataset, normalized
 | mort_acc; total_rev_hi_lim | capacity/depth |
 | emp_length | stability proxy |
 | home_ownership; verification_status; addr_state; purpose | context |
-: Included origination‑time signals (examples)
+: Included origination‑time signals used for modeling: stable capacity, credit history, and selected policy variables available at origination. These provide the core signal outside provider‑specific fields; their distributions are monitored for drift (PSI) to maintain model reliability over time.
 :::
 \endgroup
 
@@ -889,7 +889,7 @@ Notes. When ambiguous, we prefer omission to avoid leakage and fairness concerns
 | Hidden layers | [10, 10, 10] |
 | Activation | Rectifier |
 | Early stopping | Enabled via AutoML settings |
-: H2O DeepLearning - Default Model
+: H2O DeepLearning default configuration used as a neural baseline. Specifies architecture, activation, regularization, and training defaults prior to any grid search. Serves as a reference for comparing tree ensembles vs neural models under identical evaluation settings.
 :::
 
 ::: {#tbl:e2-dl-grids}
@@ -898,7 +898,7 @@ Notes. When ambiguous, we prefer omission to avoid leakage and fairness concerns
 | grid_1 | [20], [50], [100] | [0.0] … [0.5] (single) | RectifierWithDropout | {0.0, 0.05, 0.10, 0.15, 0.20} | {0.9, 0.95, 0.99} | {1e−6, 1e−7, 1e−8, 1e−9} | 10000 (early‑stop bound) |
 | grid_2 | [20,20], [50,50], [100,100] | [0.0,0.0] … [0.5,0.5] | RectifierWithDropout | {0.0, 0.05, 0.10, 0.15, 0.20} | {0.9, 0.95, 0.99} | {1e−6, 1e−7, 1e−8, 1e−9} | 10000 (early‑stop bound) |
 | grid_3 | [20,20,20], [50,50,50], [100,100,100] | [0.0,0.0,0.0] … [0.5,0.5,0.5] | RectifierWithDropout | {0.0, 0.05, 0.10, 0.15, 0.20} | {0.9, 0.95, 0.99} | {1e−6, 1e−7, 1e−8, 1e−9} | 10000 (early‑stop bound) |
-: H2O DeepLearning - AutoML Grids (3.46.x)
+: H2O DeepLearning AutoML grid settings (3.46.x), outlining the search over widths, depths, activations, and regularization. Grid choices are constrained to remain comparable across dataset sizes; selected winners inform the NN entries in leaderboards and importance summaries.
 :::
 
 Notes. Grids and defaults are defined in H2O AutoML sources (`DeepLearningStepsProvider.java`, rel‑3.46; our runs pin `h2o==3.46.0.7`). AutoML applies early stopping using the configured metric (we sort by AUCPR and use AUC for stopping), so `_epochs=10000` acts as an upper bound.
