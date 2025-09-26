@@ -1322,11 +1322,15 @@ tops ROC AUC while tree ensembles cluster closely; strong ranking
 supports downstream thresholding for Charged Off
 identification.</figcaption>
 </figure>
-<p><img src="reports/100k/figures/h2o_varimp_heatmap_winners.png"
-id="fig:100k-varimp"
+<figure id="fig:100k-varimp">
+<img src="reports/100k/figures/h2o_varimp_heatmap_winners.png"
 alt="100k — Variable importance heatmap (winners). Relative, model‑derived importance (GBM/XGBoost: split gain; DeepLearning: sensitivity‑based). Not pairwise correlation." />
-Method. Importance is normalized per model; compare ranks across winners
-for robustness.</p>
+<figcaption aria-hidden="true">100k — Variable importance heatmap
+(winners). Relative, model‑derived importance (GBM/XGBoost: split gain;
+DeepLearning: sensitivity‑based). Not pairwise correlation.</figcaption>
+</figure>
+<p>Method. Importance is normalized per model; compare ranks across
+winners for robustness.</p>
 <p>Curves (why shown). At 100k, enrichment sustains PR gains while
 maintaining high ROC AUC, indicating robustness rather than a narrow
 operating‑point win (see Figures and ).</p>
@@ -1385,10 +1389,14 @@ alt="Full — Leaderboard (ROC-sorted). Tree ensembles dominate ROC; consistent 
 ensembles dominate ROC; consistent ranking enables reliable threshold
 selection for Charged Off detection on out-of-time data.</figcaption>
 </figure>
-<p><img src="reports/full/figures/h2o_varimp_heatmap_winners.png"
-id="fig:full-varimp"
+<figure id="fig:full-varimp">
+<img src="reports/full/figures/h2o_varimp_heatmap_winners.png"
 alt="Full — Variable importance heatmap (winners). Relative, model‑derived importance (GBM/XGBoost: split gain; DeepLearning: sensitivity‑based). Not pairwise correlation." />
-Method. Importance summarizes contribution within each family; see
+<figcaption aria-hidden="true">Full — Variable importance heatmap
+(winners). Relative, model‑derived importance (GBM/XGBoost: split gain;
+DeepLearning: sensitivity‑based). Not pairwise correlation.</figcaption>
+</figure>
+<p>Method. Importance summarizes contribution within each family; see
 Appendix A/C for top‑10 tables.</p>
 <p>Curves (why shown). On the full dataset, both PR and ROC document
 performance and anchor the fixed threshold to the PR shape (see Figures

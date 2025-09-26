@@ -496,6 +496,7 @@ Winner and rationale. The winner uses 43 features (broad + pricing/grade). Avera
 ![100k — Leaderboard (ROC-sorted). XGBoost tops ROC AUC while tree ensembles cluster closely; strong ranking supports downstream thresholding for Charged Off identification.](reports/100k/figures/h2o_leaderboard_roc.png){#fig:100k-lbroc}
 
 ![100k — Variable importance heatmap (winners). Relative, model‑derived importance (GBM/XGBoost: split gain; DeepLearning: sensitivity‑based). Not pairwise correlation.](reports/100k/figures/h2o_varimp_heatmap_winners.png){#fig:100k-varimp}
+
 Method. Importance is normalized per model; compare ranks across winners for robustness.
 
 Curves (why shown). At 100k, enrichment sustains PR gains while maintaining high ROC AUC, indicating robustness rather than a narrow operating‑point win (see Figures \ref{fig:100k-pr} and \ref{fig:100k-roc}).
@@ -519,6 +520,7 @@ Winner and rationale. The winner uses 43 features (broad + pricing/grade). Avera
 ![Full — Leaderboard (ROC-sorted). Tree ensembles dominate ROC; consistent ranking enables reliable threshold selection for Charged Off detection on out-of-time data.](reports/full/figures/h2o_leaderboard_roc.png){#fig:full-lbroc}
 
 ![Full — Variable importance heatmap (winners). Relative, model‑derived importance (GBM/XGBoost: split gain; DeepLearning: sensitivity‑based). Not pairwise correlation.](reports/full/figures/h2o_varimp_heatmap_winners.png){#fig:full-varimp}
+
 Method. Importance summarizes contribution within each family; see Appendix A/C for top‑10 tables.
 
 Curves (why shown). On the full dataset, both PR and ROC document performance and anchor the fixed threshold to the PR shape (see Figures \ref{fig:full-pr} and \ref{fig:full-roc}).
