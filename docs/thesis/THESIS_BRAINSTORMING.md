@@ -61,11 +61,12 @@ Each experiment yields artifacts in `local_runs/` (metrics, curves, config snaps
 - Offers room for advanced extensions (survival modeling, reject inference, fairness, conformal calibration) if scope and time permit.
 
 ## Next Steps
-### Current Iteration
-- See docs/thesis/THESIS_PROPOSAL_ITERATION_1.md for the first iteration plan focused on feature set optimization with H2O.
-- Experiment configs live under docs/experiments/suites/thesis_iter1/ (1k, 10k, 100k, full; agnostic/selected/aware/selected_plus_providers).
+### Iteration Index
+- Iteration 1 (feature-set optimization, H2O AutoML): see `docs/thesis/iteration-1/THESIS_PROPOSAL_ITERATION_1.md` and the snapshot in `docs/thesis/iteration-1/` (narrative + figures).
+- Iteration 2 (neural-centric refinement, temporal CV): see `docs/thesis/iteration-2/THESIS_PROPOSAL_ITERATION_2.md` and the snapshot in `docs/thesis/iteration-2/` (HTML + figures).
+- Upstream experiment configs and reports: `docs/experiments/suites/thesis_iter1/` (1k, 10k, 100k, full; agnostic/selected/aware/selected_plus_providers).
 
 1. Finalize the experiment calendar and resource plan (compute budget, expected runtime per config).
-2. Prioritize feature stability and calibration experiments to produce early thesis figures.
+2. Prioritize Iteration 1 finalization (feature stability plots) and Iteration 2 setup (NN baseline + temporal CV) for early thesis figures.
 3. Decide on optional extensions (e.g., reject inference, survival) based on available time after core deliverables.
-4. Keep the proposal synced with code and documentation changes; ensure all final figures/tables are reproducible via Make targets.
+4. Keep proposals synced with code and documentation changes; ensure all final figures/tables are reproducible via Make targets.

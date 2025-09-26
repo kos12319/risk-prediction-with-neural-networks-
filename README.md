@@ -72,6 +72,10 @@
 - Agent Guide: `AGENTS.md`
 - ADRs: `docs/architecture/ADRs/` (legacy index at `docs/ADRs/`)
 - Note: Unified training/dryrun CLI entries have been removed. Use Make targets or backend-specific CLIs.
+ - Thesis docs:
+   - Brainstorming (overview): `docs/thesis/THESIS_BRAINSTORMING.md`
+   - Iteration 1 (feature-set optimization, H2O): `docs/thesis/iteration-1/THESIS_PROPOSAL_ITERATION_1.md` and `docs/thesis/iteration-1/`
+   - Iteration 2 (neural-centric refinement, temporal CV): `docs/thesis/iteration-2/THESIS_PROPOSAL_ITERATION_2.md` and `docs/thesis/iteration-2/`
 
 ## Docs & Architecture Governance
 - Single-source flow:

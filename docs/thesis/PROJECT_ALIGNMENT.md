@@ -1,6 +1,6 @@
 # Thesis Alignment Initiatives
 
-This memo captures engineering-side proposals that keep the codebase in lockstep with the thesis scope defined in `THESIS_PROPOSAL.md`. Each item references the relevant research question or ADR so implementation can be tracked alongside the academic narrative.
+This memo captures engineering-side proposals that keep the codebase in lockstep with the thesis scope defined in `THESIS_BRAINSTORMING.md`. Each item references the relevant research question or ADR so implementation can be tracked alongside the academic narrative.
 
 ## Time-Split Guardrails
 - Enforce `split.method: time` as the resolved default for thesis runs, adding config validation and pytest checks to flag accidental stratified splits.
@@ -8,7 +8,7 @@ This memo captures engineering-side proposals that keep the codebase in lockstep
 
 ## Temporal Stability Selection
 - Extend `src/cli/select.py` with forward/expanding-window CV so MI/L1 rankings aggregate across folds.
-- Publish selection-frequency tables and stability metrics to support **H2** in `THESIS_PROPOSAL.md`.
+- Publish selection-frequency tables and stability metrics to support **H2** in `THESIS_BRAINSTORMING.md`.
 
 ## Calibration Toolkit
 - Implement Platt, isotonic, and temperature scaling trained on validation predictions only.

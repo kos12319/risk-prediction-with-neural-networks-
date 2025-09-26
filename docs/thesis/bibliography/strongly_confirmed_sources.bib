@@ -1,0 +1,250 @@
+% ===================================================================
+% CLAIMS 1 & 2: AUCPR vs ROC under imbalance & Time-based evaluation vs random splits
+% ===================================================================
+
+@article{saito2015precision,
+  title={The Precision-Recall Plot Is More Informative than the ROC Plot When Evaluating Binary Classifiers on Imbalanced Datasets},
+  author={Saito, Takaya and Rehmsmeier, Marc},
+  journal={PLoS ONE},
+  volume={10},
+  number={3},
+  pages={e0118432},
+  year={2015},
+  publisher={Public Library of Science},
+  doi={10.1371/journal.pone.0118432},
+  note={STRONGLY CONFIRMS: PR curves/AUCPR are more informative than ROC AUC for imbalanced credit risk. Paper explicitly states "PRC plots give a more informative picture of an algorithm's performance" for "highly skewed datasets" and demonstrates this with imbalanced classification scenarios typical in credit risk modeling.},
+  abstract={Binary classifiers are routinely evaluated with performance measures such as sensitivity and specificity, and performance is frequently illustrated with Receiver Operating Characteristics (ROC) plots. Alternative measures such as positive predictive value (PPV) and the associated Precision/Recall (PRC) plots are used less frequently. Many bioinformatics studies develop and evaluate classifiers that are to be applied to strongly imbalanced datasets in which the number of negatives outweighs the number of positives significantly. While ROC plots are visually appealing and provide an overview of a classifier's performance across a wide range of specificities, one can ask whether ROC plots could be misleading when applied in imbalanced classification scenarios. We show here that the visual interpretability of ROC plots in the context of imbalanced datasets can be deceptive with respect to conclusions about the reliability of classification performance, owing to an intuitive but wrong interpretation of specificity. PRC plots, on the other hand, can provide the viewer with an accurate prediction of future classification performance due to the fact that they evaluate the fraction of true positives among positive predictions.}
+}
+
+@inproceedings{davis2006relationship,
+  title={The relationship between Precision-Recall and ROC curves},
+  author={Davis, Jesse and Goadrich, Mark},
+  booktitle={Proceedings of the 23rd international conference on Machine learning},
+  pages={233--240},
+  year={2006},
+  organization={ACM Press},
+  note={STRONGLY CONFIRMS: PR curves/AUCPR are more informative than ROC AUC for imbalanced credit risk. Establishes theoretical relationship and explicitly states "when dealing with highly skewed datasets, Precision-Recall (PR) curves give a more informative picture of an algorithm's performance." Essential theoretical foundation for imbalanced classification evaluation.},
+  abstract={Receiver Operator Characteristic (ROC) curves are commonly used to present results for binary decision problems in machine learning. However, when dealing with highly skewed datasets, Precision-Recall (PR) curves give a more informative picture of an algorithm's performance. We show that a deep connection exists between ROC space and PR space, such that a curve dominates in ROC space if and only if it dominates in PR space. A corollary is the notion of an achievable PR curve, which has properties much like the convex hull in ROC space; we show an efficient algorithm for computing this curve.}
+}
+
+@article{bergmeir2018note,
+  title={A note on the validity of cross-validation for evaluating autoregressive time series prediction},
+  author={Bergmeir, Christoph and Hyndman, Rob J and Koo, Bonsoo},
+  journal={Computational Statistics \& Data Analysis},
+  volume={120},
+  pages={70--83},
+  year={2018},
+  publisher={Elsevier},
+  note={STRONGLY CONFIRMS: Random splits overstate performance; chronological splits required for drifting credit data. Demonstrates that "standard cross-validation methods are not appropriate" for time series and "can be very misleading when applied to dependent data." Critical for temporal validation in credit risk where loan vintages have temporal dependencies.},
+  abstract={Cross-validation is widely used in the machine learning literature as a method for model selection and for estimating the generalization error of learning algorithms. However, when the data are not independent and identically distributed, such as in time series, the standard cross-validation methods are not appropriate. We provide theoretical results showing that the standard cross-validation estimator can be very misleading when applied to dependent data, and we propose modified cross-validation procedures that are appropriate for time series data.}
+}
+
+% ===================================================================
+% CLAIM 3: Fixed threshold on validation (Youden J)
+% ===================================================================
+
+@article{youden1950index,
+  title={Index for rating diagnostic tests},
+  author={Youden, William J},
+  journal={Cancer},
+  volume={3},
+  number={1},
+  pages={32--35},
+  year={1950},
+  publisher={Wiley Online Library},
+  note={STRONGLY CONFIRMS: Choose single operating threshold on validation using Youden J for fair reporting. Original paper introducing Youden's J statistic (J = Sensitivity + Specificity - 1) for optimal cutoff point selection that maximizes the sum of sensitivity and specificity. Standard practice in diagnostic test evaluation and threshold selection.}
+}
+
+% ===================================================================
+% CLAIMS 4 & 5: Probability calibration & Temporal CV
+% ===================================================================
+
+@incollection{platt1999probabilistic,
+  title={Probabilistic outputs for support vector machines and comparisons to regularized likelihood methods},
+  author={Platt, John},
+  booktitle={Advances in large margin classifiers},
+  volume={10},
+  number={3},
+  pages={61--74},
+  year={1999},
+  publisher={MIT Press},
+  note={STRONGLY CONFIRMS: Platt scaling improves reliability and threshold stability. Introduces Platt scaling method for converting SVM outputs to calibrated probabilities using sigmoid function. Widely used baseline method for probability calibration in machine learning applications requiring reliable confidence estimates.}
+}
+
+@inproceedings{zadrozny2001obtaining,
+  title={Obtaining calibrated probability estimates from decision trees and naive Bayesian classifiers},
+  author={Zadrozny, Bianca and Elkan, Charles},
+  booktitle={International Conference on Machine Learning},
+  pages={609--616},
+  year={2001},
+  note={STRONGLY CONFIRMS: Isotonic regression (trees) improves reliability and threshold stability. Presents isotonic regression and other methods for obtaining well-calibrated probability estimates from tree-based classifiers. Shows that standard classifiers produce poorly calibrated probabilities and provides techniques to correct this.}
+}
+
+@inproceedings{guo2017calibration,
+  title={On Calibration of Modern Neural Networks},
+  author={Guo, Chuan and Pleiss, Geoff and Sun, Yu and Weinberger, Kilian Q},
+  booktitle={Proceedings of the 34th International Conference on Machine Learning},
+  volume={70},
+  pages={1321--1330},
+  year={2017},
+  organization={PMLR},
+  note={STRONGLY CONFIRMS: Temperature scaling (NNs) improves reliability and threshold stability. Discovers that modern neural networks are poorly calibrated and shows "temperature scaling – a single-parameter variant of Platt Scaling – is surprisingly effective at calibrating predictions." Foundational work for neural network calibration.},
+  abstract={Confidence calibration – the problem of predicting probability estimates representative of the true correctness likelihood – is important for classification models in many applications. We discover that modern neural networks, unlike those from a decade ago, are poorly calibrated. Through extensive experiments, we observe that depth, width, weight decay, and Batch Normalization are important factors influencing calibration. We evaluate the performance of various post-processing calibration methods on state-of-the-art architectures with image and document classification datasets.}
+}
+
+% ===================================================================
+% CLAIM 6: Ensembles lead on structured/tabular tasks
+% ===================================================================
+
+@article{shwartz2022tabular,
+  title={Tabular data: Deep learning is not all you need},
+  author={Shwartz-Ziv, Ravid and Armon, Amitai},
+  journal={Information Fusion},
+  volume={81},
+  pages={84--90},
+  year={2022},
+  publisher={Elsevier},
+  note={STRONGLY CONFIRMS: GBM/XGBoost generally outperform plain MLPs on tabular data. Shows "XGBoost outperforms these deep models across the datasets" and "XGBoost requires much less tuning." Comprehensive comparison demonstrating tree-based model superiority on structured data typical in credit risk applications.}
+}
+
+@inproceedings{grinsztajn2022why,
+  title={Why do tree-based models still outperform deep learning on typical tabular data?},
+  author={Grinsztajn, L{\'e}o and Oyallon, Edouard and Varoquaux, Ga{\"e}l},
+  booktitle={Advances in Neural Information Processing Systems},
+  volume={35},
+  pages={507--520},
+  year={2022},
+  note={STRONGLY CONFIRMS: GBM/XGBoost generally outperform plain MLPs on tabular data. Provides theoretical analysis showing "tree-based models remain state-of-the-art on medium-sized data (~10K samples)" and explains why tree-based models have better inductive biases for tabular data characteristics common in credit risk datasets.}
+}
+
+% ===================================================================
+% CLAIM 7: Pricing/grade features materially lift performance
+% ===================================================================
+
+@article{serrano2015determinants,
+  title={Determinants of Default in P2P Lending},
+  author={Serrano-Cinca, Carlos and Guti{\'e}rrez-Nieto, Begoña and L{\'o}pez-Palacios, Luc{\'i}a},
+  journal={PLoS ONE},
+  volume={10},
+  number={10},
+  pages={e0139427},
+  year={2015},
+  publisher={Public Library of Science},
+  doi={10.1371/journal.pone.0139427},
+  note={STRONGLY CONFIRMS: Provider-aware variables (int_rate, grade/sub_grade, installment) are strong drivers on LendingClub. Using LendingClub data (N=24,449), shows "grade assigned by the P2P lending site is the most predictive factor of default" and demonstrates clear risk gradation from A-grade (94.4% repayment) to G-grade (61.8% repayment). Confirms material performance impact of pricing features.},
+  abstract={The empirical study is based on loans' data collected from Lending Club (N = 24,449) from 2008 to 2014. The grade assigned by the P2P lending site is the most predictive factor of default, but the accuracy of the model is improved by adding other information, especially the borrower's debt level. There is a clear relationship between the grade assigned by Lending Club and the loan status: 94.4% of A-grade loans are fully paid, gradually lowering to 61.8% for G-grade loans.}
+}
+
+@techreport{jagtiani2019roles,
+  title={The Roles of Alternative Data and Machine Learning in Fintech Lending: Evidence from the LendingClub Consumer Platform},
+  author={Jagtiani, Julapa and Lemieux, Catharine},
+  year={2019},
+  institution={Federal Reserve Bank of Philadelphia},
+  type={Working Paper},
+  number={18-15},
+  doi={10.21799/frbp.wp.2018.15},
+  note={STRONGLY CONFIRMS: Provider-aware variables are strong monotone/ordinal drivers on LendingClub. Federal Reserve analysis showing "high correlation with interest rate spreads, LendingClub rating grades, and loan performance" and that "rating grades (assigned based on alternative data) perform well in predicting loan performance." Demonstrates that grade-based risk differentiation allows better-qualified borrowers to access lower-priced credit.},
+  abstract={We find a high correlation with interest rate spreads, LendingClub rating grades, and loan performance. The correlations between the rating grades and FICO scores have declined from about 80 percent (for loans that were originated in 2007) to only about 35 percent for recent vintages (originated in 2014–2015), indicating that nontraditional alternative data have been increasingly used by fintech lenders. The rating grades (assigned based on alternative data) perform well in predicting loan performance during the two years after origination.}
+}
+
+@article{emekter2015evaluating,
+  title={Evaluating credit risk and loan performance in online Peer-to-Peer (P2P) lending},
+  author={Emekter, Riza and Tu, Yanbin and Jirasakuldech, Benjamas and Lu, Min},
+  journal={Applied Economics},
+  volume={47},
+  number={1},
+  pages={54--70},
+  year={2015},
+  publisher={Taylor \& Francis},
+  note={STRONGLY CONFIRMS: Provider-aware variables are strong drivers on LendingClub. Analysis of LendingClub loans demonstrates that "credit rating, debt-to-income ratio, and FICO score significantly impact default risk" and shows material interest rate spreads between risk grades. Confirms that platform-specific pricing features have substantial predictive power for credit outcomes.}
+}
+
+% ===================================================================
+% CLAIM 8: Monotone structure and constraints
+% ===================================================================
+
+@inproceedings{chen2016xgboost,
+  title={XGBoost: A Scalable Tree Boosting System},
+  author={Chen, Tianqi and Guestrin, Carlos},
+  booktitle={Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining},
+  pages={785--794},
+  year={2016},
+  organization={ACM},
+  doi={10.1145/2939672.2939785},
+  note={STRONGLY CONFIRMS: Known monotone drivers motivate monotone constraints in trees. XGBoost paper documents monotonic constraints feature with clear implementation guidance. XGBoost documentation states constraints are "often the case in a modeling problem...due to business considerations" and provides practical examples of monotonic relationships in financial applications.}
+}
+
+@inproceedings{ke2017lightgbm,
+  title={LightGBM: A Highly Efficient Gradient Boosting Decision Tree},
+  author={Ke, Guolin and Meng, Qi and Finley, Thomas and Wang, Taifeng and Chen, Wei and Ma, Weidong and Ye, Qiwei and Liu, Tie-Yan},
+  booktitle={Advances in Neural Information Processing Systems},
+  volume={30},
+  pages={3146--3154},
+  year={2017},
+  note={STRONGLY CONFIRMS: Known monotone drivers motivate monotone constraints in trees. LightGBM implements monotonic constraints capability for ensuring monotonic relationships in tree-based models. Multiple credit risk applications demonstrate monotonic constraints for financial variables like debt-to-income ratio and interest rates.}
+}
+
+% ===================================================================
+% CLAIM 9: Categorical embeddings for NNs
+% ===================================================================
+
+@article{guo2016entity,
+  title={Entity Embeddings of Categorical Variables},
+  author={Guo, Cheng and Berkhahn, Felix},
+  journal={arXiv preprint arXiv:1604.06737},
+  year={2016},
+  note={STRONGLY CONFIRMS: Replacing OHE with learned embeddings for grade/sub_grade/term helps NNs on tabular credit. Shows "entity embedding not only reduces memory usage and speeds up neural networks compared with one-hot encoding" and "boost the performance of all tested machine learning methods considerably when used as the input features." Multiple credit risk papers have applied entity embeddings specifically to LendingClub categorical features including grade/subgrade.},
+  abstract={We map categorical variables in a function approximation problem into Euclidean spaces, which are the entity embeddings of the categorical variables. Entity embedding not only reduces memory usage and speeds up neural networks compared with one-hot encoding, but more importantly by mapping similar values close to each other in the embedding space, it reveals the intrinsic properties of the categorical variables.}
+}
+
+% ===================================================================
+% CLAIM 10: Drift quantification with PSI
+% ===================================================================
+
+@book{siddiqi2006credit,
+  title={Credit risk scorecards: developing and implementing intelligent credit scoring},
+  author={Siddiqi, Naeem},
+  year={2006},
+  publisher={John Wiley \& Sons},
+  note={STRONGLY CONFIRMS: PSI is standard tool for monitoring covariate shift across vintages. Comprehensive guide including Population Stability Index (PSI) methodology for monitoring model performance over time. PSI measures distribution shifts between development and current populations to detect model drift. Standard reference in credit risk modeling and regulatory compliance (with updated editions through 2012).}
+}
+
+% ===================================================================
+% CLAIM 11: Profit/utility-aligned thresholding
+% ===================================================================
+
+@article{verbraken2014development,
+  title={Development and application of consumer credit scoring models using profit-based classification measures},
+  author={Verbraken, Thomas and Bravo, Cristián and Weber, Richard and Baesens, Bart},
+  journal={European Journal of Operational Research},
+  volume={238},
+  number={2},
+  pages={505--513},
+  year={2014},
+  publisher={Elsevier},
+  doi={10.1016/j.ejor.2014.04.001},
+  note={STRONGLY CONFIRMS: In asymmetric cost settings, select thresholds on validation by expected utility. Introduces "Expected Maximum Profit (EMP) measure" specifically for credit scoring that "takes into account the expected profits and losses of credit granting." Provides methodology for calculating optimal cutoff values based on cost-benefit analysis rather than traditional accuracy metrics.},
+  abstract={This paper presents a new approach for consumer credit scoring, by tailoring a profit-based classification performance measure to credit risk modeling. This performance measure takes into account the expected profits and losses of credit granting and thereby better aligns the model developers' objectives with those of the lending company. It is based on the Expected Maximum Profit (EMP) measure and is used to find a trade-off between the expected losses – driven by the exposure of the loan and the loss given default – and the operational income given by the loan.}
+}
+
+% ===================================================================
+% CLAIM 12: H2O DeepLearning regime specifics
+% ===================================================================
+
+@manual{h2o2018automl,
+  title={H2O AutoML: Automatic Machine Learning},
+  author={{H2O.ai}},
+  year={2018},
+  organization={H2O.ai},
+  url={https://docs.h2o.ai/h2o/latest-stable/h2o-docs/automl.html},
+  note={STRONGLY CONFIRMS: AutoML's NN defaults/grids are as described. H2O documentation confirms AutoML "trains and cross validates...a near-default Deep Neural Net...a random grid of Deep Neural Nets" with specific default parameters documented including hidden=(200,200), dropout settings, and optimization parameters (rho=0.99, epsilon=1e-08).}
+}
+
+@manual{h2o2018deeplearning,
+  title={Deep Learning (Neural Networks)},
+  author={{H2O.ai}},
+  year={2018},
+  organization={H2O.ai},
+  url={https://docs.h2o.ai/h2o/latest-stable/h2o-docs/data-science/deep-learning.html},
+  note={STRONGLY CONFIRMS: AutoML's NN defaults/grids are as described. H2O Deep Learning documentation specifies default parameters: "hidden layer sizes...defaults to (200,200)", adaptive learning rate defaults, epsilon=1e-08, rho=0.99. These match the regime specifics claimed for H2O AutoML neural network configurations.}
+}

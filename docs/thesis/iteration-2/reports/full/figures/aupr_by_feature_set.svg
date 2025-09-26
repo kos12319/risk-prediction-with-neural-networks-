@@ -1,0 +1,43 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='550' height='450' viewBox='0 0 550 450'>
+<rect width='550' height='450' fill='white'/>
+<text x='275.0' y='20' font-family='Arial' font-size='16' text-anchor='middle'>AUCPR by Feature Set — full</text>
+<line x1='80' y1='30' x2='80' y2='310' stroke='#444' stroke-width='1' />
+<line x1='80' y1='310' x2='530' y2='310' stroke='#444' stroke-width='1' />
+<line x1='75' y1='310.0' x2='80' y2='310.0' stroke='#444' />
+<text x='70' y='314.0' font-family='Arial' font-size='10' text-anchor='end'>0.00</text>
+<line x1='80' y1='310.0' x2='530' y2='310.0' stroke='#eee' />
+<line x1='75' y1='245.3' x2='80' y2='245.3' stroke='#444' />
+<text x='70' y='249.3' font-family='Arial' font-size='10' text-anchor='end'>0.10</text>
+<line x1='80' y1='245.3' x2='530' y2='245.3' stroke='#eee' />
+<line x1='75' y1='180.6' x2='80' y2='180.6' stroke='#444' />
+<text x='70' y='184.6' font-family='Arial' font-size='10' text-anchor='end'>0.20</text>
+<line x1='80' y1='180.6' x2='530' y2='180.6' stroke='#eee' />
+<line x1='75' y1='115.9' x2='80' y2='115.9' stroke='#444' />
+<text x='70' y='119.9' font-family='Arial' font-size='10' text-anchor='end'>0.30</text>
+<line x1='80' y1='115.9' x2='530' y2='115.9' stroke='#eee' />
+<line x1='75' y1='51.2' x2='80' y2='51.2' stroke='#444' />
+<text x='70' y='55.2' font-family='Arial' font-size='10' text-anchor='end'>0.40</text>
+<line x1='80' y1='51.2' x2='530' y2='51.2' stroke='#eee' />
+<rect x='80' y='55.5' width='90' height='254.5' fill='#1f77b4' />
+<text x='125.0' y='51.5' font-family='Arial' font-size='10' text-anchor='middle'>0.393</text>
+<g transform='translate(125.0,322) rotate(35)'>
+  <text font-family='Arial' font-size='10' text-anchor='start'>run_20250925_070714 (43 + pricing)</text>
+</g>
+<rect x='200' y='61.6' width='90' height='248.4' fill='#2ca02c' />
+<text x='245.0' y='57.6' font-family='Arial' font-size='10' text-anchor='middle'>0.384</text>
+<g transform='translate(245.0,322) rotate(35)'>
+  <text font-family='Arial' font-size='10' text-anchor='start'>run_20250925_035452 (39)</text>
+</g>
+<rect x='320' y='62.6' width='90' height='247.4' fill='#1f77b4' />
+<text x='365.0' y='58.6' font-family='Arial' font-size='10' text-anchor='middle'>0.382</text>
+<g transform='translate(365.0,322) rotate(35)'>
+  <text font-family='Arial' font-size='10' text-anchor='start'>run_20250925_084408 (16 + pricing)</text>
+</g>
+<rect x='440' y='73.5' width='90' height='236.5' fill='#2ca02c' />
+<text x='485.0' y='69.5' font-family='Arial' font-size='10' text-anchor='middle'>0.366</text>
+<g transform='translate(485.0,322) rotate(35)'>
+  <text font-family='Arial' font-size='10' text-anchor='start'>run_20250925_053155 (12)</text>
+</g>
+<rect x='310' y='40' width='12' height='12' fill='#1f77b4'/><text x='328' y='50' font-family='Arial' font-size='10'>Has pricing/grade</text>
+<rect x='310' y='58' width='12' height='12' fill='#2ca02c'/><text x='328' y='68' font-family='Arial' font-size='10'>No pricing/grade</text>
+</svg>
