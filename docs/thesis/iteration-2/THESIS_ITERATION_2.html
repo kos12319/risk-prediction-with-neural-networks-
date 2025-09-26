@@ -1154,7 +1154,7 @@ always chosen on validation and fixed for test.</p>
 <h1 id="results-winners-and-cross-dataset-comparison">8 Results: Winners
 and Cross-Dataset Comparison</h1>
 <p>Table 1 summarizes the winning configuration (by AUCPR) per dataset
-size, along with ROC AUC. See per-dataset figures in Section 8.</p>
+size, along with ROC AUC. See per‑dataset figures in Section 9.</p>
 <div id="tbl:winners">
 <table>
 <caption>Winners by dataset size (best AUCPR per size) — model family
@@ -1260,15 +1260,16 @@ alt="10k — VarImp heatmap (winners)." />
 (winners).</figcaption>
 </figure>
 <p>Curves (why shown). At 10k, enrichment improves both
-threshold-sensitive performance (PR) and threshold-free ranking (ROC),
-suggesting a genuine gain rather than a threshold artifact.</p>
+threshold‑sensitive performance (PR) and threshold‑free ranking (ROC),
+suggesting a genuine gain rather than a threshold artifact (see Figures
+and ).</p>
 <p>Model comparison (why shown). Comparing PR across the top models
-makes the magnitude of improvement tangible; this is preferred over
-single-number summaries because AUCPR integrates across all operating
-points.</p>
+makes the magnitude of improvement tangible (see Figure ); this is
+preferred over single‑number summaries because AUCPR integrates across
+all operating points.</p>
 <p>Explainability (why shown). <code>int_rate</code>, term, and grade
 carry much of the discriminative power at 10k—evidence to include these
-features at this scale while monitoring drift.</p>
+features at this scale while monitoring drift (see Figure ).</p>
 <p>Interpretation and NN contrast. Adding pricing/grade yields a
 noticeable AUCPR lift relative to 12- or 39-feature baselines.
 <code>int_rate</code> emerges as a dominant driver, with term and grade
@@ -1312,12 +1313,13 @@ alt="100k — VarImp heatmap (winners)." />
 </figure>
 <p>Curves (why shown). At 100k, enrichment sustains PR gains while
 maintaining high ROC AUC, indicating robustness rather than a narrow
-operating-point win.</p>
+operating‑point win (see Figures and ).</p>
 <p>Model comparison (why shown). ROC comparisons highlight where
-ensembles outperform alternatives, which is appropriate for
-ranking-focused screening.</p>
+ensembles outperform alternatives (see Figure ), which is appropriate
+for ranking‑focused screening.</p>
 <p>Explainability (why shown). Pricing/grade dominate at scale, with
-<code>dti</code> and credit depth contributing incremental lift.</p>
+<code>dti</code> and credit depth contributing incremental lift (see
+Figure ).</p>
 <p>Interpretation and NN contrast. With more data, pricing and grading
 fully dominate variable importance, with <code>dti</code>, credit depth,
 and loan size adding incremental signal. Tree ensembles (GBM/XGBoost)
@@ -1367,13 +1369,14 @@ alt="Full — VarImp heatmap (winners)." />
 (winners).</figcaption>
 </figure>
 <p>Curves (why shown). On the full dataset, both PR and ROC document
-performance and anchor the fixed threshold to the PR shape.</p>
+performance and anchor the fixed threshold to the PR shape (see Figures
+and ).</p>
 <p>Model comparison (why shown). Comparing the strongest contenders in
 both PR and ROC spaces ensures the chosen winner is not an artifact of a
-single metric.</p>
+single metric (see Figures and ).</p>
 <p>Explainability (why shown). Pricing (<code>int_rate</code>), term,
 and grade dominate feature importance—evidence for including these
-variables in production-scale models.</p>
+variables in production‑scale models (see Figure ).</p>
 <p>NN attributions vs GBM (full). For the full dataset, NN varimp
 (deeplearning) elevates <code>int_rate</code> and a hierarchy of
 sub-grades (A1–A4) alongside <code>addr_state_CA</code> and

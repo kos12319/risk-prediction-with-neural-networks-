@@ -436,7 +436,7 @@ Notes. Budgets scale with dataset size (cf. suite run scripts); leaderboard sort
 
 # 8 Results: Winners and Cross-Dataset Comparison
 
-Table 1 summarizes the winning configuration (by AUCPR) per dataset size, along with ROC AUC. See per-dataset figures in Section 8.
+Table 1 summarizes the winning configuration (by AUCPR) per dataset size, along with ROC AUC. See per‑dataset figures in Section 9.
 
 ::: {#tbl:winners}
 | Dataset | Winner Family | Feature Regime | Avg Precision | ROC AUC |
@@ -478,11 +478,11 @@ Winner and rationale. The winner uses 43 features (broad + pricing/grade). Avera
 
 ![10k — VarImp heatmap (winners).](reports/10k/figures/h2o_varimp_heatmap_winners.png){#fig:10k-varimp}
 
-Curves (why shown). At 10k, enrichment improves both threshold-sensitive performance (PR) and threshold-free ranking (ROC), suggesting a genuine gain rather than a threshold artifact.
+Curves (why shown). At 10k, enrichment improves both threshold‑sensitive performance (PR) and threshold‑free ranking (ROC), suggesting a genuine gain rather than a threshold artifact (see Figures \ref{fig:10k-pr} and \ref{fig:10k-roc}).
 
-Model comparison (why shown). Comparing PR across the top models makes the magnitude of improvement tangible; this is preferred over single-number summaries because AUCPR integrates across all operating points.
+Model comparison (why shown). Comparing PR across the top models makes the magnitude of improvement tangible (see Figure \ref{fig:10k-lbpr}); this is preferred over single‑number summaries because AUCPR integrates across all operating points.
 
-Explainability (why shown). `int_rate`, term, and grade carry much of the discriminative power at 10k—evidence to include these features at this scale while monitoring drift.
+Explainability (why shown). `int_rate`, term, and grade carry much of the discriminative power at 10k—evidence to include these features at this scale while monitoring drift (see Figure \ref{fig:10k-varimp}).
 
 Interpretation and NN contrast. Adding pricing/grade yields a noticeable AUCPR lift relative to 12- or 39-feature baselines. `int_rate` emerges as a dominant driver, with term and grade bands providing additional stratification. Ensembles lead overall; NNs benefit from richer signals but remain slightly behind top GBM/XGBoost here. NN varimp (deeplearning) highlights `fico_spread`, term, and select purpose/state dummies—overlapping with GBM drivers but often spreading attribution across categorical partitions rather than ranking `int_rate` as sharply as GBM. This suggests NNs can leverage generalizable capacity/depth cues but may require explicit encoding/regularization to fully exploit pricing/grade at this scale.
 
@@ -498,11 +498,11 @@ Winner and rationale. The winner uses 43 features (broad + pricing/grade). Avera
 
 ![100k — VarImp heatmap (winners).](reports/100k/figures/h2o_varimp_heatmap_winners.png){#fig:100k-varimp}
 
-Curves (why shown). At 100k, enrichment sustains PR gains while maintaining high ROC AUC, indicating robustness rather than a narrow operating-point win.
+Curves (why shown). At 100k, enrichment sustains PR gains while maintaining high ROC AUC, indicating robustness rather than a narrow operating‑point win (see Figures \ref{fig:100k-pr} and \ref{fig:100k-roc}).
 
-Model comparison (why shown). ROC comparisons highlight where ensembles outperform alternatives, which is appropriate for ranking-focused screening.
+Model comparison (why shown). ROC comparisons highlight where ensembles outperform alternatives (see Figure \ref{fig:100k-lbroc}), which is appropriate for ranking‑focused screening.
 
-Explainability (why shown). Pricing/grade dominate at scale, with `dti` and credit depth contributing incremental lift.
+Explainability (why shown). Pricing/grade dominate at scale, with `dti` and credit depth contributing incremental lift (see Figure \ref{fig:100k-varimp}).
 
 Interpretation and NN contrast. With more data, pricing and grading fully dominate variable importance, with `dti`, credit depth, and loan size adding incremental signal. Tree ensembles (GBM/XGBoost) capitalize on these structured interactions and achieve top performance. NN varimp at 100k ranks grade/term, `int_rate`, and `fico_spread` among top drivers, but the attribution remains more distributed across sub-grades and home-ownership states compared to GBM’s sharper focus on `int_rate` and term. This is consistent with NNs learning broader categorical embeddings that capture latent structure.
 
@@ -520,11 +520,11 @@ Winner and rationale. The winner uses 43 features (broad + pricing/grade). Avera
 
 ![Full — VarImp heatmap (winners).](reports/full/figures/h2o_varimp_heatmap_winners.png){#fig:full-varimp}
 
-Curves (why shown). On the full dataset, both PR and ROC document performance and anchor the fixed threshold to the PR shape.
+Curves (why shown). On the full dataset, both PR and ROC document performance and anchor the fixed threshold to the PR shape (see Figures \ref{fig:full-pr} and \ref{fig:full-roc}).
 
-Model comparison (why shown). Comparing the strongest contenders in both PR and ROC spaces ensures the chosen winner is not an artifact of a single metric.
+Model comparison (why shown). Comparing the strongest contenders in both PR and ROC spaces ensures the chosen winner is not an artifact of a single metric (see Figures \ref{fig:full-lbpr} and \ref{fig:full-lbroc}).
 
-Explainability (why shown). Pricing (`int_rate`), term, and grade dominate feature importance—evidence for including these variables in production-scale models.
+Explainability (why shown). Pricing (`int_rate`), term, and grade dominate feature importance—evidence for including these variables in production‑scale models (see Figure \ref{fig:full-varimp}).
 
 NN attributions vs GBM (full). For the full dataset, NN varimp (deeplearning) elevates `int_rate` and a hierarchy of sub-grades (A1–A4) alongside `addr_state_CA` and `purpose_debt_consolidation`, while GBM varimp emphasizes `int_rate`, term (36/60), grade bands, and DTI. The overlap on `int_rate` and grade is substantial, but the NN’s finer-grained focus on sub-grade categories suggests that learned embeddings capture within-grade nuances. GBM’s stronger ranking of term is consistent with tree splits exploiting the 36/60 dichotomy efficiently. This contrast supports using embeddings and monotonic cues in NNs so they can match the crispness of tree splits on known monotone drivers.
 
