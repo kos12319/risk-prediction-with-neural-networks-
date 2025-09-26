@@ -64,10 +64,7 @@ Contributions.
   - H2: Gradient‑boosted trees outperform other families on larger tabular datasets; NNs can be competitive at smaller scales but lag without tailored encodings and calibration.
 - RQ3: How does dataset size interact with temporal drift to influence out‑of‑time AUCPR and thresholded performance?
   - H3: AUCPR plateaus or declines at “full” vs 10k/100k due to drift across vintages; recency weighting and temporal CV mitigate this effect.
-- RQ4: Does validation‑chosen thresholding (Youden J) yield stable operating points across scales?
-  - H4: Fixing thresholds on validation produces consistent precision/recall trade‑offs; alternative strategies (F1, fixed‑recall) shift operating points and will be evaluated in Iteration 3.
-- RQ5: Can NN‑specific design (categorical embeddings, monotonic cues, strong regularization, calibration) close the gap with boosting?
-  - H5: Such designs narrow the AUCPR gap; a PyTorch baseline with embeddings and calibration is planned for Iteration 3.
+ 
 
 # 2 Related Work
 
