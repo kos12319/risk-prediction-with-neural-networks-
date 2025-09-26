@@ -262,7 +262,7 @@ Missingness and leakage (why shown). [Figure](#fig:eda-missingness) surfaces hig
 
 ![Top missingness by column. Post‑event fields (e.g., hardship/settlement, last payment) are high‑missing and leaky; exclude for origination‑time modeling.](../../exploration/figures/missingness_top.png){#fig:eda-missingness}
 
-Distributions (why shown). Histograms contextualize ranges, outliers, and monotonic expectations—inputs to winsorization and monotone priors for NNs.
+Distributions (why shown). Histograms contextualize ranges, outliers, and monotonic expectations—inputs to winsorization and monotone priors for NNs (see Figures [loan amount](#fig:eda-hist-loan), [interest rate](#fig:eda-hist-int), [FICO average](#fig:eda-hist-fico), and [DTI](#fig:eda-hist-dti)).
 
 ![Loan amount distribution by class. Used to motivate ratio features and outlier handling.](../../exploration/figures/hist_loan_amnt_orig.png){#fig:eda-hist-loan}
 
@@ -272,7 +272,7 @@ Distributions (why shown). Histograms contextualize ranges, outliers, and monoto
 
 ![DTI distribution by class. Guides winsorization and monotone treatment in NN priors.](../../exploration/figures/hist_dti_orig.png){#fig:eda-hist-dti}
 
-Categoricals (why shown). Bar plots reveal ordinal monotonicity (grade/sub_grade), policy signals (term), and context (purpose, home ownership).
+Categoricals (why shown). Bar plots reveal ordinal monotonicity (grade/sub_grade), policy signals (term), and context (purpose, home ownership) (see Figures [grade](#fig:eda-cat-grade), [sub‑grade](#fig:eda-cat-subgrade), [term](#fig:eda-cat-term), and [purpose](#fig:eda-cat-purpose)).
 
 ![Grade — counts and default rates. Default increases A→G; volume concentrated in B–D.](../../exploration/figures/cat_grade_orig.png){#fig:eda-cat-grade}
 
@@ -282,7 +282,7 @@ Categoricals (why shown). Bar plots reveal ordinal monotonicity (grade/sub_grade
 
 ![Purpose — counts and default rates. Captures intent heterogeneity; useful but drifts modestly.](../../exploration/figures/cat_purpose_orig.png){#fig:eda-cat-purpose}
 
-Leakage demonstration and signal strength (why shown). We include two correlation panels and two PSI panels to (i) contrast origination‑only vs leaky features and (ii) quantify temporal drift.
+Leakage demonstration and signal strength (why shown). We include two correlation panels and two PSI panels to (i) contrast origination‑only vs leaky features and (ii) quantify temporal drift (see Figures [origination‑only correlations](#fig:eda-corr-orig), [leaky correlations](#fig:eda-corr-leaky), [numeric PSI](#fig:eda-psi-num), and [categorical PSI](#fig:eda-psi-cat)).
 
 ![Top |corr| with target (origination‑only). FICO anti‑correlates; DTI/utilization correlate positively.](../../exploration/figures/top_corr_numeric_orig.png){#fig:eda-corr-orig}
 

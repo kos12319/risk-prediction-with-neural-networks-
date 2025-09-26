@@ -678,7 +678,10 @@ leaky; exclude for origination‑time modeling.</figcaption>
 </figure>
 <p>Distributions (why shown). Histograms contextualize ranges, outliers,
 and monotonic expectations—inputs to winsorization and monotone priors
-for NNs.</p>
+for NNs (see Figures <a href="#fig:eda-hist-loan">loan amount</a>, <a
+href="#fig:eda-hist-int">interest rate</a>, <a
+href="#fig:eda-hist-fico">FICO average</a>, and <a
+href="#fig:eda-hist-dti">DTI</a>).</p>
 <figure id="fig:eda-hist-loan">
 <img src="../../exploration/figures/hist_loan_amnt_orig.png"
 alt="Loan amount distribution by class. Used to motivate ratio features and outlier handling." />
@@ -707,7 +710,10 @@ winsorization and monotone treatment in NN priors.</figcaption>
 </figure>
 <p>Categoricals (why shown). Bar plots reveal ordinal monotonicity
 (grade/sub_grade), policy signals (term), and context (purpose, home
-ownership).</p>
+ownership) (see Figures <a href="#fig:eda-cat-grade">grade</a>, <a
+href="#fig:eda-cat-subgrade">sub‑grade</a>, <a
+href="#fig:eda-cat-term">term</a>, and <a
+href="#fig:eda-cat-purpose">purpose</a>).</p>
 <figure id="fig:eda-cat-grade">
 <img src="../../exploration/figures/cat_grade_orig.png"
 alt="Grade — counts and default rates. Default increases A→G; volume concentrated in B–D." />
@@ -736,7 +742,11 @@ Captures intent heterogeneity; useful but drifts modestly.</figcaption>
 </figure>
 <p>Leakage demonstration and signal strength (why shown). We include two
 correlation panels and two PSI panels to (i) contrast origination‑only
-vs leaky features and (ii) quantify temporal drift.</p>
+vs leaky features and (ii) quantify temporal drift (see Figures <a
+href="#fig:eda-corr-orig">origination‑only correlations</a>, <a
+href="#fig:eda-corr-leaky">leaky correlations</a>, <a
+href="#fig:eda-psi-num">numeric PSI</a>, and <a
+href="#fig:eda-psi-cat">categorical PSI</a>).</p>
 <figure id="fig:eda-corr-orig">
 <img src="../../exploration/figures/top_corr_numeric_orig.png"
 alt="Top |corr| with target (origination‑only). FICO anti‑correlates; DTI/utilization correlate positively." />
