@@ -470,11 +470,11 @@ We now analyze each dataset size (10k, 100k, full), include curves and explainab
 
 Winner and rationale. The winner uses 43 features (broad + pricing/grade). Average Precision is 0.4601; ROC AUC is 0.7591. At this scale, enriched pricing/grade features tend to lift PR in the high-recall region where false positives are costly.
 
-![10k — Precision–Recall curve (winner).](reports/10k/figures/pr_curve.png){#fig:10k-pr}
+![10k — Precision–Recall curve (winner). Winner: GBM (Broad+Pricing/Grade, 43 features). The curve sustains higher precision across actionable recall levels for the positive class (Charged Off, pos=0), indicating fewer false approvals at comparable catch rates.](reports/10k/figures/pr_curve.png){#fig:10k-pr}
 
-![10k — ROC curve (winner).](reports/10k/figures/roc_curve.png){#fig:10k-roc}
+![10k — ROC curve (winner). Winner: GBM. High ranking quality (ROC AUC) supports stable ordering of applicants; this underpins threshold transfer for Charged Off detection when prevalence shifts.](reports/10k/figures/roc_curve.png){#fig:10k-roc}
 
-![10k — Leaderboard (PR-sorted).](reports/10k/figures/h2o_leaderboard_pr.png){#fig:10k-lbpr}
+![10k — Leaderboard (PR-sorted). GBM leads on Average Precision with the Broad+Pricing/Grade regime; higher AP reflects better precision at recall for Charged Off, the operational target.](reports/10k/figures/h2o_leaderboard_pr.png){#fig:10k-lbpr}
 
 ![10k — Variable importance heatmap (winners). Relative, model‑derived importance from H2O winners (GBM/XGBoost: split gain; DeepLearning: sensitivity‑based). Not pairwise correlation; captures non‑linear effects.](reports/10k/figures/h2o_varimp_heatmap_winners.png){#fig:10k-varimp}
 
@@ -492,11 +492,11 @@ Interpretation and NN contrast. Adding pricing/grade yields a noticeable AUCPR l
 
 Winner and rationale. The winner uses 43 features (broad + pricing/grade). Average Precision is 0.4524; ROC AUC is 0.7435. With more data, the model can exploit richer interactions embedded in pricing/grade without overfitting.
 
-![100k — Precision–Recall curve (winner).](reports/100k/figures/pr_curve.png){#fig:100k-pr}
+![100k — Precision–Recall curve (winner). Winner: XGBoost (Broad+Pricing/Grade, 43 features). PR dominance indicates improved screening for Charged Off by maintaining precision at relevant recalls on a larger sample.](reports/100k/figures/pr_curve.png){#fig:100k-pr}
 
-![100k — ROC curve (winner).](reports/100k/figures/roc_curve.png){#fig:100k-roc}
+![100k — ROC curve (winner). Winner: XGBoost. Strong ROC confirms robust ranking; combined with fixed validation-chosen thresholds, this supports consistent Charged Off decisions.](reports/100k/figures/roc_curve.png){#fig:100k-roc}
 
-![100k — Leaderboard (ROC-sorted).](reports/100k/figures/h2o_leaderboard_roc.png){#fig:100k-lbroc}
+![100k — Leaderboard (ROC-sorted). XGBoost tops ROC AUC while tree ensembles cluster closely; strong ranking supports downstream thresholding for Charged Off identification.](reports/100k/figures/h2o_leaderboard_roc.png){#fig:100k-lbroc}
 
 ![100k — Variable importance heatmap (winners). Relative, model‑derived importance (GBM/XGBoost: split gain; DeepLearning: sensitivity‑based). Not pairwise correlation.](reports/100k/figures/h2o_varimp_heatmap_winners.png){#fig:100k-varimp}
 Method. Importance is normalized per model; compare ranks across winners for robustness.
@@ -513,13 +513,13 @@ Interpretation and NN contrast. With more data, pricing and grading fully domina
 
 Winner and rationale. The winner uses 43 features (broad + pricing/grade). Average Precision is 0.3934; ROC AUC is 0.7093. Threshold (Youden J, selected on validation): 0.1765. Confusion (test): tp=36,227; tn=129,969; fp=68,284; fn=19,876 (Precision 0.347; Recall 0.646; FPR 0.344). We report PR and ROC because they serve complementary roles: PR guides action under imbalance; ROC validates stable ranking.
 
-![Full — Precision–Recall curve (winner).](reports/full/figures/pr_curve.png){#fig:full-pr}
+![Full — Precision–Recall curve (winner). Winner: GBM (Broad+Pricing/Grade). The PR envelope is widest for the winner, yielding better precision at the fixed validation-selected threshold for detecting Charged Off.](reports/full/figures/pr_curve.png){#fig:full-pr}
 
-![Full — ROC curve (winner).](reports/full/figures/roc_curve.png){#fig:full-roc}
+![Full — ROC curve (winner). Winner: GBM. ROC complements PR by confirming ranking stability at production scale, important when prevalence and drift vary.](reports/full/figures/roc_curve.png){#fig:full-roc}
 
-![Full — Leaderboard (PR-sorted).](reports/full/figures/h2o_leaderboard_pr.png){#fig:full-lbpr}
+![Full — Leaderboard (PR-sorted). GBM achieves the highest Average Precision with Broad+Pricing/Grade; this directly translates to fewer false approvals for Charged Off at comparable recall.](reports/full/figures/h2o_leaderboard_pr.png){#fig:full-lbpr}
 
-![Full — Leaderboard (ROC-sorted).](reports/full/figures/h2o_leaderboard_roc.png){#fig:full-lbroc}
+![Full — Leaderboard (ROC-sorted). Tree ensembles dominate ROC; consistent ranking enables reliable threshold selection for Charged Off detection on out-of-time data.](reports/full/figures/h2o_leaderboard_roc.png){#fig:full-lbroc}
 
 ![Full — Variable importance heatmap (winners). Relative, model‑derived importance (GBM/XGBoost: split gain; DeepLearning: sensitivity‑based). Not pairwise correlation.](reports/full/figures/h2o_varimp_heatmap_winners.png){#fig:full-varimp}
 Method. Importance summarizes contribution within each family; see Appendix A/C for top‑10 tables.

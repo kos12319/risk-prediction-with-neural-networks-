@@ -1238,20 +1238,28 @@ scale, enriched pricing/grade features tend to lift PR in the
 high-recall region where false positives are costly.</p>
 <figure id="fig:10k-pr">
 <img src="reports/10k/figures/pr_curve.png"
-alt="10k — Precision–Recall curve (winner)." />
-<figcaption aria-hidden="true">10k — Precision–Recall curve
-(winner).</figcaption>
+alt="10k — Precision–Recall curve (winner). Winner: GBM (Broad+Pricing/Grade, 43 features). The curve sustains higher precision across actionable recall levels for the positive class (Charged Off, pos=0), indicating fewer false approvals at comparable catch rates." />
+<figcaption aria-hidden="true">10k — Precision–Recall curve (winner).
+Winner: GBM (Broad+Pricing/Grade, 43 features). The curve sustains
+higher precision across actionable recall levels for the positive class
+(Charged Off, pos=0), indicating fewer false approvals at comparable
+catch rates.</figcaption>
 </figure>
 <figure id="fig:10k-roc">
 <img src="reports/10k/figures/roc_curve.png"
-alt="10k — ROC curve (winner)." />
-<figcaption aria-hidden="true">10k — ROC curve (winner).</figcaption>
+alt="10k — ROC curve (winner). Winner: GBM. High ranking quality (ROC AUC) supports stable ordering of applicants; this underpins threshold transfer for Charged Off detection when prevalence shifts." />
+<figcaption aria-hidden="true">10k — ROC curve (winner). Winner: GBM.
+High ranking quality (ROC AUC) supports stable ordering of applicants;
+this underpins threshold transfer for Charged Off detection when
+prevalence shifts.</figcaption>
 </figure>
 <figure id="fig:10k-lbpr">
 <img src="reports/10k/figures/h2o_leaderboard_pr.png"
-alt="10k — Leaderboard (PR-sorted)." />
-<figcaption aria-hidden="true">10k — Leaderboard
-(PR-sorted).</figcaption>
+alt="10k — Leaderboard (PR-sorted). GBM leads on Average Precision with the Broad+Pricing/Grade regime; higher AP reflects better precision at recall for Charged Off, the operational target." />
+<figcaption aria-hidden="true">10k — Leaderboard (PR-sorted). GBM leads
+on Average Precision with the Broad+Pricing/Grade regime; higher AP
+reflects better precision at recall for Charged Off, the operational
+target.</figcaption>
 </figure>
 <figure id="fig:10k-varimp">
 <img src="reports/10k/figures/h2o_varimp_heatmap_winners.png"
@@ -1295,20 +1303,27 @@ more data, the model can exploit richer interactions embedded in
 pricing/grade without overfitting.</p>
 <figure id="fig:100k-pr">
 <img src="reports/100k/figures/pr_curve.png"
-alt="100k — Precision–Recall curve (winner)." />
-<figcaption aria-hidden="true">100k — Precision–Recall curve
-(winner).</figcaption>
+alt="100k — Precision–Recall curve (winner). Winner: XGBoost (Broad+Pricing/Grade, 43 features). PR dominance indicates improved screening for Charged Off by maintaining precision at relevant recalls on a larger sample." />
+<figcaption aria-hidden="true">100k — Precision–Recall curve (winner).
+Winner: XGBoost (Broad+Pricing/Grade, 43 features). PR dominance
+indicates improved screening for Charged Off by maintaining precision at
+relevant recalls on a larger sample.</figcaption>
 </figure>
 <figure id="fig:100k-roc">
 <img src="reports/100k/figures/roc_curve.png"
-alt="100k — ROC curve (winner)." />
-<figcaption aria-hidden="true">100k — ROC curve (winner).</figcaption>
+alt="100k — ROC curve (winner). Winner: XGBoost. Strong ROC confirms robust ranking; combined with fixed validation-chosen thresholds, this supports consistent Charged Off decisions." />
+<figcaption aria-hidden="true">100k — ROC curve (winner). Winner:
+XGBoost. Strong ROC confirms robust ranking; combined with fixed
+validation-chosen thresholds, this supports consistent Charged Off
+decisions.</figcaption>
 </figure>
 <figure id="fig:100k-lbroc">
 <img src="reports/100k/figures/h2o_leaderboard_roc.png"
-alt="100k — Leaderboard (ROC-sorted)." />
-<figcaption aria-hidden="true">100k — Leaderboard
-(ROC-sorted).</figcaption>
+alt="100k — Leaderboard (ROC-sorted). XGBoost tops ROC AUC while tree ensembles cluster closely; strong ranking supports downstream thresholding for Charged Off identification." />
+<figcaption aria-hidden="true">100k — Leaderboard (ROC-sorted). XGBoost
+tops ROC AUC while tree ensembles cluster closely; strong ranking
+supports downstream thresholding for Charged Off
+identification.</figcaption>
 </figure>
 <p><img src="reports/100k/figures/h2o_varimp_heatmap_winners.png"
 id="fig:100k-varimp"
@@ -1345,26 +1360,33 @@ roles: PR guides action under imbalance; ROC validates stable
 ranking.</p>
 <figure id="fig:full-pr">
 <img src="reports/full/figures/pr_curve.png"
-alt="Full — Precision–Recall curve (winner)." />
-<figcaption aria-hidden="true">Full — Precision–Recall curve
-(winner).</figcaption>
+alt="Full — Precision–Recall curve (winner). Winner: GBM (Broad+Pricing/Grade). The PR envelope is widest for the winner, yielding better precision at the fixed validation-selected threshold for detecting Charged Off." />
+<figcaption aria-hidden="true">Full — Precision–Recall curve (winner).
+Winner: GBM (Broad+Pricing/Grade). The PR envelope is widest for the
+winner, yielding better precision at the fixed validation-selected
+threshold for detecting Charged Off.</figcaption>
 </figure>
 <figure id="fig:full-roc">
 <img src="reports/full/figures/roc_curve.png"
-alt="Full — ROC curve (winner)." />
-<figcaption aria-hidden="true">Full — ROC curve (winner).</figcaption>
+alt="Full — ROC curve (winner). Winner: GBM. ROC complements PR by confirming ranking stability at production scale, important when prevalence and drift vary." />
+<figcaption aria-hidden="true">Full — ROC curve (winner). Winner: GBM.
+ROC complements PR by confirming ranking stability at production scale,
+important when prevalence and drift vary.</figcaption>
 </figure>
 <figure id="fig:full-lbpr">
 <img src="reports/full/figures/h2o_leaderboard_pr.png"
-alt="Full — Leaderboard (PR-sorted)." />
-<figcaption aria-hidden="true">Full — Leaderboard
-(PR-sorted).</figcaption>
+alt="Full — Leaderboard (PR-sorted). GBM achieves the highest Average Precision with Broad+Pricing/Grade; this directly translates to fewer false approvals for Charged Off at comparable recall." />
+<figcaption aria-hidden="true">Full — Leaderboard (PR-sorted). GBM
+achieves the highest Average Precision with Broad+Pricing/Grade; this
+directly translates to fewer false approvals for Charged Off at
+comparable recall.</figcaption>
 </figure>
 <figure id="fig:full-lbroc">
 <img src="reports/full/figures/h2o_leaderboard_roc.png"
-alt="Full — Leaderboard (ROC-sorted)." />
-<figcaption aria-hidden="true">Full — Leaderboard
-(ROC-sorted).</figcaption>
+alt="Full — Leaderboard (ROC-sorted). Tree ensembles dominate ROC; consistent ranking enables reliable threshold selection for Charged Off detection on out-of-time data." />
+<figcaption aria-hidden="true">Full — Leaderboard (ROC-sorted). Tree
+ensembles dominate ROC; consistent ranking enables reliable threshold
+selection for Charged Off detection on out-of-time data.</figcaption>
 </figure>
 <p><img src="reports/full/figures/h2o_varimp_heatmap_winners.png"
 id="fig:full-varimp"
