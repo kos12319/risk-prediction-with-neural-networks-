@@ -1,5 +1,6 @@
-<h1 id="abstract">Abstract</h1>
-<p>We study default prediction on LendingClub (2007–2018) under a
+<h1 data-number="1" id="abstract"><span
+class="header-section-number">1</span> Abstract</h1>
+<p>We study default prediction on LendingClub (2007-2018) under a
 time‑aware evaluation that enforces chronological splits, strict leakage
 controls, and fixed thresholds chosen on validation. We compare three
 dataset scales (10k, 100k, full) and four feature regimes (compact to
@@ -19,7 +20,8 @@ questions focus on (i) the impact of provider‑aware features, (ii)
 family‑level performance patterns, and (iii) size effects under temporal
 drift. We provide reproducible artifacts (leaderboards, PR/ROC, varimp)
 and a roadmap for neural‑first improvements and drift robustness.</p>
-<h1 id="introduction">1 Introduction</h1>
+<h1 data-number="2" id="introduction"><span
+class="header-section-number">2</span> Introduction</h1>
 <p>Peer-to-peer lending platforms such as LendingClub have catalyzed a
 rich literature on credit risk modeling, feature selection, and
 evaluation under class imbalance, with influential baselines built on
@@ -31,7 +33,7 @@ href="#ref-Croux2020JEBO" role="doc-biblioref">Croux et al., 2020</a>;
 &amp; Lemieux, 2019a</a>; <a href="#ref-SerranoCinca2015"
 role="doc-biblioref">Serrano-Cinca et al., 2015a</a>)</span>. We address
 a concrete practical question: Which feature subsets and model
-families—including neural networks—yield the best performance in a
+families-including neural networks-yield the best performance in a
 realistic, time-aware evaluation? We adopt a split policy that mirrors
 deployment: train on older loans, test on newer ones, and select the
 decision threshold on a held-out validation slice carved from the
@@ -57,11 +59,11 @@ role="doc-biblioref">Serrano-Cinca et al., 2015a</a>; <a
 href="#ref-SerranoCinca2016" role="doc-biblioref">Serrano-Cinca &amp;
 Gutiérrez-Nieto, 2016</a>)</span>.</p>
 <p>Three practical constraints shape this thesis: (i) class imbalance
-and asymmetric costs make precision–recall a better primary objective
+and asymmetric costs make precision-recall a better primary objective
 than accuracy; (ii) concept drift across vintages (macroeconomic cycles,
 policy changes, borrower mix) mandates time‑based evaluation and
 validation‑chosen thresholds; and (iii) leakage control is
-non‑negotiable—post‑event fields (payments, recoveries, last_* dates,
+non‑negotiable-post‑event fields (payments, recoveries, last_* dates,
 hardship/settlement) must be excluded so the model reflects information
 available at origination only. Against this backdrop, we compare feature
 regimes (portable vs provider‑aware), evaluate neural networks alongside
@@ -78,7 +80,7 @@ dummies), monotonic cues on known risk drivers (e.g., higher interest
 rate correlates with higher risk), strong regularization (BatchNorm,
 dropout, weight decay), and calibrated outputs. With these ingredients,
 NNs can be competitive with, and sometimes surpass, boosted
-trees—especially as dataset size and feature richness grow <span
+trees-especially as dataset size and feature richness grow <span
 class="citation" data-cites="li2022evaluation wang2024hybrid">(<a
 href="#ref-li2022evaluation" role="doc-biblioref">H. Li et al.,
 2022</a>; <a href="#ref-wang2024hybrid" role="doc-biblioref">Wang &amp;
@@ -89,18 +91,19 @@ vintages. Benchmarks that rely on random splits overstate performance by
 mixing future patterns into training. We therefore enforce chronological
 splits, careful leakage controls, and explicit thresholding on
 validation that is held out from the training period. This lets us
-attribute improvements to modeling and features—not evaluation
-artifacts—and assess stability over time.</p>
+attribute improvements to modeling and features-not evaluation
+artifacts-and assess stability over time.</p>
 <p>Contributions. 1) A self-contained, reproducible evaluation of
 multiple feature regimes across dataset scales with explainable figures
 and metrics. 2) A thorough focus on neural networks (NNs) for tabular
 credit risk: architecture considerations, categorical
 encoding/embeddings, class imbalance, calibration, and temporal
-robustness—framed against strong tree-ensemble baselines. 3) Clear,
+robustness-framed against strong tree-ensemble baselines. 3) Clear,
 deployable takeaways: when to use enriched features; how to select
 thresholds; and how to bring NNs closer to (or beyond) gradient boosting
 on this dataset.</p>
-<h1 id="contributions">1.3 Contributions</h1>
+<h2 data-number="2.1" id="contributions"><span
+class="header-section-number">2.1</span> Contributions</h2>
 <ul>
 <li>Reproducible, time‑aware evaluation framework with strict leakage
 policy, chronological splits, and fixed validation‑chosen thresholds;
@@ -116,8 +119,9 @@ for deployment (temporal CV, recalibration, recency weighting).</li>
 <li>Neural blueprint for tabular credit risk (embeddings, monotonic
 cues, regularization, calibration) tailored to LendingClub.</li>
 </ul>
-<h1 id="research-questions-and-hypotheses">1.4 Research Questions and
-Hypotheses</h1>
+<h2 data-number="2.2" id="sec:rq"><span
+class="header-section-number">2.2</span> Research Questions and
+Hypotheses</h2>
 <ul>
 <li>RQ1: Under a time‑aware protocol, how do provider‑aware features
 (<code>int_rate</code>, <code>grade/sub_grade</code>,
@@ -141,9 +145,11 @@ across vintages; recency weighting and temporal CV mitigate this
 effect.</li>
 </ul></li>
 </ul>
-<h1 id="related-work">2 Related Work</h1>
-<h2 id="classical-and-nonneural-credit-risk">2.1 Classical and
-Non‑Neural Credit Risk</h2>
+<h1 data-number="3" id="related-work"><span
+class="header-section-number">3</span> Related Work</h1>
+<h2 data-number="3.1" id="classical-and-nonneural-credit-risk"><span
+class="header-section-number">3.1</span> Classical and Non‑Neural Credit
+Risk</h2>
 <p>Default modeling on LendingClub (LC). Early empirical baselines
 analyze determinants of default and returns in P2P lending and on LC
 specifically, establishing widely reused variables and evaluation setups
@@ -206,15 +212,18 @@ tree‑ensemble baselines on LC; (ii) the importance of pricing/grade
 variables; (iii) profit‑aligned thresholding; and (iv) time‑aware
 evaluation to respect censoring and drift. Our setup adopts these
 invariants and uses them as a yardstick for neural models.</p>
-<h2 id="neural-networks-and-deep-learning-for-credit-risk">2.2 Neural
-Networks and Deep Learning for Credit Risk</h2>
+<h2 data-number="3.2"
+id="neural-networks-and-deep-learning-for-credit-risk"><span
+class="header-section-number">3.2</span> Neural Networks and Deep
+Learning for Credit Risk</h2>
 <p>Neural credit risk spans classical MLPs for tabular data and modern
 deep architectures (CNNs, RNNs/LSTMs, attention/Transformers),
 increasingly fusing numeric features with text and alternative
 modalities. We organize this part by architecture family and modeling
 theme, roughly following historical progression.</p>
-<h4 id="deep-mlps-for-tabular-credit-risk">Deep MLPs for Tabular Credit
-Risk</h4>
+<h3 data-number="3.2.1" id="deep-mlps-for-tabular-credit-risk"><span
+class="header-section-number">3.2.1</span> Deep MLPs for Tabular Credit
+Risk</h3>
 <ul>
 <li>Baseline tabular NNs (feed‑forward MLPs) can be competitive with
 careful preprocessing, categorical encodings, regularization, and
@@ -234,10 +243,12 @@ href="#ref-emiroglu2018credit" role="doc-biblioref">Emiroglu, 2018</a>;
 al., 2018</a>)</span>. These motivate our use of AUCPR and fixed
 validation‑chosen thresholds.</li>
 </ul>
-<h4 id="sequential-cnnlstm-and-temporal-deep-models">Sequential CNN/LSTM
-and Temporal Deep Models</h4>
+<h3 data-number="3.2.2"
+id="sequential-cnnlstm-and-temporal-deep-models"><span
+class="header-section-number">3.2.2</span> Sequential CNN/LSTM and
+Temporal Deep Models</h3>
 <ul>
-<li>CNN–LSTM hybrids and sequential deep learners have been applied to
+<li>CNN-LSTM hybrids and sequential deep learners have been applied to
 enterprise and bond default <span class="citation"
 data-cites="li2022evaluation wang2024hybrid">(<a
 href="#ref-li2022evaluation" role="doc-biblioref">H. Li et al.,
@@ -249,8 +260,10 @@ href="#ref-ala2020sequential" role="doc-biblioref">Ala’a et al.,
 these works inform attention/gating choices and regularization
 strategies transferrable to static tabular problems.</li>
 </ul>
-<h4 id="attention-and-transformers-for-credit-risk">Attention and
-Transformers for Credit Risk</h4>
+<h3 data-number="3.2.3"
+id="attention-and-transformers-for-credit-risk"><span
+class="header-section-number">3.2.3</span> Attention and Transformers
+for Credit Risk</h3>
 <ul>
 <li>Transformer‑based models are increasingly used for tabular and
 multi‑modal risk assessment <span class="citation"
@@ -262,8 +275,10 @@ interactions without manual engineering, a promising direction for
 LC‑like data when paired with regularization and monotonic constraints
 on known drivers (e.g., <code>int_rate</code>, <code>dti</code>).</li>
 </ul>
-<h4 id="text-modeling-bertfinbert-and-loan-descriptions">Text Modeling
-(BERT/FinBERT) and Loan Descriptions</h4>
+<h3 data-number="3.2.4"
+id="text-modeling-bertfinbert-and-loan-descriptions"><span
+class="header-section-number">3.2.4</span> Text Modeling (BERT/FinBERT)
+and Loan Descriptions</h3>
 <ul>
 <li>Textual fields (loan descriptions, job titles) provide complementary
 signals. Finance‑specific BERT variants and NLP on lender text inform
@@ -271,8 +286,10 @@ using pretrained encoders for LC text features <span class="citation"
 data-cites="hahn2024building">(<a href="#ref-hahn2024building"
 role="doc-biblioref">Hahn et al., 2024</a>)</span>.</li>
 </ul>
-<h4 id="generative-and-dataaugmentation-approaches">Generative and
-Data‑Augmentation Approaches</h4>
+<h3 data-number="3.2.5"
+id="generative-and-dataaugmentation-approaches"><span
+class="header-section-number">3.2.5</span> Generative and
+Data‑Augmentation Approaches</h3>
 <ul>
 <li>GANs/autoencoders for synthesizing minority defaults can support NN
 training under imbalance <span class="citation"
@@ -283,8 +300,10 @@ href="#ref-van2023synthesizing" role="doc-biblioref">Burg &amp; Bruin,
 data are active areas; any augmentation must preserve temporal
 distributions and respect leakage policies.</li>
 </ul>
-<h4 id="large-language-models-llms-and-generalist-scoring">Large
-Language Models (LLMs) and Generalist Scoring</h4>
+<h3 data-number="3.2.6"
+id="large-language-models-llms-and-generalist-scoring"><span
+class="header-section-number">3.2.6</span> Large Language Models (LLMs)
+and Generalist Scoring</h3>
 <ul>
 <li>LLMs have been explored for generalized credit scoring and GPT‑based
 classifications <span class="citation"
@@ -296,8 +315,10 @@ role="doc-biblioref">Vasicek, 2024</a>)</span>, pointing toward
 end‑to‑end systems that leverage domain text and external knowledge;
 evaluation must stay time‑aware and calibrated.</li>
 </ul>
-<h4 id="multimodal-and-multiview-deep-learning">Multi‑Modal and
-Multi‑View Deep Learning</h4>
+<h3 data-number="3.2.7"
+id="multimodal-and-multiview-deep-learning"><span
+class="header-section-number">3.2.7</span> Multi‑Modal and Multi‑View
+Deep Learning</h3>
 <ul>
 <li>Combining structured signals with text/alternative data often
 improves robustness and portability across providers <span
@@ -307,7 +328,8 @@ href="#ref-al2023multi" role="doc-biblioref">Al-Azzani et al., 2023</a>;
 2020</a>)</span>. In LC‑like settings, this encourages adding text
 channels to NN baselines and calibrating combined outputs.</li>
 </ul>
-<h4 id="surveys-and-syntheses">Surveys and Syntheses</h4>
+<h3 data-number="3.2.8" id="surveys-and-syntheses"><span
+class="header-section-number">3.2.8</span> Surveys and Syntheses</h3>
 <ul>
 <li>Deep‑credit surveys emphasize (i) careful data handling and leakage
 control, (ii) calibration/thresholding under imbalance, (iii) temporal
@@ -325,19 +347,23 @@ represents categoricals with embeddings, (b) encodes domain monotonicity
 (e.g., <code>int_rate</code>, <code>dti</code>), (c) calibrates
 probabilities for threshold‑based decisions, (d) validates temporally,
 and (e) leverages text via BERT/LLM encoders when available.</p>
-<h1 id="dataset-task-and-evaluation-protocol">3 Dataset, Task, and
-Evaluation Protocol</h1>
-<h2 id="problem-statement">Problem Statement</h2>
+<h1 data-number="4" id="dataset-task-and-evaluation-protocol"><span
+class="header-section-number">4</span> Dataset, Task, and Evaluation
+Protocol</h1>
+<h2 data-number="4.1" id="problem-statement"><span
+class="header-section-number">4.1</span> Problem Statement</h2>
 <p>Given origination‑time borrower and loan features X and a binary
 outcome Y indicating whether a loan ultimately charges off, learn a
-scoring function f: X → [0, 1] that maximizes discrimination under class
-imbalance and supports calibrated, thresholded decisions out‑of‑time. We
-evaluate models with AUCPR (primary) and ROC AUC (supporting), choose a
-single operating threshold on a validation slice carved from the
-training period, and apply that fixed threshold to the test period.</p>
-<h2 id="dataset">3.1 Dataset</h2>
+scoring function f: X -&gt; [0, 1] that maximizes discrimination under
+class imbalance and supports calibrated, thresholded decisions
+out‑of‑time. We evaluate models with AUCPR (primary) and ROC AUC
+(supporting), choose a single operating threshold on a validation slice
+carved from the training period, and apply that fixed threshold to the
+test period.</p>
+<h2 data-number="4.2" id="dataset"><span
+class="header-section-number">4.2</span> Dataset</h2>
 <p>We use the LendingClub consumer installment loans dataset spanning
-2007–2018 vintages. Each record represents a funded loan at origination
+2007-2018 vintages. Each record represents a funded loan at origination
 (accepted-loans cohort). Labels are derived from final outcomes: Fully
 Paid vs Charged Off (default). We adhere to origination-only features to
 avoid post-event leakage (e.g., payments, recoveries, last_* dates,
@@ -360,7 +386,7 @@ and highly informative. - <code>installment</code> (numeric): Monthly
 payment amount; largely determined by <code>loan_amnt</code>,
 <code>term</code>, and <code>int_rate</code>. - <code>annual_inc</code>
 (numeric): Stated annual income. - <code>dti</code> (numeric):
-Debt-to-income ratio—a capacity/risk indicator. -
+Debt-to-income ratio-a capacity/risk indicator. -
 <code>fico_range_low</code> / <code>fico_range_high</code> (numeric):
 FICO range at origination; we also use <code>fico_avg</code> when
 engineered. - <code>revol_bal</code> / <code>revol_util</code>
@@ -408,11 +434,13 @@ discretionary spending). 15) Credit depth/limits (e.g.,
 <code>mort_acc</code>, <code>total_rev_hi_lim</code>,
 <code>num_rev_tl_bal_gt_0</code>): Indicators of history with credit,
 available headroom, and active trade lines.</p>
-<h2 id="target">3.2 Target</h2>
+<h2 data-number="4.3" id="target"><span
+class="header-section-number">4.3</span> Target</h2>
 <p>Binary classification: predict whether a loan will charge off
 (default) versus fully pay. All metrics, curves, and thresholding treat
 Charged Off as the positive class.</p>
-<h2 id="chronological-split-and-validation">3.3 Chronological Split and
+<h2 data-number="4.4" id="chronological-split-and-validation"><span
+class="header-section-number">4.4</span> Chronological Split and
 Validation</h2>
 <p>We split by origination date (<code>issue_d</code>): earlier loans
 form training, later loans form test. Validation is carved from the
@@ -426,9 +454,10 @@ single decision threshold on validation using the Youden J statistic
 data-cites="youden1950index">(<a href="#ref-youden1950index"
 role="doc-biblioref">Youden, 1950</a>)</span>, then apply that fixed
 threshold to the test set for fair reporting.</p>
-<h2 id="metrics">3.4 Metrics</h2>
+<h2 data-number="4.5" id="metrics"><span
+class="header-section-number">4.5</span> Metrics</h2>
 <ul>
-<li>AUCPR (Average Precision): Summary of the precision–recall curve;
+<li>AUCPR (Average Precision): Summary of the precision-recall curve;
 sensitive to class imbalance and actionable for default detection <span
 class="citation"
 data-cites="saito2015precision davis2006relationship">(<a
@@ -439,15 +468,18 @@ role="doc-biblioref">Saito &amp; Rehmsmeier, 2015</a>)</span>.</li>
 <li>Thresholded metrics at the selected operating point: precision,
 recall (TPR), FPR, confusion counts.</li>
 </ul>
-<h2 id="final-status-filter-and-censoring-cutoff">3.5 Final-Status
-Filter and Censoring Cutoff</h2>
+<h2 data-number="4.6"
+id="final-status-filter-and-censoring-cutoff"><span
+class="header-section-number">4.6</span> Final-Status Filter and
+Censoring Cutoff</h2>
 <p>We restrict the cohort to loans with final outcomes at evaluation
 time to avoid right-censoring leakage. Specifically, we keep Fully Paid
 and Charged Off, and exclude operational/intermediate statuses (e.g.,
 Current, Late, In Grace Period, Default/Issued).</p>
 <div id="tbl:final-status-filter">
 <table>
-<caption>Final-status filter for accepted-loans cohort</caption>
+<caption>Table 1: Final-status filter for accepted-loans
+cohort</caption>
 <thead>
 <tr>
 <th>Status</th>
@@ -483,8 +515,10 @@ final-status filter; no additional calendar cutoff is applied beyond the
 dataset’s coverage through 2018. This ensures reported performance
 reflects completed outcomes while retaining as much history as
 possible.</p>
-<h2 id="decision-thresholding-and-business-metrics">3.6 Decision
-Thresholding and Business Metrics</h2>
+<h2 data-number="4.7"
+id="decision-thresholding-and-business-metrics"><span
+class="header-section-number">4.7</span> Decision Thresholding and
+Business Metrics</h2>
 <p>In imbalanced credit settings, downstream utility depends on a fixed
 operating point (threshold). We choose the threshold on validation
 (carved from train) to avoid optimistic bias and apply it unchanged to
@@ -499,8 +533,8 @@ href="#ref-verbraken2014development" role="doc-biblioref">Verbraken et
 al., 2014</a>)</span>.</p>
 <div id="tbl:full-confusion">
 <table>
-<caption>Thresholded confusion and rates (Full dataset, fixed threshold
-from validation)</caption>
+<caption>Table 2: Thresholded confusion and rates (Full dataset, fixed
+threshold from validation)</caption>
 <thead>
 <tr>
 <th>Metric</th>
@@ -547,18 +581,20 @@ from validation)</caption>
 operating point used for policy decisions. If utility/cost weights are
 available, the same table feeds expected‑value analysis to pick
 profit‑optimal thresholds on validation and lock them for test.</p>
-<h2 id="leakage-and-fairness-constraints-definitions-and-policy">3.7
-Leakage and Fairness Constraints (Definitions and Policy)</h2>
+<h2 data-number="4.8"
+id="leakage-and-fairness-constraints-definitions-and-policy"><span
+class="header-section-number">4.8</span> Leakage and Fairness
+Constraints (Definitions and Policy)</h2>
 <p>Leakage (what it is). Any feature that contains information not
 available at origination time (or that is causally downstream of the
 outcome) causes target leakage. Examples in LendingClub data include
 payments/recoveries, last payment dates, hardship/settlement flags, and
 collection‑stage balances. Including them produces inflated apparent
-performance (see <a href="#fig:eda-corr-leaky">Figure</a>).</p>
+performance (see fig. 12).</p>
 <p>Our leakage policy. We drop all post‑event fields end‑to‑end and
-restrict modeling to origination‑time variables (see EDA <a
-href="#fig:eda-corr-orig">figures</a>). Where ambiguity remains, we err
-on the safe side and omit columns.</p>
+restrict modeling to origination‑time variables (see fig. 11 and
+fig. 13). Where ambiguity remains, we err on the safe side and omit
+columns.</p>
 <p>Fairness and sensitive proxies. Some fields act as
 demographic/geographic proxies (e.g., ZIP Code). Even when predictive,
 they can create disparate impact and reduce portability. In this
@@ -579,14 +615,15 @@ text) omitted; <code>emp_length</code> (binned categorical) retained;
 <code>purpose</code> used with monitoring; <code>addr_state</code>
 retained; <code>grade/sub_grade</code> included only in provider‑aware
 regimes.</p>
-<h1 id="dataset-exploration-eda">4 Dataset Exploration (EDA)</h1>
+<h1 data-number="5" id="dataset-exploration-eda"><span
+class="header-section-number">5</span> Dataset Exploration (EDA)</h1>
 <p>We provide an early, self-contained view of the dataset to ground
 modeling decisions. Each figure is chosen to answer a specific question
 about class balance, leakage risks, signal strength, or temporal
 stability; each is referenced in the text where we use the insight.</p>
 <div id="tbl:eda-snapshot">
 <table>
-<caption>EDA — Dataset snapshot (accepted‑loans cohort after
+<caption>Table 3: EDA - Dataset snapshot (accepted‑loans cohort after
 final‑status filtering)</caption>
 <colgroup>
 <col style="width: 50%" />
@@ -620,7 +657,7 @@ final‑status filtering)</caption>
 </div>
 <div id="tbl:eda-features">
 <table>
-<caption>EDA — Column mix and scale</caption>
+<caption>Table 4: EDA - Column mix and scale</caption>
 <colgroup>
 <col style="width: 30%" />
 <col style="width: 40%" />
@@ -656,135 +693,129 @@ history)</td>
 </table>
 </div>
 <p>Class balance over time (why shown). Default base rates shift
-materially across vintages; <a href="#fig:eda-class-balance">Figure</a>
-makes explicit the trend we must respect with time‑based validation and
-fixed thresholds selected on validation.</p>
+materially across vintages; fig. 1 makes explicit the trend we must
+respect with time‑based validation and fixed thresholds selected on
+validation.</p>
 <figure id="fig:eda-class-balance">
 <img src="../../exploration/figures/class_balance_over_time.png"
-alt="Positive rate by year (class balance). Highlights rising defaults into 2016–2017, then a dip in 2018 due to right‑censoring/volume changes." />
-<figcaption aria-hidden="true">Positive rate by year (class balance).
-Highlights rising defaults into 2016–2017, then a dip in 2018 due to
-right‑censoring/volume changes.</figcaption>
+alt="Figure 1: Positive rate by year (class balance). Highlights rising defaults into 2016-2017, then a dip in 2018 due to right‑censoring/volume changes." />
+<figcaption aria-hidden="true">Figure 1: Positive rate by year (class
+balance). Highlights rising defaults into 2016-2017, then a dip in 2018
+due to right‑censoring/volume changes.</figcaption>
 </figure>
-<p>Missingness and leakage (why shown). <a
-href="#fig:eda-missingness">Figure</a> surfaces high‑missing, post‑event
-operational fields that must be excluded to avoid leakage.</p>
+<p>Missingness and leakage (why shown). fig. 2 surfaces high‑missing,
+post‑event operational fields that must be excluded to avoid
+leakage.</p>
 <figure id="fig:eda-missingness">
 <img src="../../exploration/figures/missingness_top.png"
-alt="Top missingness by column. Post‑event fields (e.g., hardship/settlement, last payment) are high‑missing and leaky; exclude for origination‑time modeling." />
-<figcaption aria-hidden="true">Top missingness by column. Post‑event
-fields (e.g., hardship/settlement, last payment) are high‑missing and
-leaky; exclude for origination‑time modeling.</figcaption>
+alt="Figure 2: Top missingness by column. Post‑event fields (e.g., hardship/settlement, last payment) are high‑missing and leaky; exclude for origination‑time modeling." />
+<figcaption aria-hidden="true">Figure 2: Top missingness by column.
+Post‑event fields (e.g., hardship/settlement, last payment) are
+high‑missing and leaky; exclude for origination‑time
+modeling.</figcaption>
 </figure>
 <p>Distributions (why shown). Histograms contextualize ranges, outliers,
 and monotonic expectations—inputs to winsorization and monotone priors
-for NNs (see Figures <a href="#fig:eda-hist-loan">loan amount</a>, <a
-href="#fig:eda-hist-int">interest rate</a>, <a
-href="#fig:eda-hist-fico">FICO average</a>, and <a
-href="#fig:eda-hist-dti">DTI</a>).</p>
+for NNs (see fig. 3, fig. 4, fig. 5, and fig. 6).</p>
 <figure id="fig:eda-hist-loan">
 <img src="../../exploration/figures/hist_loan_amnt_orig.png"
-alt="Loan amount distribution by class. Used to motivate ratio features and outlier handling." />
-<figcaption aria-hidden="true">Loan amount distribution by class. Used
-to motivate ratio features and outlier handling.</figcaption>
+alt="Figure 3: Loan amount distribution by class. Used to motivate ratio features and outlier handling." />
+<figcaption aria-hidden="true">Figure 3: Loan amount distribution by
+class. Used to motivate ratio features and outlier
+handling.</figcaption>
 </figure>
 <figure id="fig:eda-hist-int">
 <img src="../../exploration/figures/hist_int_rate_orig.png"
-alt="Interest rate distribution by class. Higher rates associate with higher default; a key monotone driver." />
-<figcaption aria-hidden="true">Interest rate distribution by class.
-Higher rates associate with higher default; a key monotone
+alt="Figure 4: Interest rate distribution by class. Higher rates associate with higher default; a key monotone driver." />
+<figcaption aria-hidden="true">Figure 4: Interest rate distribution by
+class. Higher rates associate with higher default; a key monotone
 driver.</figcaption>
 </figure>
 <figure id="fig:eda-hist-fico">
 <img src="../../exploration/figures/hist_fico_avg_orig.png"
-alt="FICO average distribution by class. Lower FICO aligns with higher default; a top origination‑time signal." />
-<figcaption aria-hidden="true">FICO average distribution by class. Lower
-FICO aligns with higher default; a top origination‑time
+alt="Figure 5: FICO average distribution by class. Lower FICO aligns with higher default; a top origination‑time signal." />
+<figcaption aria-hidden="true">Figure 5: FICO average distribution by
+class. Lower FICO aligns with higher default; a top origination‑time
 signal.</figcaption>
 </figure>
 <figure id="fig:eda-hist-dti">
 <img src="../../exploration/figures/hist_dti_orig.png"
-alt="DTI distribution by class. Guides winsorization and monotone treatment in NN priors." />
-<figcaption aria-hidden="true">DTI distribution by class. Guides
-winsorization and monotone treatment in NN priors.</figcaption>
+alt="Figure 6: DTI distribution by class. Guides winsorization and monotone treatment in NN priors." />
+<figcaption aria-hidden="true">Figure 6: DTI distribution by class.
+Guides winsorization and monotone treatment in NN priors.</figcaption>
 </figure>
 <p>Categoricals (why shown). Bar plots reveal ordinal monotonicity
 (grade/sub_grade), policy signals (term), and context (purpose, home
-ownership) (see Figures <a href="#fig:eda-cat-grade">grade</a>, <a
-href="#fig:eda-cat-subgrade">sub‑grade</a>, <a
-href="#fig:eda-cat-term">term</a>, and <a
-href="#fig:eda-cat-purpose">purpose</a>).</p>
+ownership) (see fig. 7, fig. 8, fig. 9, and fig. 10).</p>
 <figure id="fig:eda-cat-grade">
 <img src="../../exploration/figures/cat_grade_orig.png"
-alt="Grade — counts and default rates. Default increases A→G; volume concentrated in B–D." />
-<figcaption aria-hidden="true">Grade — counts and default rates. Default
-increases A→G; volume concentrated in B–D.</figcaption>
+alt="Figure 7: Grade - counts and default rates. Default increases A-&gt;G; volume concentrated in B-D." />
+<figcaption aria-hidden="true">Figure 7: Grade - counts and default
+rates. Default increases A-&gt;G; volume concentrated in
+B-D.</figcaption>
 </figure>
 <figure id="fig:eda-cat-subgrade">
 <img src="../../exploration/figures/cat_sub_grade_orig.png"
-alt="Sub‑grade — counts and default rates. Smooth within‑grade monotonicity; highly informative for NNs via embeddings." />
-<figcaption aria-hidden="true">Sub‑grade — counts and default rates.
-Smooth within‑grade monotonicity; highly informative for NNs via
+alt="Figure 8: Sub‑grade - counts and default rates. Smooth within‑grade monotonicity; highly informative for NNs via embeddings." />
+<figcaption aria-hidden="true">Figure 8: Sub‑grade - counts and default
+rates. Smooth within‑grade monotonicity; highly informative for NNs via
 embeddings.</figcaption>
 </figure>
 <figure id="fig:eda-cat-term">
 <img src="../../exploration/figures/cat_term_orig.png"
-alt="Term — counts and default rates. 60‑month loans are riskier than 36‑month loans; a crisp monotone split." />
-<figcaption aria-hidden="true">Term — counts and default rates. 60‑month
-loans are riskier than 36‑month loans; a crisp monotone
+alt="Figure 9: Term - counts and default rates. 60‑month loans are riskier than 36‑month loans; a crisp monotone split." />
+<figcaption aria-hidden="true">Figure 9: Term - counts and default
+rates. 60‑month loans are riskier than 36‑month loans; a crisp monotone
 split.</figcaption>
 </figure>
 <figure id="fig:eda-cat-purpose">
 <img src="../../exploration/figures/cat_purpose_orig.png"
-alt="Purpose — counts and default rates. Captures intent heterogeneity; useful but drifts modestly." />
-<figcaption aria-hidden="true">Purpose — counts and default rates.
-Captures intent heterogeneity; useful but drifts modestly.</figcaption>
+alt="Figure 10: Purpose - counts and default rates. Captures intent heterogeneity; useful but drifts modestly." />
+<figcaption aria-hidden="true">Figure 10: Purpose - counts and default
+rates. Captures intent heterogeneity; useful but drifts
+modestly.</figcaption>
 </figure>
 <p>Leakage demonstration and signal strength (why shown). We include two
 correlation panels and two PSI panels to (i) contrast origination‑only
-vs leaky features and (ii) quantify temporal drift (see Figures <a
-href="#fig:eda-corr-orig">origination‑only correlations</a>, <a
-href="#fig:eda-corr-leaky">leaky correlations</a>, <a
-href="#fig:eda-psi-num">numeric PSI</a>, and <a
-href="#fig:eda-psi-cat">categorical PSI</a>).</p>
+vs leaky features and (ii) quantify temporal drift (see fig. 11,
+fig. 12, fig. 13, and fig. 14).</p>
 <figure id="fig:eda-corr-orig">
 <img src="../../exploration/figures/top_corr_numeric_orig.png"
-alt="Top |corr| with target (origination‑only). FICO anti‑correlates; DTI/utilization correlate positively." />
-<figcaption aria-hidden="true">Top |corr| with target
+alt="Figure 11: Top |corr| with target (origination‑only). FICO anti‑correlates; DTI/utilization correlate positively." />
+<figcaption aria-hidden="true">Figure 11: Top |corr| with target
 (origination‑only). FICO anti‑correlates; DTI/utilization correlate
 positively.</figcaption>
 </figure>
 <figure id="fig:eda-corr-leaky">
 <img src="../../exploration/figures/top_corr_numeric.png"
-alt="Top |corr| with target (all numerics). Leaky post‑event features dominate spuriously, motivating strict exclusion." />
-<figcaption aria-hidden="true">Top |corr| with target (all numerics).
-Leaky post‑event features dominate spuriously, motivating strict
-exclusion.</figcaption>
+alt="Figure 12: Top |corr| with target (all numerics). Leaky post‑event features dominate spuriously, motivating strict exclusion." />
+<figcaption aria-hidden="true">Figure 12: Top |corr| with target (all
+numerics). Leaky post‑event features dominate spuriously, motivating
+strict exclusion.</figcaption>
 </figure>
 <figure id="fig:eda-psi-num">
 <img src="../../exploration/figures/psi_numeric_top_orig.png"
-alt="PSI — numeric (origination‑only). Depth/limit features shift across time; motivates time‑based validation and recalibration." />
-<figcaption aria-hidden="true">PSI — numeric (origination‑only).
-Depth/limit features shift across time; motivates time‑based validation
-and recalibration.</figcaption>
+alt="Figure 13: PSI - numeric (origination‑only). Depth/limit features shift across time; motivates time‑based validation and recalibration." />
+<figcaption aria-hidden="true">Figure 13: PSI - numeric
+(origination‑only). Depth/limit features shift across time; motivates
+time‑based validation and recalibration.</figcaption>
 </figure>
 <figure id="fig:eda-psi-cat">
 <img src="../../exploration/figures/psi_categorical_top_orig.png"
-alt="PSI — categorical (origination‑only). Purpose shows modest drift; monitor pricing variables for shifts." />
-<figcaption aria-hidden="true">PSI — categorical (origination‑only).
-Purpose shows modest drift; monitor pricing variables for
-shifts.</figcaption>
+alt="Figure 14: PSI - categorical (origination‑only). Purpose shows modest drift; monitor pricing variables for shifts." />
+<figcaption aria-hidden="true">Figure 14: PSI - categorical
+(origination‑only). Purpose shows modest drift; monitor pricing
+variables for shifts.</figcaption>
 </figure>
-<p>How EDA informs modeling. The figures <a
-href="#fig:eda-class-balance">here</a>–<a
-href="#fig:eda-psi-cat">here</a> collectively justify: (i) time‑based
-splits and fixed thresholds, (ii) leakage exclusion policies, (iii)
-winsorization and monotone priors for NNs on <code>int_rate</code> and
-<code>dti</code>, (iv) embeddings for ordinal categoricals
-(grade/sub_grade), and (v) drift monitoring (PSI) with recalibration or
-retraining.</p>
-<h1 id="feature-regimes-and-dataset-scales">5 Feature Regimes and
-Dataset Scales</h1>
+<p>How EDA informs modeling. The figures fig. 1–fig. 14 collectively
+justify: (i) time‑based splits and fixed thresholds, (ii) leakage
+exclusion policies, (iii) winsorization and monotone priors for NNs on
+<code>int_rate</code> and <code>dti</code>, (iv) embeddings for ordinal
+categoricals (grade/sub_grade), and (v) drift monitoring (PSI) with
+recalibration or retraining.</p>
+<h1 data-number="6" id="feature-regimes-and-dataset-scales"><span
+class="header-section-number">6</span> Feature Regimes and Dataset
+Scales</h1>
 <p>We evaluate four representative feature regimes and three dataset
 scales:</p>
 <p>Feature regimes. 1) Compact baseline (about 12 features): core
@@ -799,8 +830,10 @@ pricing/grade.</p>
 richer features. 2) 100k: large-sample; strong signal and robust
 comparisons. 3) full: full cohort; most realistic “production-like”
 benchmark.</p>
-<h1 id="modeling-families-and-why-they-fit-this-task">6 Modeling
-Families and Why They Fit This Task</h1>
+<h1 data-number="7"
+id="modeling-families-and-why-they-fit-this-task"><span
+class="header-section-number">7</span> Modeling Families and Why They
+Fit This Task</h1>
 <p>We compare common tabular modeling families and analyze their
 suitability to the LendingClub task.</p>
 <p>Generalized Linear Models (GLM). Logistic regression provides a
@@ -844,12 +877,13 @@ role="doc-biblioref">Platt, 1999</a>; <a
 href="#ref-zadrozny2001obtaining" role="doc-biblioref">Zadrozny &amp;
 Elkan, 2001</a>)</span>, they can become competitive and more portable
 across providers.</p>
-<h2 id="feature-selection-procedure">6.1 Feature Selection
+<h2 data-number="7.1" id="feature-selection-procedure"><span
+class="header-section-number">7.1</span> Feature Selection
 Procedure</h2>
 <p>Objective. Reduce variance and drift sensitivity while preserving
 predictive power, under the same time‑based protocol as training.</p>
-<p>Method (baseline). We use filter methods—mutual information (MI) and
-L1‑regularized logistic regression—as first‑pass selectors: - Evaluation
+<p>Method (baseline). We use filter methods-mutual information (MI) and
+L1‑regularized logistic regression-as first‑pass selectors: - Evaluation
 protocol: time‑based split on <code>issue_d</code>; validation carved
 from the training period only; no lookahead to test; invariants match
 training (imputation, winsorization, encoding). - Ranking: MI for
@@ -864,8 +898,10 @@ used in the experiments.</p>
 <code>income_to_loan_ratio</code>) can be included/excluded explicitly
 to quantify their lift. Selection runs mirror training preprocessing so
 that downstream metrics remain comparable.</p>
-<h2 id="feature-regimes-provideragnostic-vs-provideraware">6.2 Feature
-Regimes: Provider‑Agnostic vs Provider‑Aware</h2>
+<h2 data-number="7.2"
+id="feature-regimes-provideragnostic-vs-provideraware"><span
+class="header-section-number">7.2</span> Feature Regimes:
+Provider‑Agnostic vs Provider‑Aware</h2>
 <p>Provider‑agnostic (portable) regime. Excludes provider
 pricing/scoring features (e.g., <code>int_rate</code>,
 <code>grade</code>, <code>sub_grade</code>, <code>installment</code>).
@@ -883,7 +919,8 @@ sensitivity; fairness considerations (avoid granular geography like
 ZIP). Our results show where each regime wins, and the NN roadmap
 targets closing the gap in the agnostic setting via representations and
 monotone priors.</p>
-<h2 id="primer-on-algorithm-families">6.3 Primer on Algorithm
+<h2 data-number="7.3" id="primer-on-algorithm-families"><span
+class="header-section-number">7.3</span> Primer on Algorithm
 Families</h2>
 <p>Logistic Regression (GLM). A generalized linear model mapping a
 linear combination of inputs through a logistic link to produce
@@ -923,7 +960,8 @@ approve/decline), well-calibrated probabilities matter. Platt scaling
 (logistic regression on logits), isotonic regression (non-parametric),
 or temperature scaling (for NNs) align predicted probabilities to
 empirical frequencies on validation.</p>
-<h1 id="experimental-setup">7 Experimental Setup</h1>
+<h1 data-number="8" id="experimental-setup"><span
+class="header-section-number">8</span> Experimental Setup</h1>
 <p>Data handling and leakage control. We exclude post-origination
 features (payments, recoveries, last_* dates, hardship/settlement) from
 all runs. This aligns with best practices and prior empirical audits on
@@ -950,22 +988,24 @@ DRF, GLM, and Deep Learning (MLP) models, producing leaderboards and
 explainability artifacts (variable importance, partial dependence,
 SHAP-like insights). We use these for transparent comparisons and to
 guide NN engineering in future iterations. Neural-network-centric
-PyTorch runs are planned and discussed in Section 15 (Future Work).</p>
+PyTorch runs are planned and discussed in the relevant section (Future
+Work).</p>
 <p>Reproducibility (high level, within this thesis). All comparisons
 share: the same dataset cohorts, origination-only features,
 chronological splits, validation-carved threshold selection, and
 consistent preprocessing. Each figure and table in this thesis
 references artifacts produced under these constraints, ensuring
 repeatability.</p>
-<h2 id="h2o-automl-how-we-use-it">7.1 H2O AutoML (How We Use It)</h2>
+<h2 data-number="8.1" id="h2o-automl-how-we-use-it"><span
+class="header-section-number">8.1</span> H2O AutoML (How We Use It)</h2>
 <p>We leverage H2O as an industrial-strength modeling platform to
 establish strong baselines, standardized comparisons, and rich
 explainability. This section summarizes the parts most relevant to our
 thesis and how they blend into the methodology.</p>
 <ul>
 <li>Estimator catalog. H2O ships first-class implementations across
-families—GBM, XGBoost, DRF/XRT (tree ensembles), GLM (linear), and Deep
-Learning (feed-forward NNs)—plus specialized algorithms (survival/CoxPH,
+families-GBM, XGBoost, DRF/XRT (tree ensembles), GLM (linear), and Deep
+Learning (feed-forward NNs)-plus specialized algorithms (survival/CoxPH,
 isolation forests, RuleFit, target encoding). AutoML orchestrates these
 under shared pre-processing and scoring policies. This breadth lets us
 compare NNs to state-of-the-art tree baselines under one roof.</li>
@@ -986,11 +1026,12 @@ reason about diversity and trade-offs.
 <p>Why H2O here. Using a single platform to produce multi-family
 baselines, curated leaderboards, and aligned explainability reduces
 variance in our comparisons and keeps the focus on scientific
-questions—e.g., when NNs compete, which features help them most, and how
+questions-e.g., when NNs compete, which features help them most, and how
 stable the conclusions are across time splits. The figures and tables
 throughout the Results sections are generated from H2O outputs so that
 every claim is grounded in consistent, reproducible artifacts.</p>
-<h3 id="why-we-chose-h2o-decision-rationale">Why We Chose H2O (Decision
+<h3 data-number="8.1.1" id="why-we-chose-h2o-decision-rationale"><span
+class="header-section-number">8.1.1</span> Why We Chose H2O (Decision
 Rationale)</h3>
 <p>We chose H2O as the comparative backend for four primary reasons that
 align with the thesis goals:</p>
@@ -1021,12 +1062,13 @@ tree baselines for comparison.</p></li>
 <p>Limitations (acknowledged). H2O’s DeepLearning is not a replacement
 for modern tabular NN research (e.g., transformers with feature
 tokenization). We therefore treat it as a strong MLP baseline, and we
-outline a PyTorch plan (Section 15, Future Work) for neural‑first
-advances. H2O also requires Java; we mitigate this operational
-constraint with a documented pre‑flight and containerized
-environments.</p>
-<h3 id="deeplearning-nn-modeling-plan-in-h2o-automl">DeepLearning (NN)
-Modeling Plan in H2O AutoML</h3>
+outline a PyTorch plan (the relevant section) for neural‑first advances.
+H2O also requires Java; we mitigate this operational constraint with a
+documented pre‑flight and containerized environments.</p>
+<h3 data-number="8.1.2"
+id="deeplearning-nn-modeling-plan-in-h2o-automl"><span
+class="header-section-number">8.1.2</span> DeepLearning (NN) Modeling
+Plan in H2O AutoML</h3>
 <p>What H2O trains (exact regime). In H2O AutoML 3.46.x, the
 DeepLearning (feed‑forward NN) component consists of one small default
 model and three predefined hyperparameter grids. These are implemented
@@ -1044,10 +1086,10 @@ activation; no dropout grid). Purpose: lightweight baseline NN.</li>
 <ul>
 <li>Activation: <code>RectifierWithDropout</code></li>
 <li>Adaptive rate: <code>true</code> (AdaDelta‑style) with search over
-<code>_rho ∈ {0.9, 0.95, 0.99}</code> and
-<code>_epsilon ∈ {1e‑6, 1e‑7, 1e‑8, 1e‑9}</code></li>
+<code>_rho in {0.9, 0.95, 0.99}</code> and
+<code>_epsilon in {1e-6, 1e-7, 1e-8, 1e-9}</code></li>
 <li>Input dropout ratio search:
-<code>_input_dropout_ratio ∈ {0.0, 0.05, 0.10, 0.15, 0.20}</code></li>
+<code>_input_dropout_ratio in {0.0, 0.05, 0.10, 0.15, 0.20}</code></li>
 <li>Epochs: <code>_epochs = 10000</code> (effective training governed by
 early stopping on the AutoML‑configured metric)</li>
 <li>Hidden‑layer dropout ratios: uniform per layer, grid‑searched as
@@ -1059,14 +1101,14 @@ from train time).</li>
 <li>Architectural grids:
 <ul>
 <li><code>grid_1</code> (1 layer):
-<code>_hidden ∈ { [20], [50], [100] }</code>;
-<code>_hidden_dropout_ratios ∈ { [0.0], [0.1], [0.2], [0.3], [0.4], [0.5] }</code></li>
+<code>_hidden in { [20], [50], [100] }</code>;
+<code>_hidden_dropout_ratios in { [0.0], [0.1], [0.2], [0.3], [0.4], [0.5] }</code></li>
 <li><code>grid_2</code> (2 layers):
-<code>_hidden ∈ { [20,20], [50,50], [100,100] }</code>;
-<code>_hidden_dropout_ratios ∈ { [0.0,0.0], [0.1,0.1], …, [0.5,0.5] }</code></li>
+<code>_hidden in { [20,20], [50,50], [100,100] }</code>;
+<code>_hidden_dropout_ratios in { [0.0,0.0], [0.1,0.1], ..., [0.5,0.5] }</code></li>
 <li><code>grid_3</code> (3 layers):
-<code>_hidden ∈ { [20,20,20], [50,50,50], [100,100,100] }</code>;
-<code>_hidden_dropout_ratios ∈ { [0.0,0.0,0.0], [0.1,0.1,0.1], …, [0.5,0.5,0.5] }</code></li>
+<code>_hidden in { [20,20,20], [50,50,50], [100,100,100] }</code>;
+<code>_hidden_dropout_ratios in { [0.0,0.0,0.0], [0.1,0.1,0.1], ..., [0.5,0.5,0.5] }</code></li>
 </ul></li>
 </ul></li>
 </ul>
@@ -1085,19 +1127,20 @@ href="#ref-h2o2018automl" role="doc-biblioref">H2O.ai, 2018b</a>, <a
 href="#ref-h2o2018deeplearning"
 role="doc-biblioref">2018a</a>)</span>.</p>
 <p>Implications for this thesis. H2O’s DL search explores
-shallow‑to‑moderate MLPs (1–3 layers) with modest widths (20/50/100) and
+shallow‑to‑moderate MLPs (1-3 layers) with modest widths (20/50/100) and
 systematic dropout/optimizer hyperparameters. It does not include
 embeddings, batch normalization, GELU/modern activations, or
 deeper/wider stacks. Consequently, we treat it as a strong, regularized
-baseline NN for tabular data and build our PyTorch roadmap (Section 15)
-to extend beyond this regime (categorical embeddings, monotone
+baseline NN for tabular data and build our PyTorch roadmap (the relevant
+section) to extend beyond this regime (categorical embeddings, monotone
 regularization, calibration, and deeper architectures when justified by
 data scale).</p>
-<h2 id="automl-settings-this-thesis">7.2 AutoML Settings (This
+<h2 data-number="8.2" id="automl-settings-this-thesis"><span
+class="header-section-number">8.2</span> AutoML Settings (This
 Thesis)</h2>
 <div id="tbl:automl-settings">
 <table>
-<caption>AutoML settings per dataset (budgets, sorting,
+<caption>Table 5: AutoML settings per dataset (budgets, sorting,
 thresholding)</caption>
 <colgroup>
 <col style="width: 15%" />
@@ -1148,14 +1191,17 @@ thresholding)</caption>
 <p>Notes. Budgets scale with dataset size (cf. suite run scripts);
 leaderboard sorting is AUCPR to reflect class imbalance; thresholds are
 always chosen on validation and fixed for test.</p>
-<h1 id="results-winners-and-cross-dataset-comparison">8 Results: Winners
-and Cross-Dataset Comparison</h1>
-<p>Table 1 summarizes the winning configuration (by AUCPR) per dataset
-size, along with ROC AUC. See per‑dataset figures in Section 9.</p>
+<h1 data-number="9"
+id="results-winners-and-cross-dataset-comparison"><span
+class="header-section-number">9</span> Results: Winners and
+Cross-Dataset Comparison</h1>
+<p>tbl. 6 summarizes the winning configuration (by AUCPR) per dataset
+size, along with ROC AUC. See per‑dataset figures in the relevant
+section.</p>
 <div id="tbl:winners">
 <table>
-<caption>Winners by dataset size (best AUCPR per size) — model family
-and feature regime</caption>
+<caption>Table 6: Winners by dataset size (best AUCPR per size) - model
+family and feature regime</caption>
 <colgroup>
 <col style="width: 17%" />
 <col style="width: 17%" />
@@ -1197,10 +1243,9 @@ and feature regime</caption>
 </tbody>
 </table>
 </div>
-<p>See this <a href="#tbl:winners">table</a> for a compact overview;
-detailed curves and model explainability are analyzed next. We emphasize
-PR (precision–recall) as the primary metric due to class imbalance <span
-class="citation"
+<p>See tbl. 6 for a compact overview; detailed curves and model
+explainability are analyzed next. We emphasize PR (precision–recall) as
+the primary metric due to class imbalance <span class="citation"
 data-cites="saito2015precision davis2006relationship">(<a
 href="#ref-davis2006relationship" role="doc-biblioref">Davis &amp;
 Goadrich, 2006</a>; <a href="#ref-saito2015precision"
@@ -1212,22 +1257,25 @@ irrespective of threshold.</p>
 features) wins by a clear AUCPR margin. Pricing (<code>int_rate</code>)
 and grade information are consistently top drivers, improving ranking
 quality and precision at relevant recall levels.</p>
-<h2 id="ablation-pricinggrade-inclusion">8.1 Ablation: Pricing/Grade
+<h2 data-number="9.1" id="ablation-pricinggrade-inclusion"><span
+class="header-section-number">9.1</span> Ablation: Pricing/Grade
 Inclusion</h2>
 <p>Including provider‑aware features (<code>int_rate</code>,
 <code>grade/sub_grade</code>, <code>installment</code>) improves AUCPR
 consistently across scales: - 10k: +0.0395 vs compact (0.4601 vs
 0.4206). - 100k: +0.0255 vs compact (0.4524 vs 0.4269). - full: +0.0278
 vs compact (0.3934 vs 0.3656).</p>
-<p>These gains support H1 (Section 1.4) and justify provider‑aware
-regimes when portability permits. Thresholded metrics at the fixed
-validation‑chosen threshold also improve precision at comparable recall
-(see per‑dataset sections).</p>
-<h1 id="per-dataset-analyses-with-inline-figures">9 Per-Dataset Analyses
-with Inline Figures</h1>
+<p>These gains support H1 (the relevant section) and justify
+provider‑aware regimes when portability permits. Thresholded metrics at
+the fixed validation‑chosen threshold also improve precision at
+comparable recall (see per‑dataset sections).</p>
+<h1 data-number="10" id="sec:per-dataset"><span
+class="header-section-number">10</span> Per-Dataset Analyses with Inline
+Figures</h1>
 <p>We now analyze each dataset size (10k, 100k, full), include curves
 and explainability figures, and interpret takeaways.</p>
-<h2 id="k-subset-medium-sample-regime">9.1 10k subset (medium-sample
+<h2 data-number="10.1" id="k-subset-medium-sample-regime"><span
+class="header-section-number">10.1</span> 10k subset (medium-sample
 regime)</h2>
 <p>Winner and rationale. The winner uses 43 features (broad +
 pricing/grade). Average Precision is 0.4601; ROC AUC is 0.7591. At this
@@ -1235,34 +1283,34 @@ scale, enriched pricing/grade features tend to lift PR in the
 high-recall region where false positives are costly.</p>
 <figure id="fig:10k-pr">
 <img src="reports/10k/figures/pr_curve.png"
-alt="10k — Precision–Recall curve (winner). Winner: GBM (Broad+Pricing/Grade, 43 features). The curve sustains higher precision across actionable recall levels for the positive class (Charged Off, pos=0), indicating fewer false approvals at comparable catch rates." />
-<figcaption aria-hidden="true">10k — Precision–Recall curve (winner).
-Winner: GBM (Broad+Pricing/Grade, 43 features). The curve sustains
-higher precision across actionable recall levels for the positive class
-(Charged Off, pos=0), indicating fewer false approvals at comparable
-catch rates.</figcaption>
+alt="Figure 15: 10k - Precision-Recall curve (winner). Winner: GBM (Broad+Pricing/Grade, 43 features). The curve sustains higher precision across actionable recall levels for the positive class (Charged Off, pos=0), indicating fewer false approvals at comparable catch rates." />
+<figcaption aria-hidden="true">Figure 15: 10k - Precision-Recall curve
+(winner). Winner: GBM (Broad+Pricing/Grade, 43 features). The curve
+sustains higher precision across actionable recall levels for the
+positive class (Charged Off, pos=0), indicating fewer false approvals at
+comparable catch rates.</figcaption>
 </figure>
 <figure id="fig:10k-roc">
 <img src="reports/10k/figures/roc_curve.png"
-alt="10k — ROC curve (winner). Winner: GBM. High ranking quality (ROC AUC) supports stable ordering of applicants; this underpins threshold transfer for Charged Off detection when prevalence shifts." />
-<figcaption aria-hidden="true">10k — ROC curve (winner). Winner: GBM.
-High ranking quality (ROC AUC) supports stable ordering of applicants;
-this underpins threshold transfer for Charged Off detection when
-prevalence shifts.</figcaption>
+alt="Figure 16: 10k - ROC curve (winner). Winner: GBM. High ranking quality (ROC AUC) supports stable ordering of applicants; this underpins threshold transfer for Charged Off detection when prevalence shifts." />
+<figcaption aria-hidden="true">Figure 16: 10k - ROC curve (winner).
+Winner: GBM. High ranking quality (ROC AUC) supports stable ordering of
+applicants; this underpins threshold transfer for Charged Off detection
+when prevalence shifts.</figcaption>
 </figure>
 <figure id="fig:10k-lbpr">
 <img src="reports/10k/figures/h2o_leaderboard_pr.png"
-alt="10k — Leaderboard (PR-sorted). GBM leads on Average Precision with the Broad+Pricing/Grade regime; higher AP reflects better precision at recall for Charged Off, the operational target." />
-<figcaption aria-hidden="true">10k — Leaderboard (PR-sorted). GBM leads
-on Average Precision with the Broad+Pricing/Grade regime; higher AP
-reflects better precision at recall for Charged Off, the operational
-target.</figcaption>
+alt="Figure 17: 10k - Leaderboard (PR-sorted). GBM leads on Average Precision with the Broad+Pricing/Grade regime; higher AP reflects better precision at recall for Charged Off, the operational target." />
+<figcaption aria-hidden="true">Figure 17: 10k - Leaderboard (PR-sorted).
+GBM leads on Average Precision with the Broad+Pricing/Grade regime;
+higher AP reflects better precision at recall for Charged Off, the
+operational target.</figcaption>
 </figure>
 <figure id="fig:10k-varimp">
 <img src="reports/10k/figures/h2o_varimp_heatmap_winners.png"
-alt="10k — Variable importance heatmap (winners). Relative, model‑derived importance from H2O winners (GBM/XGBoost: split gain; DeepLearning: sensitivity‑based). Not pairwise correlation; captures non‑linear effects." />
-<figcaption aria-hidden="true">10k — Variable importance heatmap
-(winners). Relative, model‑derived importance from H2O winners
+alt="Figure 18: 10k - Variable importance heatmap (winners). Relative, model‑derived importance from H2O winners (GBM/XGBoost: split gain; DeepLearning: sensitivity‑based). Not pairwise correlation; captures non‑linear effects." />
+<figcaption aria-hidden="true">Figure 18: 10k - Variable importance
+heatmap (winners). Relative, model‑derived importance from H2O winners
 (GBM/XGBoost: split gain; DeepLearning: sensitivity‑based). Not pairwise
 correlation; captures non‑linear effects.</figcaption>
 </figure>
@@ -1278,7 +1326,7 @@ makes the magnitude of improvement tangible (see Figure ); this is
 preferred over single‑number summaries because AUCPR integrates across
 all operating points.</p>
 <p>Explainability (why shown). <code>int_rate</code>, term, and grade
-carry much of the discriminative power at 10k—evidence to include these
+carry much of the discriminative power at 10k-evidence to include these
 features at this scale while monitoring drift (see Figure ).</p>
 <p>Interpretation and NN contrast. Adding pricing/grade yields a
 noticeable AUCPR lift relative to 12- or 39-feature baselines.
@@ -1286,13 +1334,14 @@ noticeable AUCPR lift relative to 12- or 39-feature baselines.
 bands providing additional stratification. Ensembles lead overall; NNs
 benefit from richer signals but remain slightly behind top GBM/XGBoost
 here. NN varimp (deeplearning) highlights <code>fico_spread</code>,
-term, and select purpose/state dummies—overlapping with GBM drivers but
+term, and select purpose/state dummies-overlapping with GBM drivers but
 often spreading attribution across categorical partitions rather than
 ranking <code>int_rate</code> as sharply as GBM. This suggests NNs can
 leverage generalizable capacity/depth cues but may require explicit
 encoding/regularization to fully exploit pricing/grade at this
 scale.</p>
-<h2 id="k-subset-large-sample-regime">9.2 100k subset (large-sample
+<h2 data-number="10.2" id="k-subset-large-sample-regime"><span
+class="header-section-number">10.2</span> 100k subset (large-sample
 regime)</h2>
 <p>Winner and rationale. The winner uses 43 features (broad +
 pricing/grade). Average Precision is 0.4524; ROC AUC is 0.7435. With
@@ -1300,34 +1349,35 @@ more data, the model can exploit richer interactions embedded in
 pricing/grade without overfitting.</p>
 <figure id="fig:100k-pr">
 <img src="reports/100k/figures/pr_curve.png"
-alt="100k — Precision–Recall curve (winner). Winner: XGBoost (Broad+Pricing/Grade, 43 features). PR dominance indicates improved screening for Charged Off by maintaining precision at relevant recalls on a larger sample." />
-<figcaption aria-hidden="true">100k — Precision–Recall curve (winner).
-Winner: XGBoost (Broad+Pricing/Grade, 43 features). PR dominance
-indicates improved screening for Charged Off by maintaining precision at
-relevant recalls on a larger sample.</figcaption>
+alt="Figure 19: 100k - Precision-Recall curve (winner). Winner: XGBoost (Broad+Pricing/Grade, 43 features). PR dominance indicates improved screening for Charged Off by maintaining precision at relevant recalls on a larger sample." />
+<figcaption aria-hidden="true">Figure 19: 100k - Precision-Recall curve
+(winner). Winner: XGBoost (Broad+Pricing/Grade, 43 features). PR
+dominance indicates improved screening for Charged Off by maintaining
+precision at relevant recalls on a larger sample.</figcaption>
 </figure>
 <figure id="fig:100k-roc">
 <img src="reports/100k/figures/roc_curve.png"
-alt="100k — ROC curve (winner). Winner: XGBoost. Strong ROC confirms robust ranking; combined with fixed validation-chosen thresholds, this supports consistent Charged Off decisions." />
-<figcaption aria-hidden="true">100k — ROC curve (winner). Winner:
-XGBoost. Strong ROC confirms robust ranking; combined with fixed
+alt="Figure 20: 100k - ROC curve (winner). Winner: XGBoost. Strong ROC confirms robust ranking; combined with fixed validation-chosen thresholds, this supports consistent Charged Off decisions." />
+<figcaption aria-hidden="true">Figure 20: 100k - ROC curve (winner).
+Winner: XGBoost. Strong ROC confirms robust ranking; combined with fixed
 validation-chosen thresholds, this supports consistent Charged Off
 decisions.</figcaption>
 </figure>
 <figure id="fig:100k-lbroc">
 <img src="reports/100k/figures/h2o_leaderboard_roc.png"
-alt="100k — Leaderboard (ROC-sorted). XGBoost tops ROC AUC while tree ensembles cluster closely; strong ranking supports downstream thresholding for Charged Off identification." />
-<figcaption aria-hidden="true">100k — Leaderboard (ROC-sorted). XGBoost
-tops ROC AUC while tree ensembles cluster closely; strong ranking
-supports downstream thresholding for Charged Off
+alt="Figure 21: 100k - Leaderboard (ROC-sorted). XGBoost tops ROC AUC while tree ensembles cluster closely; strong ranking supports downstream thresholding for Charged Off identification." />
+<figcaption aria-hidden="true">Figure 21: 100k - Leaderboard
+(ROC-sorted). XGBoost tops ROC AUC while tree ensembles cluster closely;
+strong ranking supports downstream thresholding for Charged Off
 identification.</figcaption>
 </figure>
 <figure id="fig:100k-varimp">
 <img src="reports/100k/figures/h2o_varimp_heatmap_winners.png"
-alt="100k — Variable importance heatmap (winners). Relative, model‑derived importance (GBM/XGBoost: split gain; DeepLearning: sensitivity‑based). Not pairwise correlation." />
-<figcaption aria-hidden="true">100k — Variable importance heatmap
-(winners). Relative, model‑derived importance (GBM/XGBoost: split gain;
-DeepLearning: sensitivity‑based). Not pairwise correlation.</figcaption>
+alt="Figure 22: 100k - Variable importance heatmap (winners). Relative, model‑derived importance (GBM/XGBoost: split gain; DeepLearning: sensitivity‑based). Not pairwise correlation." />
+<figcaption aria-hidden="true">Figure 22: 100k - Variable importance
+heatmap (winners). Relative, model‑derived importance (GBM/XGBoost:
+split gain; DeepLearning: sensitivity‑based). Not pairwise
+correlation.</figcaption>
 </figure>
 <p>Method. Importance is normalized per model; compare ranks across
 winners for robustness.</p>
@@ -1339,7 +1389,7 @@ ensembles outperform alternatives (see Figure ), which is appropriate
 for ranking‑focused screening.</p>
 <p>Explainability (why shown). Pricing/grade dominate at scale, with
 <code>dti</code> and credit depth contributing incremental lift (see
-Figure <a href="#fig:100k-varimp">VarImp heatmap</a>).</p>
+fig. 22).</p>
 <p>Interpretation and NN contrast. With more data, pricing and grading
 fully dominate variable importance, with <code>dti</code>, credit depth,
 and loan size adding incremental signal. Tree ensembles (GBM/XGBoost)
@@ -1350,8 +1400,9 @@ more distributed across sub-grades and home-ownership states compared to
 GBM’s sharper focus on <code>int_rate</code> and term. This is
 consistent with NNs learning broader categorical embeddings that capture
 latent structure.</p>
-<h2 id="full-dataset-production-like-benchmark">9.3 Full dataset
-(production-like benchmark)</h2>
+<h2 data-number="10.3" id="full-dataset-production-like-benchmark"><span
+class="header-section-number">10.3</span> Full dataset (production-like
+benchmark)</h2>
 <p>Winner and rationale. The winner uses 43 features (broad +
 pricing/grade). Average Precision is 0.3934; ROC AUC is 0.7093.
 Threshold (Youden J, selected on validation): 0.1765. Confusion (test):
@@ -1361,40 +1412,42 @@ roles: PR guides action under imbalance; ROC validates stable
 ranking.</p>
 <figure id="fig:full-pr">
 <img src="reports/full/figures/pr_curve.png"
-alt="Full — Precision–Recall curve (winner). Winner: GBM (Broad+Pricing/Grade). The PR envelope is widest for the winner, yielding better precision at the fixed validation-selected threshold for detecting Charged Off." />
-<figcaption aria-hidden="true">Full — Precision–Recall curve (winner).
-Winner: GBM (Broad+Pricing/Grade). The PR envelope is widest for the
-winner, yielding better precision at the fixed validation-selected
-threshold for detecting Charged Off.</figcaption>
+alt="Figure 23: Full - Precision-Recall curve (winner). Winner: GBM (Broad+Pricing/Grade). The PR envelope is widest for the winner, yielding better precision at the fixed validation-selected threshold for detecting Charged Off." />
+<figcaption aria-hidden="true">Figure 23: Full - Precision-Recall curve
+(winner). Winner: GBM (Broad+Pricing/Grade). The PR envelope is widest
+for the winner, yielding better precision at the fixed
+validation-selected threshold for detecting Charged Off.</figcaption>
 </figure>
 <figure id="fig:full-roc">
 <img src="reports/full/figures/roc_curve.png"
-alt="Full — ROC curve (winner). Winner: GBM. ROC complements PR by confirming ranking stability at production scale, important when prevalence and drift vary." />
-<figcaption aria-hidden="true">Full — ROC curve (winner). Winner: GBM.
-ROC complements PR by confirming ranking stability at production scale,
-important when prevalence and drift vary.</figcaption>
+alt="Figure 24: Full - ROC curve (winner). Winner: GBM. ROC complements PR by confirming ranking stability at production scale, important when prevalence and drift vary." />
+<figcaption aria-hidden="true">Figure 24: Full - ROC curve (winner).
+Winner: GBM. ROC complements PR by confirming ranking stability at
+production scale, important when prevalence and drift vary.</figcaption>
 </figure>
 <figure id="fig:full-lbpr">
 <img src="reports/full/figures/h2o_leaderboard_pr.png"
-alt="Full — Leaderboard (PR-sorted). GBM achieves the highest Average Precision with Broad+Pricing/Grade; this directly translates to fewer false approvals for Charged Off at comparable recall." />
-<figcaption aria-hidden="true">Full — Leaderboard (PR-sorted). GBM
-achieves the highest Average Precision with Broad+Pricing/Grade; this
-directly translates to fewer false approvals for Charged Off at
-comparable recall.</figcaption>
+alt="Figure 25: Full - Leaderboard (PR-sorted). GBM achieves the highest Average Precision with Broad+Pricing/Grade; this directly translates to fewer false approvals for Charged Off at comparable recall." />
+<figcaption aria-hidden="true">Figure 25: Full - Leaderboard
+(PR-sorted). GBM achieves the highest Average Precision with
+Broad+Pricing/Grade; this directly translates to fewer false approvals
+for Charged Off at comparable recall.</figcaption>
 </figure>
 <figure id="fig:full-lbroc">
 <img src="reports/full/figures/h2o_leaderboard_roc.png"
-alt="Full — Leaderboard (ROC-sorted). Tree ensembles dominate ROC; consistent ranking enables reliable threshold selection for Charged Off detection on out-of-time data." />
-<figcaption aria-hidden="true">Full — Leaderboard (ROC-sorted). Tree
-ensembles dominate ROC; consistent ranking enables reliable threshold
-selection for Charged Off detection on out-of-time data.</figcaption>
+alt="Figure 26: Full - Leaderboard (ROC-sorted). Tree ensembles dominate ROC; consistent ranking enables reliable threshold selection for Charged Off detection on out-of-time data." />
+<figcaption aria-hidden="true">Figure 26: Full - Leaderboard
+(ROC-sorted). Tree ensembles dominate ROC; consistent ranking enables
+reliable threshold selection for Charged Off detection on out-of-time
+data.</figcaption>
 </figure>
 <figure id="fig:full-varimp">
 <img src="reports/full/figures/h2o_varimp_heatmap_winners.png"
-alt="Full — Variable importance heatmap (winners). Relative, model‑derived importance (GBM/XGBoost: split gain; DeepLearning: sensitivity‑based). Not pairwise correlation." />
-<figcaption aria-hidden="true">Full — Variable importance heatmap
-(winners). Relative, model‑derived importance (GBM/XGBoost: split gain;
-DeepLearning: sensitivity‑based). Not pairwise correlation.</figcaption>
+alt="Figure 27: Full - Variable importance heatmap (winners). Relative, model‑derived importance (GBM/XGBoost: split gain; DeepLearning: sensitivity‑based). Not pairwise correlation." />
+<figcaption aria-hidden="true">Figure 27: Full - Variable importance
+heatmap (winners). Relative, model‑derived importance (GBM/XGBoost:
+split gain; DeepLearning: sensitivity‑based). Not pairwise
+correlation.</figcaption>
 </figure>
 <p>Method. Importance summarizes contribution within each family; see
 Appendix A/C for top‑10 tables.</p>
@@ -1406,11 +1459,10 @@ both PR and ROC spaces ensures the chosen winner is not an artifact of a
 single metric (see Figures and ).</p>
 <p>Explainability (why shown). Pricing (<code>int_rate</code>), term,
 and grade dominate feature importance—evidence for including these
-variables in production‑scale models (see Figure <a
-href="#fig:full-varimp">VarImp heatmap</a>).</p>
+variables in production‑scale models (see fig. 27).</p>
 <p>NN attributions vs GBM (full). For the full dataset, NN varimp
 (deeplearning) elevates <code>int_rate</code> and a hierarchy of
-sub-grades (A1–A4) alongside <code>addr_state_CA</code> and
+sub-grades (A1-A4) alongside <code>addr_state_CA</code> and
 <code>purpose_debt_consolidation</code>, while GBM varimp emphasizes
 <code>int_rate</code>, term (36/60), grade bands, and DTI. The overlap
 on <code>int_rate</code> and grade is substantial, but the NN’s
@@ -1421,21 +1473,23 @@ efficiently. This contrast supports using embeddings and monotonic cues
 in NNs so they can match the crispness of tree splits on known monotone
 drivers.</p>
 <p>Diversity and trade-offs (why shown). We assess model diversity and
-the AUCPR–ROC trade-off frontier to reason about stacking/ensembling
+the AUCPR-ROC trade-off frontier to reason about stacking/ensembling
 potential and to select models that are Pareto-efficient rather than
 single-metric winners.</p>
 <p>Family summaries (why shown). We summarize performance by family and
-highlight the best per family—useful to understand whether NNs lag
+highlight the best per family-useful to understand whether NNs lag
 uniformly or only against certain ensembles.</p>
 <p>Interpretation. The enriched regime maintains the best AUCPR; pricing
 (<code>int_rate</code>) and term/grade signals dominate. This aligns
 with lender risk and pricing policy at origination: cost of credit
 correlates with default risk. Importantly, <code>installment</code> adds
 little beyond <code>loan_amnt</code>, <code>term</code>, and
-<code>int_rate</code>—consistent with deterministic relationships. These
+<code>int_rate</code>-consistent with deterministic relationships. These
 insights will guide architecture and feature choices for NNs.</p>
-<h1 id="why-ensembles-lead-and-how-nns-can-catch-up">10 Why Ensembles
-Lead and How NNs Can Catch Up</h1>
+<h1 data-number="11"
+id="why-ensembles-lead-and-how-nns-can-catch-up"><span
+class="header-section-number">11</span> Why Ensembles Lead and How NNs
+Can Catch Up</h1>
 <p>9.1 Strengths of Gradient Boosting on Tabular Data</p>
 <p>Boosted trees thrive on structured, heterogeneous tabular features:
 they naturally capture non-linearities and interactions without heavy
@@ -1468,14 +1522,15 @@ weighting, and balanced batches should be evaluated. Oversampling must
 remain within the training subset only.</p>
 <p>Calibration and thresholds. NNs require post-hoc calibration (Platt,
 Isotonic, temperature scaling) to align probabilities for thresholding.
-This is crucial for business decisions derived from precision–recall
+This is crucial for business decisions derived from precision-recall
 operating points.</p>
 <p>Temporal robustness. Forward-chaining (expanding-window) CV
 quantifies variance across vintages; NNs benefit significantly from
 validation regimes that reflect deployment and from drift-aware
 retraining policies.</p>
-<h1 id="dataset-size-effects-and-temporal-drift">11 Dataset Size Effects
-and Temporal Drift</h1>
+<h1 data-number="12" id="dataset-size-effects-and-temporal-drift"><span
+class="header-section-number">12</span> Dataset Size Effects and
+Temporal Drift</h1>
 <p>Observation. In several families, 10k outperforms 100k, and both can
 outperform the full dataset on AUCPR. This is counterintuitive given
 that more data typically helps.</p>
@@ -1513,8 +1568,10 @@ monotone features explicitly (e.g., <code>int_rate</code>).</p>
 drift dominates sample-size gains. Combining temporal CV, recency
 weighting, and drift-aware calibration can recover the benefits of more
 data without sacrificing out-of-time precision.</p>
-<h1 id="extended-analysis-empirical-signals-and-data-drift">12 Extended
-Analysis: Empirical Signals and Data Drift</h1>
+<h1 data-number="13"
+id="extended-analysis-empirical-signals-and-data-drift"><span
+class="header-section-number">13</span> Extended Analysis: Empirical
+Signals and Data Drift</h1>
 <p>Correlation and MI at origination. Correlations show FICO averages as
 strong anti‑correlates (~−0.13), with DTI and utilization positively
 associated. Mutual information highlights <code>fico_spread</code>,
@@ -1538,8 +1595,9 @@ and, if used, periodic recalibration. See the numeric PSI snapshot
 validation‑chosen threshold and schedule periodic retraining. Monitor
 PSI on top drivers and recalibrate probabilities and thresholds as
 distributions shift to preserve decision quality.</p>
-<h1 id="limitations-and-threats-to-validity">13 Limitations and Threats
-to Validity</h1>
+<h1 data-number="14" id="limitations-and-threats-to-validity"><span
+class="header-section-number">14</span> Limitations and Threats to
+Validity</h1>
 <p>Right-censoring. Recent vintages may be partially observed;
 chronological splits mitigate but do not eliminate censoring artifacts.
 Survival/competing-risks modeling is future work.</p>
@@ -1549,7 +1607,7 @@ regimes. Provider-agnostic models trade a small amount of accuracy for
 robustness out of domain.</p>
 <p>Data quality and measurement error. Stated income and several
 categoricals contain noise; robust preprocessing and winsorization
-reduce—but do not remove—bias and variance.</p>
+reduce-but do not remove-bias and variance.</p>
 <p>Hyperparameter/budget sensitivity. Larger models and tabular
 transformers may yield further gains, but results here reflect bounded
 search budgets designed for reproducibility.</p>
@@ -1578,7 +1636,8 @@ performance on test.</p>
 sensitivity-based and can be noisier and less stable than tree-based
 importances. Interpret NN varimp qualitatively and corroborate with
 partial dependence/ICE where possible.</p>
-<h1 id="conclusions">14 Conclusions</h1>
+<h1 data-number="15" id="conclusions"><span
+class="header-section-number">15</span> Conclusions</h1>
 <p>This iteration benchmarked default prediction on LendingClub across
 dataset scales (10k, 100k, full), feature regimes (compact vs broad,
 with/without pricing and grade), and model families (neural networks vs
@@ -1664,7 +1723,8 @@ role="doc-biblioref">Shwartz-Ziv &amp; Armon, 2022</a>; <a
 href="#ref-siddiqi2006credit" role="doc-biblioref">Siddiqi,
 2006</a>)</span>. With these, we obtain robust, interpretable gains and
 a clear roadmap to strengthen neural models further.</p>
-<h1 id="future-work-high-level-roadmap">15 Future Work: High-Level
+<h1 data-number="16" id="sec:future-work"><span
+class="header-section-number">16</span> Future Work: High-Level
 Roadmap</h1>
 <p>Temporal CV and recency‑aware validation will quantify stability
 across vintages and guide hyperparameter selection under drift. An
@@ -1703,33 +1763,17 @@ subsets.</p>
 constraints; profit-aware metrics in parallel with AUCPR. 2) Robustness
 under drift: PSI-triggered recalibration/retraining; uncertainty
 estimates for policy safeguards.</p>
-<h2
-id="iteration-3-planned-additions-statistical-rigor-analyses">Iteration
-3 — Planned Additions (Statistical Rigor &amp; Analyses)</h2>
-<ul>
-<li>Statistical rigor: multi‑seed runs and bootstrap CIs for AUCPR/ROC;
-aggregate temporal CV metrics (expanding window) with
-<code>train_full_after</code> refits.</li>
-<li>Calibration results: reliability plots and Brier/ECE before/after
-Platt/Isotonic (trees) and temperature scaling (NNs); assess threshold
-stability post‑calibration.</li>
-<li>Threshold sensitivity: compare Youden J vs F1 vs fixed‑recall
-thresholds on validation; document operating‑point trade‑offs.</li>
-<li>Group‑wise performance: populate precision/recall/FPR by salient
-groups (e.g., term, home_ownership, addr_state) at the fixed threshold;
-monitor disparities.</li>
-<li>Drift response: PSI thresholds and a retraining/recalibration action
-plan.</li>
-</ul>
-<h1 id="appendix-a-variable-importance-tables-gbm-winners">Appendix A —
-Variable-Importance Tables (GBM winners)</h1>
+<h1 data-number="17"
+id="appendix-a---variable-importance-tables-gbm-winners"><span
+class="header-section-number">17</span> Appendix A - Variable-Importance
+Tables (GBM winners)</h1>
 <p>These tables provide exact relative-importance percentages for the
 top features of the GBM models within each dataset (complementing the
-variable-importance figures shown in Sections 9.2–9.4). Percentages are
+variable-importance figures shown in Sections 9.2-9.4). Percentages are
 normalized within each winner model.</p>
 <div id="tbl:a2-varimp-10k">
 <table>
-<caption>Top Variable Importance (GBM) — 10k</caption>
+<caption>Table 7: Top Variable Importance (GBM) - 10k</caption>
 <thead>
 <tr>
 <th>Feature</th>
@@ -1782,7 +1826,7 @@ normalized within each winner model.</p>
 </div>
 <div id="tbl:a3-varimp-100k">
 <table>
-<caption>Top Variable Importance (GBM) — 100k</caption>
+<caption>Table 8: Top Variable Importance (GBM) - 100k</caption>
 <thead>
 <tr>
 <th>Feature</th>
@@ -1835,7 +1879,7 @@ normalized within each winner model.</p>
 </div>
 <div id="tbl:a4-varimp-full">
 <table>
-<caption>Top Variable Importance (GBM) — Full</caption>
+<caption>Table 9: Top Variable Importance (GBM) - Full</caption>
 <thead>
 <tr>
 <th>Feature</th>
@@ -1888,8 +1932,8 @@ normalized within each winner model.</p>
 </div>
 <div id="tbl:a5-common">
 <table>
-<caption>Common Drivers Across Datasets (appear in ≥2 top‑10
-lists)</caption>
+<caption>Table 10: Common Drivers Across Datasets (appear in &gt;= 2
+top‑10 lists)</caption>
 <thead>
 <tr>
 <th>Feature</th>
@@ -1940,18 +1984,18 @@ lists)</caption>
 </tbody>
 </table>
 </div>
-<h1 id="appendix-b-perdataset-run-metrics-exact-values">Appendix B —
-Per‑Dataset Run Metrics (Exact Values)</h1>
+<h1 data-number="18"
+id="appendix-b---perdataset-run-metrics-exact-values"><span
+class="header-section-number">18</span> Appendix B - Per‑Dataset Run
+Metrics (Exact Values)</h1>
 <p>These tables list all runs per dataset with exact metrics
 corresponding to the AUCPR/ROC plots shown above. “Features” is the
 count of input columns in the respective run; thresholds are the fixed
 values chosen on validation (Youden J) and applied to test. Unless
-otherwise stated, these are single‑run point estimates; confidence
-intervals and multi‑seed stability will be added in Iteration 3 (see
-Section 15.10).</p>
+otherwise stated, these are single‑run point estimates.</p>
 <div id="tbl:b2-10k">
 <table>
-<caption>10k runs and metrics</caption>
+<caption>Table 11: 10k runs and metrics</caption>
 <thead>
 <tr>
 <th>Run</th>
@@ -1995,7 +2039,7 @@ Section 15.10).</p>
 </div>
 <div id="tbl:b3-100k">
 <table>
-<caption>100k runs and metrics</caption>
+<caption>Table 12: 100k runs and metrics</caption>
 <thead>
 <tr>
 <th>Run</th>
@@ -2039,7 +2083,7 @@ Section 15.10).</p>
 </div>
 <div id="tbl:b4-full">
 <table>
-<caption>Full runs and metrics</caption>
+<caption>Table 13: Full runs and metrics</caption>
 <thead>
 <tr>
 <th>Run</th>
@@ -2081,15 +2125,16 @@ Section 15.10).</p>
 </tbody>
 </table>
 </div>
-<h1
-id="appendix-c-neural-network-deeplearning-variable-importance-tables">Appendix
-C — Neural Network (DeepLearning) Variable-Importance Tables</h1>
+<h1 data-number="19"
+id="appendix-c---neural-network-deeplearning-variable-importance-tables"><span
+class="header-section-number">19</span> Appendix C - Neural Network
+(DeepLearning) Variable-Importance Tables</h1>
 <p>These tables show top features for H2O DeepLearning (NN) per dataset,
 normalized to percentages. They complement GBM tables in Appendix A and
-are referenced in Sections 9.2–9.4.</p>
+are referenced in Sections 9.2-9.4.</p>
 <div id="tbl:c2-nn-varimp-10k">
 <table>
-<caption>NN VarImp (DeepLearning) — 10k</caption>
+<caption>Table 14: NN VarImp (DeepLearning) - 10k</caption>
 <thead>
 <tr>
 <th>Feature</th>
@@ -2142,7 +2187,7 @@ are referenced in Sections 9.2–9.4.</p>
 </div>
 <div id="tbl:c3-nn-varimp-100k">
 <table>
-<caption>NN VarImp (DeepLearning) — 100k</caption>
+<caption>Table 15: NN VarImp (DeepLearning) - 100k</caption>
 <thead>
 <tr>
 <th>Feature</th>
@@ -2195,7 +2240,7 @@ are referenced in Sections 9.2–9.4.</p>
 </div>
 <div id="tbl:c4-nn-varimp-full">
 <table>
-<caption>NN VarImp (DeepLearning) — full</caption>
+<caption>Table 16: NN VarImp (DeepLearning) - full</caption>
 <thead>
 <tr>
 <th>Feature</th>
@@ -2246,13 +2291,14 @@ are referenced in Sections 9.2–9.4.</p>
 </tbody>
 </table>
 </div>
-<h1
-id="appendix-d-excluded-included-columns-policy-leakage-fairness-cardinality">Appendix
-D — Excluded / Included Columns Policy (Leakage, Fairness,
-Cardinality)</h1>
+<h1 data-number="20"
+id="appendix-d---excluded-included-columns-policy-leakage-fairness-cardinality"><span
+class="header-section-number">20</span> Appendix D - Excluded / Included
+Columns Policy (Leakage, Fairness, Cardinality)</h1>
 <div id="tbl:d1-leakage">
 <table>
-<caption>Leakage columns (post‑event; excluded end‑to‑end)</caption>
+<caption>Table 17: Leakage columns (post‑event; excluded
+end‑to‑end)</caption>
 <colgroup>
 <col style="width: 50%" />
 <col style="width: 50%" />
@@ -2341,7 +2387,7 @@ Cardinality)</h1>
 </div>
 <div id="tbl:d2-fairness-card">
 <table>
-<caption>Fairness / cardinality policy (examples)</caption>
+<caption>Table 18: Fairness / cardinality policy (examples)</caption>
 <colgroup>
 <col style="width: 33%" />
 <col style="width: 33%" />
@@ -2395,7 +2441,8 @@ Cardinality)</h1>
 </div>
 <div id="tbl:d3-included">
 <table>
-<caption>Included origination‑time signals (examples)</caption>
+<caption>Table 19: Included origination‑time signals
+(examples)</caption>
 <thead>
 <tr>
 <th>Column</th>
@@ -2450,12 +2497,13 @@ Cardinality)</h1>
 fairness concerns. In provider‑aware regimes, include pricing/grade with
 monotone priors and calibration to manage drift; in portable regimes,
 exclude them to improve generalization across lenders.</p>
-<h1
-id="appendix-e-h2o-deeplearning-hyperparameter-grids-reference">Appendix
-E — H2O DeepLearning Hyperparameter Grids (Reference)</h1>
+<h1 data-number="21"
+id="appendix-e---h2o-deeplearning-hyperparameter-grids-reference"><span
+class="header-section-number">21</span> Appendix E - H2O DeepLearning
+Hyperparameter Grids (Reference)</h1>
 <div id="tbl:e1-dl-default">
 <table>
-<caption>H2O DeepLearning — Default Model</caption>
+<caption>Table 20: H2O DeepLearning - Default Model</caption>
 <thead>
 <tr>
 <th>Component</th>
@@ -2484,7 +2532,7 @@ E — H2O DeepLearning Hyperparameter Grids (Reference)</h1>
 </div>
 <div id="tbl:e2-dl-grids">
 <table>
-<caption>H2O DeepLearning — AutoML Grids (3.46.x)</caption>
+<caption>Table 21: H2O DeepLearning - AutoML Grids (3.46.x)</caption>
 <colgroup>
 <col style="width: 12%" />
 <col style="width: 12%" />
@@ -2546,8 +2594,10 @@ E — H2O DeepLearning Hyperparameter Grids (Reference)</h1>
 <code>h2o==3.46.0.7</code>). AutoML applies early stopping using the
 configured metric (we sort by AUCPR and use AUC for stopping), so
 <code>_epochs=10000</code> acts as an upper bound.</p>
-<h1 id="appendix-f-reproducibility-and-environment">Appendix F —
-Reproducibility and Environment</h1>
+<h1 data-number="22"
+id="appendix-f---reproducibility-and-environment"><span
+class="header-section-number">22</span> Appendix F - Reproducibility and
+Environment</h1>
 <ul>
 <li>Hardware/software: experiments run on a workstation with Python
 3.10+, H2O <code>3.46.0.7</code>, and thread‑limited BLAS; figures
@@ -2557,14 +2607,14 @@ workers; H2O seeded where applicable. All results in Appendix B are
 point estimates for single seeded runs unless noted.</li>
 <li>Makefile (selected targets):
 <ul>
-<li><code>make explore CONFIG=...</code> — dataset EDA and
+<li><code>make explore CONFIG=...</code> - dataset EDA and
 leakage/missingness checks.</li>
-<li><code>make automl-h2o AUTOML_CONFIG=...</code> — H2O AutoML
+<li><code>make automl-h2o AUTOML_CONFIG=...</code> - H2O AutoML
 baselines (leaderboards, PR/ROC, varimp).</li>
-<li><code>make dryrun-h2o</code> / <code>make dryrun-h2o-cv</code> —
+<li><code>make dryrun-h2o</code> / <code>make dryrun-h2o-cv</code> -
 smoke tests for single split / temporal CV.</li>
 <li><code>make run-catalog</code> / <code>make run-catalog-report</code>
-— index and summarize local runs.</li>
+- index and summarize local runs.</li>
 </ul></li>
 <li>Config and invariants: chronological splits by <code>issue_d</code>;
 validation slice carved from training; post‑event leakage features
@@ -2572,13 +2622,13 @@ excluded; threshold fixed from validation; AUCPR primary metric; ROC AUC
 supporting.</li>
 <li>Feature engineering used:
 <code>income_to_loan_ratio = annual_inc / loan_amnt</code> (with
-inf→NaN), <code>fico_avg = (fico_low + fico_high)/2</code>,
-<code>fico_spread = fico_high − fico_low</code>,
-<code>credit_history_length = issue_d − earliest_cr_line</code> in
+inf-&gt;NaN), <code>fico_avg = (fico_low + fico_high)/2</code>,
+<code>fico_spread = fico_high - fico_low</code>,
+<code>credit_history_length = issue_d - earliest_cr_line</code> in
 months.</li>
 </ul>
 <p>Build notes: HTML/PDF are generated from this Markdown via Pandoc
-with <code>--citeproc</code>; see
+with <code>pandoc-crossref</code> and <code>--citeproc</code>; see
 <code>docs/thesis/iteration-2/README.md</code> for commands.</p>
 <h1 class="unnumbered" id="references">References</h1>
 <div id="refs" class="references csl-bib-body hanging-indent"

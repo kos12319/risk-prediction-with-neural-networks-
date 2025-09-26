@@ -14,11 +14,11 @@ Upstream experiment reports remain in `docs/experiments/suites/thesis_iter1/`.
 Source of truth: `THESIS_ITERATION_2.md`. Do not edit the HTML/PDF directly; regenerate them from Markdown.
 
 Requirements (local builds):
-- `pandoc` (>= 3.x) and a LaTeX engine for PDF (e.g., `tectonic` or `xelatex`).
+- `pandoc` (>= 3.x), `pandoc-crossref` (for numbered cross-references), and a LaTeX engine for PDF (e.g., `tectonic` or `xelatex`).
 - CSL style and bibliographies are already in this repo.
 
 Recommended setup (macOS/Homebrew):
-- `brew install pandoc tectonic`
+- `brew install pandoc pandoc-crossref tectonic`
 
 Paths:
 - CSL: `../../csl/apa.csl`
@@ -28,10 +28,16 @@ Paths:
   - `../../bibliography/lendingclub_subtopics_white.bib`
   - `../../bibliography/lendingclub_subtopics_grey.bib`
 
+Cross-references: Figures use Pandoc Crossref syntax (e.g., `Figure @fig:eda-class-balance`). Ensure `pandoc-crossref` is installed or use the Makefile targets below.
+
 Build HTML from Markdown (run from repo root):
 ```bash
+make thesis-iter2-html  # includes -N/--number-sections and pandoc-crossref
+
+# Or equivalently without Makefile:
 pandoc docs/thesis/iteration-2/THESIS_ITERATION_2.md \
   --from markdown \
+  --filter pandoc-crossref \
   --citeproc \
   --resource-path=.:docs:docs/thesis/iteration-2:docs/thesis/iteration-2/reports:docs/exploration \
   -o docs/thesis/iteration-2/THESIS_ITERATION_2.html
@@ -39,8 +45,12 @@ pandoc docs/thesis/iteration-2/THESIS_ITERATION_2.md \
 
 Build PDF from Markdown (run from repo root):
 ```bash
+make thesis-iter2-pdf   # includes -N/--number-sections and pandoc-crossref
+
+# Or equivalently without Makefile:
 pandoc docs/thesis/iteration-2/THESIS_ITERATION_2.md \
   --from markdown \
+  --filter pandoc-crossref \
   --citeproc \
   --pdf-engine=xelatex \
   --resource-path=.:docs:docs/thesis/iteration-2:docs/thesis/iteration-2/reports:docs/exploration \

@@ -154,6 +154,42 @@ CSV ?=
 explore: venv
 	$(SAFE_ENV) $(PY) -m src.cli.explore --config $(CONFIG) $(if $(CSV),--csv $(CSV),)
 
+# ------------------------------
+# Docs: Thesis Iteration 2 (Pandoc)
+# ------------------------------
+
+THESIS_ITER2_MD := docs/thesis/iteration-2/THESIS_ITERATION_2.md
+THESIS_ITER2_HTML := docs/thesis/iteration-2/THESIS_ITERATION_2.html
+THESIS_ITER2_PDF := docs/thesis/iteration-2/THESIS_ITERATION_2.pdf
+
+# Resource lookup order for images/figures referenced in Markdown
+THESIS_RES_PATH := .:docs:docs/thesis/iteration-2:docs/thesis/iteration-2/reports:docs/exploration
+
+.PHONY: thesis-iter2-html
+thesis-iter2-html: ## Build Iteration 2 thesis HTML via Pandoc (requires pandoc-crossref)
+	@pandoc $(THESIS_ITER2_MD) \
+	  --from markdown \
+	  -N \
+	  --filter pandoc-crossref \
+	  --citeproc \
+	  --resource-path=$(THESIS_RES_PATH) \
+	  -o $(THESIS_ITER2_HTML)
+
+.PHONY: thesis-iter2-pdf
+thesis-iter2-pdf: ## Build Iteration 2 thesis PDF via Pandoc (requires pandoc, pandoc-crossref, and a LaTeX engine)
+	@pandoc $(THESIS_ITER2_MD) \
+	  --from markdown \
+	  -N \
+	  --filter pandoc-crossref \
+	  --citeproc \
+	  --pdf-engine=xelatex \
+	  --resource-path=$(THESIS_RES_PATH) \
+	  -V geometry:margin=1in -V fontsize=11pt \
+	  -o $(THESIS_ITER2_PDF)
+
+.PHONY: thesis-iter2
+thesis-iter2: thesis-iter2-html thesis-iter2-pdf ## Build both HTML and PDF for Iteration 2
+
 # Usage: make dryrun CONFIG=configs/pytorch_default.yaml
 dryrun: venv
 	$(SAFE_ENV) $(PY) -m src.cli.pytorch.dryrun --config $(CONFIG)

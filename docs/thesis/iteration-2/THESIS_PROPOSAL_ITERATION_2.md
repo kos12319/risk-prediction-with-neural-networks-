@@ -1,13 +1,21 @@
 # Thesis Proposal — Iteration 2: Neural-Centric Refinement with Temporal CV
 
 ## Objective
-- Build a strong, reproducible neural-network baseline for LendingClub default prediction that competes with tree ensembles, using a time-aware evaluation and calibration. Compare against H2O AutoML winners and document where NNs win/lose across dataset scales.
+- Build a strong, reproducible neural-network baseline for LendingClub default prediction that competes with tree ensembles under a time-aware evaluation. Compare across feature regimes (provider-agnostic vs provider-aware with pricing/grades) and dataset scales (10k, 100k, full); document where NNs win/lose and why. Incorporate calibration and thresholding aligned with deployment.
 
-## Hypotheses
-- With categorical embeddings, monotonic priors on known risk drivers, and strong regularization, an MLP can match or exceed AutoML tree ensembles on small-to-medium samples (1k–10k) and narrow the gap on larger ones (100k+).
-- Temporal CV plus validation-chosen thresholds improve stability and out-of-sample calibration vs. single split.
+## Research Questions & Hypotheses
+
+- RQ1: Under a time-aware protocol, how do provider-aware features (`int_rate`, `grade/sub_grade`, `installment`) affect AUCPR across dataset scales?
+  - H1: Including pricing/grade improves AUCPR at 10k/100k/full relative to compact/broad-without-pricing regimes.
+- RQ2: Which model families achieve the strongest discrimination on tabular LC data under this protocol?
+  - H2: Gradient-boosted trees outperform other families on larger tabular datasets; NNs can be competitive at smaller scales but lag without tailored encodings and calibration.
+- RQ3: How does dataset size interact with temporal drift to influence out-of-time AUCPR and thresholded performance?
+  - H3: AUCPR plateaus or declines at “full” vs 10k/100k due to drift across vintages; recency weighting and temporal CV mitigate this effect.
+- RQ4: Does validation-chosen thresholding (Youden J) yield stable operating points across scales?
+  - H4: Fixing thresholds on validation produces consistent precision/recall trade-offs; alternative strategies (F1, fixed-recall) shift operating points.
 
 ## Methods
+
 - Backend design (Makefile-first):
   - PyTorch MLP: embeddings for `grade/sub_grade/purpose/term`, BatchNorm, dropout, weight decay, cyclic/one-cycle LR, early stopping.
   - Monotonic cues: soft monotonic regularization for features like `int_rate`, `fico_avg` (non-decreasing / non-increasing as appropriate).
@@ -16,7 +24,7 @@
   - Baselines: H2O AutoML winners from Iteration 1 for each size/feature regime.
 - Evaluation invariants:
   - Time split by `issue_d`; validation carved from train only; oversample train subset only.
-  - Threshold selected on validation via configured strategy (`fixed|youden_j|f1`), fixed on test; respect `eval.pos_label=0`.
+  - Threshold selected on validation via configured strategy (`fixed|youden_j|f1`), fixed on test.
   - Determinism: seed Python/NumPy/Torch/DataLoader workers; headless plotting and thread limits via Makefile.
 - Temporal CV:
   - Expanding-window k-fold (`split.cv`), aggregate metrics to `reports/cv_metrics.json` with `train_full_after: true` for final refit.
@@ -24,7 +32,7 @@
 ## Experiments
 - Thesis snapshot: `docs/thesis/iteration-2/` (iteration narrative + key figures)
 - Suite reference: `docs/experiments/suites/thesis_iter1/` (reports reused for baselines)
-- Data scales: 1k, 10k, 100k, full.
+- Data scales: 10k, 100k, full.
 - Feature regimes: replicate Iteration 1 (agnostic, selected, aware, selected+providers) for fair comparison where feasible.
 - Commands (Makefile-first examples):
   - PyTorch smoke: `make dryrun`
@@ -33,9 +41,9 @@
   - Full PyTorch train (example): `make train CONFIG=configs/pytorch/base.yaml OVERRIDES="split.method=time,split.cv=5,train_full_after=true"`
 
 ## Success Criteria
-- 1k/10k: NN AUCPR ≥ AutoML within 1–2% absolute; well-calibrated probabilities at the validation-chosen threshold.
+- 10k: NN AUCPR ≥ AutoML within 1–2% absolute; well‑calibrated probabilities at the validation‑chosen threshold.
 - 100k/full: NN narrows AUCPR gap vs. AutoML; calibration error decreases with temporal CV.
-- Clear, reproducible artifacts: config snapshots, metrics.json, PR/ROC curves, per-fold reports.
+- Clear, reproducible artifacts: config snapshots, metrics.json, PR/ROC curves, per‑fold reports.
 
 ## Risks & Mitigations
 - Overfitting on small samples → strong regularization, early stopping, and sanity checks via `make dryrun`.
@@ -46,4 +54,3 @@
 - Iterate NN configs under `configs/pytorch/`; keep runs reproducible via Makefile and seeded generators.
 - Compare against H2O leaders; export figures and tables under `docs/thesis/iteration-2/`.
 - Document thresholding decisions and operating points alongside AUCPR/ROC.
-
