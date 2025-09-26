@@ -505,7 +505,7 @@ Curves (why shown). At 100k, enrichment sustains PR gains while maintaining high
 
 Model comparison (why shown). ROC comparisons highlight where ensembles outperform alternatives (see Figure \ref{fig:100k-lbroc}), which is appropriate for ranking‑focused screening.
 
-Explainability (why shown). Pricing/grade dominate at scale, with `dti` and credit depth contributing incremental lift (see Figure \ref{fig:100k-varimp}).
+Explainability (why shown). Pricing/grade dominate at scale, with `dti` and credit depth contributing incremental lift (see Figure [VarImp heatmap](#fig:100k-varimp)).
 
 Interpretation and NN contrast. With more data, pricing and grading fully dominate variable importance, with `dti`, credit depth, and loan size adding incremental signal. Tree ensembles (GBM/XGBoost) capitalize on these structured interactions and achieve top performance. NN varimp at 100k ranks grade/term, `int_rate`, and `fico_spread` among top drivers, but the attribution remains more distributed across sub-grades and home-ownership states compared to GBM’s sharper focus on `int_rate` and term. This is consistent with NNs learning broader categorical embeddings that capture latent structure.
 
@@ -528,7 +528,7 @@ Curves (why shown). On the full dataset, both PR and ROC document performance an
 
 Model comparison (why shown). Comparing the strongest contenders in both PR and ROC spaces ensures the chosen winner is not an artifact of a single metric (see Figures \ref{fig:full-lbpr} and \ref{fig:full-lbroc}).
 
-Explainability (why shown). Pricing (`int_rate`), term, and grade dominate feature importance—evidence for including these variables in production‑scale models (see Figure \ref{fig:full-varimp}).
+Explainability (why shown). Pricing (`int_rate`), term, and grade dominate feature importance—evidence for including these variables in production‑scale models (see Figure [VarImp heatmap](#fig:full-varimp)).
 
 NN attributions vs GBM (full). For the full dataset, NN varimp (deeplearning) elevates `int_rate` and a hierarchy of sub-grades (A1–A4) alongside `addr_state_CA` and `purpose_debt_consolidation`, while GBM varimp emphasizes `int_rate`, term (36/60), grade bands, and DTI. The overlap on `int_rate` and grade is substantial, but the NN’s finer-grained focus on sub-grade categories suggests that learned embeddings capture within-grade nuances. GBM’s stronger ranking of term is consistent with tree splits exploiting the 36/60 dichotomy efficiently. This contrast supports using embeddings and monotonic cues in NNs so they can match the crispness of tree splits on known monotone drivers.
 

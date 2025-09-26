@@ -1338,7 +1338,7 @@ ensembles outperform alternatives (see Figure ), which is appropriate
 for ranking‑focused screening.</p>
 <p>Explainability (why shown). Pricing/grade dominate at scale, with
 <code>dti</code> and credit depth contributing incremental lift (see
-Figure ).</p>
+Figure <a href="#fig:100k-varimp">VarImp heatmap</a>).</p>
 <p>Interpretation and NN contrast. With more data, pricing and grading
 fully dominate variable importance, with <code>dti</code>, credit depth,
 and loan size adding incremental signal. Tree ensembles (GBM/XGBoost)
@@ -1401,7 +1401,8 @@ both PR and ROC spaces ensures the chosen winner is not an artifact of a
 single metric (see Figures and ).</p>
 <p>Explainability (why shown). Pricing (<code>int_rate</code>), term,
 and grade dominate feature importance—evidence for including these
-variables in production‑scale models (see Figure ).</p>
+variables in production‑scale models (see Figure <a
+href="#fig:full-varimp">VarImp heatmap</a>).</p>
 <p>NN attributions vs GBM (full). For the full dataset, NN varimp
 (deeplearning) elevates <code>int_rate</code> and a hierarchy of
 sub-grades (A1–A4) alongside <code>addr_state_CA</code> and
