@@ -1,0 +1,21 @@
+feature,relative_importance
+cat__purpose_educational,1.0
+num__int_rate,0.9487598538398743
+cat__term_ 36 months,0.8315433859825134
+cat__sub_grade_A1,0.7639208436012268
+cat__grade_C,0.7530775666236877
+cat__term_ 60 months,0.740465521812439
+cat__grade_B,0.7199633121490479
+num__dti,0.6999907493591309
+cat__home_ownership_OTHER,0.6879916191101074
+cat__emp_length_10+ years,0.6329812407493591
+cat__home_ownership_MORTGAGE,0.6158448457717896
+num__fico_spread,0.587905764579773
+cat__home_ownership_RENT,0.5548467636108398
+cat__sub_grade_A2,0.5531274080276489
+cat__sub_grade_A3,0.5395243167877197
+num__loan_amnt,0.5326088666915894
+cat__home_ownership_NONE,0.5229266881942749
+cat__purpose_credit_card,0.508534848690033
+cat__addr_state_ME,0.47720223665237427
+cat__purpose_debt_consolidation,0.46545228362083435

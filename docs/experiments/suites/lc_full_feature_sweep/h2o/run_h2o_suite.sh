@@ -60,23 +60,25 @@ elif [[ "$RESUME" -eq 1 ]]; then
   echo "Warning: ripgrep (rg) not found; falling back to grep for resume scanning." >&2
 fi
 
-declare -A SKIP
+DONE_CFGS=""
 if [[ "$RESUME" -eq 1 && -f "$LOG_PATH" ]]; then
   if [[ "$RG_AVAILABLE" -eq 1 ]]; then
     while IFS= read -r line; do
       cfg_path="${line#OK: }"
-      SKIP["$cfg_path"]=1
+      DONE_CFGS="$DONE_CFGS
+$cfg_path"
     done < <(rg -h '^OK: ' "$LOG_PATH" || true)
   else
     while IFS= read -r line; do
       cfg_path="${line#OK: }"
-      SKIP["$cfg_path"]=1
+      DONE_CFGS="$DONE_CFGS
+$cfg_path"
     done < <(grep -h '^OK: ' "$LOG_PATH" || true)
   fi
 fi
 
 for cfg in "${CONFIGS[@]}"; do
-  if [[ -n "${SKIP[$cfg]:-}" ]]; then
+  if printf '%s\n' "$DONE_CFGS" | grep -Fxq "$cfg"; then
     echo "Skipping already completed config: $cfg"
     continue
   fi

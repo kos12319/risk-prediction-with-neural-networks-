@@ -1,0 +1,21 @@
+feature,relative_importance
+cat__sub_grade_A1,1.0
+cat__sub_grade_A2,0.915729820728302
+cat__sub_grade_A3,0.8376079201698303
+cat__sub_grade_A4,0.758381724357605
+num__dti,0.6499407291412354
+cat__sub_grade_A5,0.6482757329940796
+cat__sub_grade_B1,0.6170279383659363
+num__int_rate,0.6123411655426025
+cat__sub_grade_B2,0.5916749835014343
+cat__term_ 36 months,0.5441189408302307
+cat__term_ 60 months,0.5337139964103699
+cat__sub_grade_E2,0.5180332660675049
+cat__sub_grade_D4,0.5031108260154724
+cat__purpose_educational,0.49655598402023315
+cat__emp_length_10+ years,0.4923365116119385
+cat__grade_F,0.4877088665962219
+cat__sub_grade_E5,0.48474040627479553
+cat__sub_grade_E1,0.4784855544567108
+cat__sub_grade_E3,0.4746329188346863
+num__revol_bal,0.47093576192855835

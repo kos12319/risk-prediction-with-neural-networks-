@@ -20,6 +20,8 @@ Key settings baked into every config:
 - Dataset: `data/raw/full/thesis_data_full.csv` (time split on `issue_d`)
 - Winsorisation targets core numeric columns (`dti`, `loan_amnt`, `revol_bal`, etc.)
 - AutoML runtime cap: 36,000 seconds (10 hours); class balancing left enabled
+- Resource guardrails: AutoML pinned to 8 threads and a 12 GB JVM heap (`max_mem_size: 12G`)
+- Ensembles skipped to conserve RAM (`exclude_algos: ['StackedEnsemble']`)
 - Positive class, thresholding, and leakage guards inherit from the shared defaults
 - CV variant uses 5 expanding folds with `train_full_after: true` after cross-validation
 

@@ -1,0 +1,43 @@
+{
+  "csv_path": "data/raw/full/thesis_data_full.csv",
+  "csv_path_abs": "/Users/petros/Projects/risk-prediction-with-neural-networks-/data/raw/full/thesis_data_full.csv",
+  "filesize_bytes": 1557553639,
+  "mtime": 1725819141,
+  "sha256": "80b455c25ad11a81fb42042ecf545542a663513d40b3172aaff3010b8142f0b8",
+  "n_rows": 1271779,
+  "n_cols": 44,
+  "class_counts": {
+    "1": 1020444,
+    "0": 251335
+  },
+  "date_ranges": {
+    "dataset": {
+      "min": "2007-06-01",
+      "max": "2018-12-01"
+    },
+    "train": {
+      "min": "2007-06-01",
+      "max": "2015-12-01"
+    },
+    "val": {
+      "min": "2015-12-01",
+      "max": "2016-07-01"
+    },
+    "test": {
+      "min": "2016-07-01",
+      "max": "2018-12-01"
+    }
+  },
+  "train_class_counts": {
+    "0": 149665,
+    "1": 664273
+  },
+  "test_class_counts": {
+    "0": 56103,
+    "1": 198253
+  },
+  "val_class_counts": {
+    "0": 45567,
+    "1": 157918
+  }
+}

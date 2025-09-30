@@ -1,0 +1,21 @@
+feature,relative_importance
+cat__purpose_debt_consolidation,1.0
+cat__grade_B,0.9604300856590271
+cat__purpose_credit_card,0.896084189414978
+cat__verification_status_Not Verified,0.8926185965538025
+cat__grade_C,0.8810396790504456
+cat__verification_status_Source Verified,0.8627797365188599
+cat__verification_status_Verified,0.7939824461936951
+cat__sub_grade_A1,0.6940812468528748
+cat__emp_length_10+ years,0.692895770072937
+cat__purpose_educational,0.6434582471847534
+cat__addr_state_CA,0.62345951795578
+cat__sub_grade_A4,0.5704644918441772
+cat__sub_grade_A5,0.5661048889160156
+num__int_rate,0.5610758662223816
+cat__home_ownership_RENT,0.5595914721488953
+cat__sub_grade_A2,0.557323694229126
+cat__sub_grade_A3,0.5434579253196716
+cat__home_ownership_OTHER,0.5182555317878723
+num__fico_spread,0.5112195014953613
+cat__addr_state_IA,0.5095618367195129

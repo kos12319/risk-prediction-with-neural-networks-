@@ -94,6 +94,9 @@ split:
     shuffle_within_folds: false
     train_full_after: false
 
+automl:
+  nfolds: 0
+
 oversampling:
   enabled: false
   method: null

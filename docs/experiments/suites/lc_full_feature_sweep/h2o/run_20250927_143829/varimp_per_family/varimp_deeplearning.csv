@@ -1,0 +1,21 @@
+feature,relative_importance
+cat__purpose_debt_consolidation,1.0
+cat__purpose_credit_card,0.897527277469635
+cat__addr_state_CA,0.8710871338844299
+cat__term_ 60 months,0.8467835187911987
+cat__purpose_educational,0.8308318853378296
+cat__home_ownership_OTHER,0.7063043117523193
+num__fico_spread,0.6936875581741333
+cat__home_ownership_NONE,0.6825060844421387
+cat__emp_length_10+ years,0.6761651635169983
+cat__term_ 36 months,0.670100748538971
+cat__addr_state_TX,0.6569834351539612
+cat__addr_state_NY,0.6174430251121521
+cat__addr_state_ID,0.5981807708740234
+cat__addr_state_IA,0.5915464758872986
+cat__addr_state_FL,0.5852510929107666
+cat__home_ownership_ANY,0.5380493402481079
+num__dti,0.5344603061676025
+cat__addr_state_IL,0.47439467906951904
+cat__home_ownership_RENT,0.47300684452056885
+cat__addr_state_GA,0.4646710753440857

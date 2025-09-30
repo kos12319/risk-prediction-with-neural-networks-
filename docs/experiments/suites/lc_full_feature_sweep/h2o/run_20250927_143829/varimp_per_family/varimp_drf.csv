@@ -1,0 +1,21 @@
+feature,relative_importance
+cat__term_ 36 months,333797.65625
+cat__term_ 60 months,291614.4375
+num__dti,150087.65625
+num__fico_avg,147506.15625
+num__loan_amnt,141085.703125
+num__fico_range_high,130958.2265625
+num__fico_range_low,121350.8203125
+num__credit_history_length,111417.7578125
+num__income_to_loan_ratio,102116.3046875
+num__total_bc_limit,97755.4453125
+num__bc_util,90515.78125
+num__revol_util,88874.3125
+num__total_acc,85798.8671875
+num__open_acc,83409.6796875
+num__percent_bc_gt_75,83290.75
+num__tot_hi_cred_lim,83081.9765625
+num__num_rev_accts,81952.7265625
+num__annual_inc,80666.765625
+num__inq_last_6mths,79616.359375
+num__num_bc_tl,79218.703125

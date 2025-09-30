@@ -1,0 +1,21 @@
+feature,relative_importance
+cat__term_ 60 months,1.0
+cat__purpose_educational,0.8240675330162048
+num__credit_history_length,0.6719809770584106
+cat__term_ 36 months,0.6394279599189758
+cat__home_ownership_OTHER,0.6137233972549438
+cat__home_ownership_MORTGAGE,0.5799607634544373
+cat__emp_length_10+ years,0.5777657628059387
+cat__home_ownership_RENT,0.5674463510513306
+cat__purpose_debt_consolidation,0.5581318736076355
+num__dti,0.5468023419380188
+cat__purpose_credit_card,0.5305387377738953
+num__fico_spread,0.5276281237602234
+cat__addr_state_NY,0.5153177380561829
+cat__addr_state_CA,0.5079269409179688
+num__revol_bal,0.4916447103023529
+cat__home_ownership_NONE,0.4736006259918213
+cat__addr_state_TX,0.45368489623069763
+num__loan_amnt,0.4355470538139343
+cat__addr_state_FL,0.38387376070022583
+cat__addr_state_ME,0.3832451403141022

@@ -18,6 +18,7 @@ automl:
   sort_metric: AUCPR
   include_algos: []
   exclude_algos: []
+  nfolds: 0
   nthreads: -1
   max_mem_size: null
   export_checkpoints_dir: null

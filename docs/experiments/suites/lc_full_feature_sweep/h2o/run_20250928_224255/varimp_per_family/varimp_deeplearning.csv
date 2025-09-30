@@ -1,0 +1,21 @@
+feature,relative_importance
+cat__purpose_educational,1.0
+cat__purpose_debt_consolidation,0.8659705519676208
+cat__verification_status_Source Verified,0.8539868593215942
+cat__verification_status_Verified,0.8219623565673828
+cat__purpose_credit_card,0.7852827310562134
+cat__verification_status_Not Verified,0.7766029834747314
+cat__home_ownership_OTHER,0.7500177621841431
+num__fico_spread,0.662388265132904
+num__bc_util,0.5401758551597595
+cat__home_ownership_NONE,0.5364561080932617
+cat__addr_state_ME,0.5231013298034668
+cat__home_ownership_MORTGAGE,0.5142604112625122
+num__loan_amnt,0.5087952017784119
+cat__home_ownership_RENT,0.5081954598426819
+num__percent_bc_gt_75,0.503387451171875
+num__revol_util,0.4992925524711609
+cat__emp_length_10+ years,0.4944809675216675
+num__dti,0.4624670445919037
+cat__purpose_wedding,0.4522691071033478
+cat__addr_state_ND,0.44658249616622925

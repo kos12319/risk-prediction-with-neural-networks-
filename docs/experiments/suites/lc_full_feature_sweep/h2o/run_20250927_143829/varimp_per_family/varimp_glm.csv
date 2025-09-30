@@ -1,0 +1,21 @@
+feature,relative_importance
+num__total_bc_limit,0.2586546540260315
+num__dti,0.2434379607439041
+cat__term_ 36 months,0.22033052146434784
+cat__term_ 60 months,0.2168576866388321
+num__total_il_high_credit_limit,0.20715390145778656
+num__total_bal_ex_mort,0.17722415924072266
+num__total_acc,0.14367592334747314
+num__inq_last_6mths,0.13885676860809326
+num__loan_amnt,0.12233255058526993
+num__bc_open_to_buy,0.10724257677793503
+num__tot_hi_cred_lim,0.1051631048321724
+num__fico_range_low,0.09823055565357208
+num__fico_range_high,0.09758181124925613
+num__fico_avg,0.09510986506938934
+num__percent_bc_gt_75,0.09258586168289185
+num__income_to_loan_ratio,0.09046449512243271
+num__num_rev_tl_bal_gt_0,0.08165702223777771
+cat__purpose_credit_card,0.07258971035480499
+cat__purpose_small_business,0.07227431237697601
+num__revol_bal,0.06752315908670425

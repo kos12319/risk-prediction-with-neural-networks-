@@ -1,0 +1,189 @@
+data:
+  csv_path: data/raw/full/thesis_data_full.csv
+  target_col: loan_status
+  target_mapping:
+    Charged Off: 0
+    Fully Paid: 1
+  parse_dates:
+  - issue_d
+  - earliest_cr_line
+  drop_leakage: true
+  leakage_cols:
+  - out_prncp
+  - out_prncp_inv
+  - total_pymnt
+  - total_pymnt_inv
+  - last_pymnt_d
+  - last_pymnt_amnt
+  - next_pymnt_d
+  - last_credit_pull_d
+  - collection_recovery_fee
+  - recoveries
+  - hardship_flag
+  - hardship_type
+  - hardship_reason
+  - hardship_status
+  - hardship_amount
+  - hardship_start_date
+  - hardship_end_date
+  - payment_plan_start_date
+  - hardship_length
+  - hardship_dpd
+  - hardship_loan_status
+  - orig_projected_additional_accrued_interest
+  - hardship_payoff_balance_amount
+  - hardship_last_payment_amount
+  - debt_settlement_flag
+  - debt_settlement_flag_date
+  - settlement_status
+  - settlement_date
+  - settlement_amount
+  - settlement_percentage
+  - settlement_term
+  features:
+  - loan_amnt
+  - term
+  - purpose
+  - emp_length
+  - annual_inc
+  - verification_status
+  - home_ownership
+  - addr_state
+  - dti
+  - delinq_2yrs
+  - pub_rec
+  - inq_last_6mths
+  - open_acc
+  - total_acc
+  - revol_bal
+  - revol_util
+  - fico_range_low
+  - fico_range_high
+  - mort_acc
+  - total_rev_hi_lim
+  - bc_open_to_buy
+  - bc_util
+  - percent_bc_gt_75
+  - tot_cur_bal
+  - tot_hi_cred_lim
+  - total_bal_ex_mort
+  - total_bc_limit
+  - total_il_high_credit_limit
+  - num_rev_accts
+  - num_rev_tl_bal_gt_0
+  - num_il_tl
+  - num_bc_tl
+  - num_bc_sats
+  - num_actv_rev_tl
+  - num_tl_90g_dpd_24m
+  - pub_rec_bankruptcies
+  - tax_liens
+  - issue_d
+  - earliest_cr_line
+  winsorize_enabled: true
+  winsorize:
+    annual_inc:
+      lower_quantile: 0.01
+      upper_quantile: 0.995
+    loan_amnt:
+      lower_quantile: 0.01
+      upper_quantile: 0.995
+    dti:
+      lower_value: 0.0
+      upper_quantile: 0.995
+    revol_util:
+      lower_value: 0.0
+      upper_quantile: 0.995
+    revol_bal:
+      lower_value: 0.0
+      upper_quantile: 0.995
+    income_to_loan_ratio:
+      lower_value: 0.0
+      upper_quantile: 0.995
+    fico_spread:
+      lower_value: 0.0
+      upper_quantile: 0.99
+split:
+  method: time
+  time_col: issue_d
+  test_size: 0.2
+  random_state: 42
+  cv:
+    enabled: false
+    n_folds: 0
+    mode: expanding
+    initial_train_fraction: 0.4
+    validation_fraction: 0.2
+    gap: 0
+    shuffle_within_folds: false
+    train_full_after: false
+automl:
+  nfolds: 0
+  progress: false
+  log_level: WARN
+  suppress_dependency_warnings: true
+  max_runtime_secs: 10800
+  max_models: null
+  balance_classes: true
+  max_after_balance_size: 5.0
+  seed: 42
+  stopping_metric: AUC
+  sort_metric: AUCPR
+  include_algos:
+  - DeepLearning
+  exclude_algos: []
+  nthreads: 8
+  max_mem_size: 12G
+  export_checkpoints_dir: null
+  log_dir: null
+  leaderboard_extra_columns: ALL
+  leaderboard_make_test: true
+  explanation_plots:
+    model_correlation: true
+    varimp_heatmap: true
+    varimp_top_k: 20
+    varimp_winners_top_k: 35
+    varimp_winners_sort: mean
+    varimp_heatmap_row_height: 0.35
+    varimp_heatmap_fontsize: 9
+    per_family_varimp:
+      enabled: true
+      top_k: 20
+    partial_dependence:
+      enabled: true
+      top_k: 3
+      nbins: 20
+      data: train
+      ice: false
+oversampling:
+  enabled: false
+  method: null
+  params: {}
+preprocessing:
+  categorical_encoder: one_hot
+  sparse_threshold: 0.3
+  numerical:
+    imputer: median
+    scaler: standard
+  categorical:
+    imputer: most_frequent
+    encoder_params:
+      handle_unknown: ignore
+output:
+  runs_root: local_runs
+  model_filename: loan_default_model.zip
+eval:
+  pos_label: 0
+  threshold:
+    strategy: youden_j
+    value: 0.5
+tracking:
+  backend: wandb
+  wandb:
+    enabled: true
+    mode: online
+    run_name_template: '{dataset}|{split}|{pos}|h2o[{leader_algo}]|{leader_id}|nc{nc}|auc{auc:.3f}'
+    tag_templates:
+    - backend:{backend}
+    - leader_algo:{leader_algo_raw}
+model: {}

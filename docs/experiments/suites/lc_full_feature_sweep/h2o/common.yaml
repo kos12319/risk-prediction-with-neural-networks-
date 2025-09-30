@@ -5,9 +5,13 @@ data:
   winsorize_enabled: true
 
 automl:
-  max_runtime_secs: 36000  # 10 hours
+  max_runtime_secs: 10800  # 3 hours
   leaderboard_extra_columns: ALL
   leaderboard_make_test: true
   balance_classes: true
   max_after_balance_size: 5.0
   seed: 42
+  nthreads: 8
+  max_mem_size: 12G
+  include_algos:
+    - DeepLearning

@@ -11,6 +11,7 @@ H2O_BALANCE ?= 1
 H2O_OVERSAMPLING ?= 0
 H2O_MAX_AFTER_BALANCE ?=
 H2O_CLASS_SAMPLING_FACTORS ?=
+JAVA_TOOL_OPTIONS ?= --enable-native-access=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED
 
 # Detect architecture to avoid forcing OPENBLAS_CORETYPE on non-ARM Macs (causes OMP SHM errors)
 MACHINE := $(shell uname -m)
@@ -22,6 +23,8 @@ else ifeq ($(MACHINE),aarch64)
 else
   SAFE_ENV := $(SAFE_BASE)
 endif
+
+SAFE_ENV := $(SAFE_ENV) JAVA_TOOL_OPTIONS="$(JAVA_TOOL_OPTIONS)"
 
 
 

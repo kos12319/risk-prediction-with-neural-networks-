@@ -1,0 +1,21 @@
+feature,relative_importance
+num__int_rate,1.0
+cat__purpose_educational,0.8450404405593872
+cat__grade_B,0.8172479271888733
+cat__grade_C,0.6965133547782898
+cat__purpose_debt_consolidation,0.679642379283905
+cat__emp_length_10+ years,0.6056166291236877
+cat__home_ownership_OTHER,0.6022675633430481
+num__dti,0.5717674493789673
+cat__home_ownership_RENT,0.5497830510139465
+cat__purpose_credit_card,0.5299134254455566
+cat__verification_status_Not Verified,0.5007928609848022
+cat__sub_grade_A1,0.500176191329956
+cat__home_ownership_NONE,0.4949362874031067
+cat__verification_status_Source Verified,0.4795035123825073
+cat__grade_D,0.47760748863220215
+cat__verification_status_Verified,0.4687579870223999
+num__fico_spread,0.4631787836551666
+cat__grade_A,0.4611734449863434
+cat__home_ownership_MORTGAGE,0.4435948431491852
+cat__sub_grade_A2,0.43639427423477173

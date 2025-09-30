@@ -1,0 +1,21 @@
+feature,relative_importance
+cat__sub_grade_A1,1.0
+cat__sub_grade_A2,0.8373727202415466
+cat__sub_grade_A4,0.7848032116889954
+cat__sub_grade_A3,0.7762336134910583
+num__int_rate,0.7729958891868591
+num__dti,0.7098866105079651
+cat__sub_grade_A5,0.6810266971588135
+cat__sub_grade_B1,0.67078697681427
+cat__sub_grade_B2,0.596840500831604
+cat__sub_grade_E2,0.5510528683662415
+num__revol_bal,0.5275762677192688
+cat__sub_grade_D5,0.5222476124763489
+cat__term_ 36 months,0.521237850189209
+cat__sub_grade_D4,0.5170513987541199
+cat__term_ 60 months,0.5121812224388123
+cat__sub_grade_E3,0.5098351240158081
+cat__sub_grade_E5,0.5058911442756653
+cat__sub_grade_B3,0.5001882910728455
+cat__sub_grade_E4,0.49716001749038696
+cat__sub_grade_E1,0.48999375104904175
