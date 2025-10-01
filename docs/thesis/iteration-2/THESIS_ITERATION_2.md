@@ -41,12 +41,7 @@ Three practical constraints shape this thesis: (i) class imbalance and asymmetri
 
 Neural networks (NNs) are universal function approximators trained end-to-end, with the flexibility to incorporate learned embeddings for categorical features (e.g., grades), non-linear transformations for numeric features, and additional modalities (e.g., free-text loan descriptions). For tabular credit data, NNs must be configured thoughtfully: categorical embeddings (instead of brittle one-hot dummies), monotonic cues on known risk drivers (e.g., higher interest rate correlates with higher risk), strong regularization (BatchNorm, dropout, weight decay), and calibrated outputs. With these ingredients, NNs can be competitive with, and sometimes surpass, boosted trees-especially as dataset size and feature richness grow [@li2022evaluation; @wang2024hybrid].
 
-Motivation. Credit platforms continuously evolve underwriting criteria, borrower mix, and pricing, creating concept drift across vintages. Benchmarks that rely on random splits overstate performance by mixing future patterns into training. We therefore enforce chronological splits, careful leakage controls, and explicit thresholding on validation that is held out from the training period. This lets us attribute improvements to modeling and features-not evaluation artifacts-and assess stability over time.
-
-Contributions.
-1) A self-contained, reproducible evaluation of multiple feature regimes across dataset scales with explainable figures and metrics.
-2) A thorough focus on neural networks (NNs) for tabular credit risk: architecture considerations, categorical encoding/embeddings, class imbalance, calibration, and temporal robustness-framed against strong tree-ensemble baselines.
-3) Clear, deployable takeaways: when to use enriched features; how to select thresholds; and how to bring NNs closer to (or beyond) gradient boosting on this dataset.
+Our motivation is that credit platforms continuously evolve underwriting criteria, borrower mix, and pricing, creating concept drift across vintages. Benchmarks that rely on random splits overstate performance by mixing future patterns into training. We therefore enforce chronological splits, careful leakage controls, and explicit thresholding on validation held out from the training period, allowing us to attribute improvements to modeling and features rather than evaluation artifacts and to assess stability over time.
 
 ## Contributions
 
@@ -70,50 +65,43 @@ Contributions.
 
 ## Classical and Non‑Neural Credit Risk
 
-Default modeling on LendingClub (LC). Early empirical baselines analyze determinants of default and returns in P2P lending and on LC specifically, establishing widely reused variables and evaluation setups [@Emekter2015; @SerranoCinca2015]. Tree‑ensemble methods (RF/GBM/XGB) and SVMs appear as strong tabular baselines for LC default classification [@Malekipirbazari2015; @GuevaraDiaz2020; @NunezMora2023]. LC platform grades and alternative data have been studied as predictors and policy signals [@Jagtiani2019FM; @Croux2020JEBO].
+Early empirical baselines on LendingClub analyze determinants of default and returns in P2P lending, establishing variables and evaluation setups that remain widely reused today [@Emekter2015; @SerranoCinca2015]. Subsequent work shows that tree ensembles (RF/GBM/XGB) and support vector machines provide strong tabular baselines for LendingClub default classification [@Malekipirbazari2015; @GuevaraDiaz2020; @NunezMora2023], while platform grades and alternative data emerge as influential predictors and policy signals [@Jagtiani2019FM; @Croux2020JEBO].
 
-Profit/pricing‑oriented scoring. Beyond PD, profit‑aligned objectives and threshold selection strategies are proposed for P2P lending [@SerranoCinca2016], complementing default‑centric metrics and informing threshold choice on validation.
+Researchers also propose profit‑aligned objectives and threshold selection strategies for P2P lending [@SerranoCinca2016], complementing default‑centric metrics and reinforcing our choice to tune thresholds on validation. Classic and modern studies frame default as a time‑to‑event problem, motivating explicit treatment of right‑censoring and temporal dynamics [@Banasik1999; @Bellotti2013; @SanchezBarrios2016]. Reject‑inference in survival contexts addresses sample‑selection bias when combining accepted and rejected cohorts [@Banasik2010], supporting our reliance on time‑based splits and caution around recent vintages.
 
-Survival analysis and censoring. Classic and modern works frame default as time‑to‑event, motivating explicit handling of right‑censoring and temporal dynamics [@Banasik1999; @Bellotti2013; @SanchezBarrios2016]. Reject‑inference in survival contexts addresses sample‑selection bias when combining accepted/rejected cohorts [@Banasik2010]. These strands support our time‑based split and caution around recent vintages.
+Instance‑based decision support for P2P investors highlights feature design and evaluation schemes applicable to LendingClub [@Guo2016], and interpretability research shows how model‑agnostic tools such as LIME help stakeholders interrogate tabular credit models [@Ribeiro2016]. Regularized linear models (e.g., LASSO) and stability‑oriented selection remain standard for constructing compact, portable feature regimes in credit risk [@Tibshirani1996].
 
-Selection bias and investor‑oriented decisions. Instance‑based decision support for P2P platforms highlights feature design and practical evaluation schemes applicable to LC [@Guo2016].
-
-Interpretability and explainability. Model‑agnostic tools such as LIME (and related approaches) are often used to explain tabular credit models to stakeholders [@Ribeiro2016]. These complement tree varimp and permutation importance used in our reports.
-
-Feature selection. Regularized linear models (e.g., LASSO) and stability‑oriented selection remain standard for tabular credit risk and underpin compact/portable regimes in our experiments [@Tibshirani1996].
-
-Synthesis. The non‑neural literature establishes: (i) strong tree‑ensemble baselines on LC; (ii) the importance of pricing/grade variables; (iii) profit‑aligned thresholding; and (iv) time‑aware evaluation to respect censoring and drift. Our setup adopts these invariants and uses them as a yardstick for neural models.
+Together, the non‑neural literature establishes strong tree‑ensemble baselines on LendingClub, underscores the importance of pricing and grade variables, argues for profit‑aligned thresholding, and codifies the need for time‑aware evaluation to respect censoring and drift. Our setup adopts these invariants and uses them as a yardstick for neural models.
 
 ## Neural Networks and Deep Learning for Credit Risk
 
 Neural credit risk spans classical MLPs for tabular data and modern deep architectures (CNNs, RNNs/LSTMs, attention/Transformers), increasingly fusing numeric features with text and alternative modalities. We organize this part by architecture family and modeling theme, roughly following historical progression.
 
 ### Deep MLPs for Tabular Credit Risk
-- Baseline tabular NNs (feed‑forward MLPs) can be competitive with careful preprocessing, categorical encodings, regularization, and calibration. Deployment‑focused perspectives and case studies illustrate how NNs integrate into risk/XVA stacks [@savine2022neural; @shen2021new].
-- In social lending/LC contexts, neural classifiers under imbalance demonstrate viability with appropriate thresholds and calibration [@namvar2018credit; @jiang2022data; @emiroglu2018credit]. These motivate our use of AUCPR and fixed validation‑chosen thresholds.
+Baseline tabular neural networks (feed‑forward MLPs) become competitive once preprocessing, categorical encodings, regularization, and calibration are handled carefully. Deployment‑focused case studies illustrate how such models integrate into risk and XVA stacks [@savine2022neural; @shen2021new], and social‑lending studies show that neural classifiers remain viable under imbalance when thresholds and calibration are tuned appropriately [@namvar2018credit; @jiang2022data; @emiroglu2018credit]. These findings motivate our emphasis on AUCPR and fixed validation‑chosen thresholds.
 
 ### Sequential CNN/LSTM and Temporal Deep Models
-- CNN-LSTM hybrids and sequential deep learners have been applied to enterprise and bond default [@li2022evaluation; @wang2024hybrid] and to tabular financial monitoring [@ala2020sequential]. While LC covariates are not per‑borrower time series, these works inform attention/gating choices and regularization strategies transferrable to static tabular problems.
+CNN‑LSTM hybrids and sequential deep learners have been applied to enterprise and bond defaults [@li2022evaluation; @wang2024hybrid] as well as financial monitoring tasks [@ala2020sequential]. Although LendingClub covariates are not per‑borrower time series, these works inform attention, gating, and regularization strategies that we can adapt to static tabular problems.
 
 ### Attention and Transformers for Credit Risk
-- Transformer‑based models are increasingly used for tabular and multi‑modal risk assessment [@huang2024enhancing; @wang2025research]. Attention can capture cross‑feature interactions without manual engineering, a promising direction for LC‑like data when paired with regularization and monotonic constraints on known drivers (e.g., `int_rate`, `dti`).
+Transformer‑based models increasingly power tabular and multi‑modal risk assessment [@huang2024enhancing; @wang2025research]. Attention mechanisms capture cross‑feature interactions without manual engineering, making them a promising direction for LendingClub‑like data when paired with regularization and monotonic constraints on known drivers such as `int_rate` and `dti`.
 
 ### Text Modeling (BERT/FinBERT) and Loan Descriptions
-- Textual fields (loan descriptions, job titles) provide complementary signals. Finance‑specific BERT variants and NLP on lender text inform using pretrained encoders for LC text features [@hahn2024building].
+Textual fields (loan descriptions, job titles) provide complementary signals. Finance‑specific BERT variants and domain NLP studies suggest using pretrained encoders to enrich LendingClub models with text features [@hahn2024building].
 
 ### Generative and Data‑Augmentation Approaches
-- GANs/autoencoders for synthesizing minority defaults can support NN training under imbalance [@van2023synthesizing; @lopez2020credit]. Diffusion and modern generative approaches for tabular data are active areas; any augmentation must preserve temporal distributions and respect leakage policies.
+GANs and autoencoders can synthesize minority defaults to support neural training under imbalance [@van2023synthesizing; @lopez2020credit], and diffusion‑style augmentation is emerging for tabular data. Any augmentation must preserve temporal distributions and respect our leakage policy.
 
 ### Large Language Models (LLMs) and Generalist Scoring
-- LLMs have been explored for generalized credit scoring and GPT‑based classifications [@boz2023generalist; @vasicek2024gpt; @feng2025explore], pointing toward end‑to‑end systems that leverage domain text and external knowledge; evaluation must stay time‑aware and calibrated.
+Large language models are now explored for generalized credit scoring and GPT‑based classification [@boz2023generalist; @vasicek2024gpt; @feng2025explore], pointing toward end‑to‑end systems that leverage domain text and external knowledge. Even in these settings, evaluation must stay time‑aware and calibrated.
 
 ### Multi‑Modal and Multi‑View Deep Learning
-- Combining structured signals with text/alternative data often improves robustness and portability across providers [@al2023multi; @li2020multi]. In LC‑like settings, this encourages adding text channels to NN baselines and calibrating combined outputs.
+Combining structured signals with text or alternative data often improves robustness and portability across providers [@al2023multi; @li2020multi]. For LendingClub‑like tasks this encourages adding text channels to neural baselines and calibrating the combined outputs.
 
 ### Surveys and Syntheses
-- Deep‑credit surveys emphasize (i) careful data handling and leakage control, (ii) calibration/thresholding under imbalance, (iii) temporal validation/drift, and (iv) interpretable attributions [@ge2023credit; @fernandez2023complete]. These directly inform our neural blueprint: embeddings for categoricals, monotone cues for key features, AUCPR‑sorted comparisons, fixed validation‑chosen thresholds, and drift monitoring.
+Recent surveys emphasize careful data handling, leakage control, calibration under imbalance, temporal validation, and interpretable attributions [@ge2023credit; @fernandez2023complete]. These insights directly shape our neural blueprint: embedding categorical variables, encoding domain monotonicity for key features, comparing models via AUCPR, fixing thresholds on validation, and monitoring drift.
 
-Takeaway. Literature supports a neural‑first program that (a) represents categoricals with embeddings, (b) encodes domain monotonicity (e.g., `int_rate`, `dti`), (c) calibrates probabilities for threshold‑based decisions, (d) validates temporally, and (e) leverages text via BERT/LLM encoders when available.
+Taken together, the neural literature supports a neural‑first program that represents categoricals with embeddings, encodes monotone priors on features such as `int_rate` and `dti`, calibrates probabilities for threshold‑based decisions, validates temporally, and leverages pretrained text encoders when available.
 
 # Dataset, Task, and Evaluation Protocol
 
@@ -125,40 +113,24 @@ Given origination‑time borrower and loan features X and a binary outcome Y ind
 
 We use the LendingClub consumer installment loans dataset spanning 2007-2018 vintages. Each record represents a funded loan at origination (accepted-loans cohort). Labels are derived from final outcomes: Fully Paid vs Charged Off (default). We adhere to origination-only features to avoid post-event leakage (e.g., payments, recoveries, last_* dates, hardship/settlement). Prior studies establish baseline determinants and modeling approaches on this dataset [@Emekter2015; @SerranoCinca2015; @Jagtiani2019FM; @Croux2020JEBO; @NunezMora2023].
 
-Key columns used and their meanings.
+
+Key columns used and their meanings are summarized below.
 - `loan_amnt` (numeric): Amount borrowed.
 - `term` (categorical: 36 or 60 months): Loan term.
 - `int_rate` (numeric): Interest rate set at origination; a strong pricing proxy.
 - `grade` / `sub_grade` (categorical): Platform credit grades; ordinal and highly informative.
 - `installment` (numeric): Monthly payment amount; largely determined by `loan_amnt`, `term`, and `int_rate`.
 - `annual_inc` (numeric): Stated annual income.
-- `dti` (numeric): Debt-to-income ratio-a capacity/risk indicator.
+- `dti` (numeric): Debt-to-income ratio—a capacity/risk indicator.
 - `fico_range_low` / `fico_range_high` (numeric): FICO range at origination; we also use `fico_avg` when engineered.
 - `revol_bal` / `revol_util` (numeric): Revolving balance and utilization.
 - `emp_length` (categorical): Employment length (binned); a stability proxy.
 - `home_ownership`, `verification_status`, `addr_state`, `purpose` (categorical): Context and underwriting factors.
 - `mort_acc`, `total_rev_hi_lim`, `num_rev_tl_bal_gt_0`, etc. (numeric): Depth and limits; credit capacity.
 
-Glossary of important columns (extended descriptions).
-1) `loan_amnt`: The principal at origination; larger balances increase exposure at default but are not directly causal for probability of default (PD). Interacts with `term` and `int_rate` to determine `installment`.
-2) `term`: Contract duration (36 or 60 months). Longer term generally implies higher PD due to longer exposure and looser affordability constraints.
-3) `int_rate`: The APR at origination; encapsulates lender pricing and perceived risk. Strong monotonic relationship with default risk in-sample.
-4) `grade` / `sub_grade`: Discrete buckets summarizing multi-factor underwriting; ordinal but treated categorically. Proxy for risk segmentation.
-5) `installment`: Monthly payment amount implied by `loan_amnt`, `term`, and `int_rate`. Adds limited incremental information beyond its determinants.
-6) `annual_inc`: Borrower-stated annual income; used to normalize obligations and inform affordability.
-7) `dti`: Debt-to-income ratio: (total monthly debt payments / monthly income). Higher DTI indicates constrained capacity and higher PD.
-8) `fico_range_low` / `fico_range_high` (and `fico_avg`): Credit score range. Higher FICO implies lower PD; `fico_spread` can encode uncertainty.
-9) `revol_bal` / `revol_util`: Revolving balances and utilization of available credit lines. Elevated utilization signals stress and higher PD.
-10) `emp_length`: Employment tenure; longer tenure correlates with stability.
-11) `home_ownership`: Homeownership category; can proxy asset backing and financial maturity.
-12) `verification_status`: Income/document verification; verified applications are less prone to misreporting, often correlating with lower PD.
-13) `addr_state`: Coarse geographic factor capturing macroeconomic and regulatory heterogeneity.
-14) `purpose`: Declared loan purpose; correlates with risk (e.g., debt consolidation vs discretionary spending).
-15) Credit depth/limits (e.g., `mort_acc`, `total_rev_hi_lim`, `num_rev_tl_bal_gt_0`): Indicators of history with credit, available headroom, and active trade lines.
-
 ## Target
 
-Binary classification: predict whether a loan will charge off (default) versus fully pay. All metrics, curves, and thresholding treat Charged Off as the positive class.
+We frame the task as binary classification: predict whether a loan will charge off (default) versus fully pay. All metrics, curves, and thresholding treat Charged Off as the positive class.
 
 ## Chronological Split and Validation
 
@@ -186,7 +158,7 @@ We restrict the cohort to loans with final outcomes at evaluation time to avoid 
 : Final-status filter for the accepted‑loans cohort used in this study. We retain only loans with final outcomes (Fully Paid or Charged Off) at the evaluation cutoff to avoid right‑censoring leakage from in‑flight accounts. Removing intermediate statuses (e.g., Current, Late/Grace) ensures that labels reflect realized outcomes and that thresholded metrics on test align with deployment, where only origination‑time information is available.
 :::
 
-Date cutoff. Our primary safeguard against censoring is the final-status filter; no additional calendar cutoff is applied beyond the dataset’s coverage through 2018. This ensures reported performance reflects completed outcomes while retaining as much history as possible.
+Our primary safeguard against censoring is the final-status filter, so we do not apply an additional calendar cutoff beyond the dataset’s coverage through 2018. This ensures reported performance reflects completed outcomes while retaining as much history as possible.
 
  
 
@@ -209,23 +181,19 @@ In imbalanced credit settings, downstream utility depends on a fixed operating p
 : Thresholded confusion counts and derived rates on the full dataset at the single operating point selected on validation (Youden J) and transferred unchanged to test. This captures the business‑relevant trade‑off between catching Charged Off loans (recall/TPR) and avoiding false approvals (precision/FPR). Counts are impacted by class imbalance and by prevalence drift across vintages; use in tandem with AUCPR and ROC AUC.
 :::
 
-Why report this table. It anchors PR/ROC figures with the concrete operating point used for policy decisions. If utility/cost weights are available, the same table feeds expected‑value analysis to pick profit‑optimal thresholds on validation and lock them for test.
+The table anchors the PR/ROC figures with the concrete operating point used for policy decisions. If utility or cost weights are available, the same summary supports expected‑value analysis to pick profit-optimal thresholds on validation and lock them for test.
 
 
 
 ## Leakage and Fairness Constraints (Definitions and Policy)
 
-Leakage (what it is). Any feature that contains information not available at origination time (or that is causally downstream of the outcome) causes target leakage. Examples in LendingClub data include payments/recoveries, last payment dates, hardship/settlement flags, and collection‑stage balances. Including them produces inflated apparent performance (see @fig:eda-corr-leaky).
+Leakage refers to any feature that contains information unavailable at origination or that lies causally downstream of the outcome. In the LendingClub data, that includes payments and recoveries, last payment dates, hardship or settlement flags, and collection‑stage balances; using them inflates apparent performance (see @fig:eda-corr-leaky). To prevent this, we drop post‑event fields end to end and restrict modeling to origination‑time variables (see @fig:eda-corr-orig and @fig:eda-psi-num). When ambiguity remains, we err on the safe side and omit the column.
 
-Our leakage policy. We drop all post‑event fields end‑to‑end and restrict modeling to origination‑time variables (see @fig:eda-corr-orig and @fig:eda-psi-num). Where ambiguity remains, we err on the safe side and omit columns.
+We also guard against fairness issues and sensitive proxies. Demographic or geographic surrogates such as ZIP Code, while predictive, can generate disparate impact and hinder portability, so we omit them by default and focus on underwriting-relevant signals (capacity, credit history, pricing). Coarse geography like `addr_state` remains, but granular ZIP-like signals are removed.
 
-Fairness and sensitive proxies. Some fields act as demographic/geographic proxies (e.g., ZIP Code). Even when predictive, they can create disparate impact and reduce portability. In this iteration, we omit such fields by default and focus on underwriting‑relevant signals (capacity, credit history, pricing). We include coarse geography (`addr_state`) but avoid granular ZIP‑like signals.
+High-cardinality and noisy fields pose additional risks. Free-text or ultra-granular categoricals such as `emp_title` explode the one-hot space, add noise, and increase variance; unless robust encodings and strong regularization are available, we prefer omitted or coarsened versions like the binned `emp_length`.
 
-High cardinality and noise. Free‑text or ultra‑granular categoricals (e.g., `emp_title`) explode the one‑hot space, add noise, and increase variance. Unless we use robust encodings (embeddings, target encoding) and strong regularization, we prefer omitted or coarsened versions (e.g., `emp_length`).
-
-Practical examples in this thesis.
-- Dropped for leakage/sensitivity: payments/recoveries/last_* dates, hardship/settlement, collection fees; granular location (ZIP) excluded for fairness/portability.
-- Dropped/coarsened for cardinality/noise: `emp_title` (free text) omitted; `emp_length` (binned categorical) retained; `purpose` used with monitoring; `addr_state` retained; `grade/sub_grade` included only in provider‑aware regimes.
+In practice we apply these policies by dropping payments, recoveries, last_* dates, hardship and settlement indicators, and collection fees, as well as granular location fields for fairness and portability. We omit or coarsen noisy categoricals—`emp_title` is removed, `emp_length` is retained in binned form, `purpose` is included with monitoring, `addr_state` remains coarse, and `grade/sub_grade` appears only in provider-aware regimes.
 
  
 
@@ -272,7 +240,7 @@ Distributions (why shown). Histograms contextualize ranges, outliers, and monoto
 
 ![DTI distribution by class. Debt‑to‑income (DTI) exhibits skew and heavier tails for Charged Off loans. This justifies winsorization and motivates soft monotonic regularization in NNs (higher DTI → higher risk, all else equal). Interactions with credit limits and utilization are captured naturally by tree ensembles and, with sufficient data, by NNs.](../../exploration/figures/hist_dti_orig.png){#fig:eda-hist-dti}
 
-Categoricals (why shown). Bar plots reveal ordinal monotonicity (grade/sub_grade), policy signals (term), and context (purpose, home ownership) (see @fig:eda-cat-grade, @fig:eda-cat-subgrade, @fig:eda-cat-term, and @fig:eda-cat-purpose).
+Categorical bar plots reveal ordinal monotonicity (grade/sub_grade), policy signals (term), and contextual drivers (purpose, home ownership) (see @fig:eda-cat-grade, @fig:eda-cat-subgrade, @fig:eda-cat-term, and @fig:eda-cat-purpose).
 
 ![Grade — counts and default rates. Default increases from A→G, with origination volume concentrated in B–D. Grade encapsulates provider policy and pricing; its ordinal structure is well suited to learned embeddings in NNs and to split ordering in trees. Because grade can drift with underwriting policy, production use should track its population stability.](../../exploration/figures/cat_grade_orig.png){#fig:eda-cat-grade}
 
@@ -282,7 +250,7 @@ Categoricals (why shown). Bar plots reveal ordinal monotonicity (grade/sub_grade
 
 ![Purpose — counts and default rates. Purpose categories capture heterogeneity in borrowing intent (e.g., debt consolidation vs small business). Signal is useful but exhibits modest drift over vintages; careful regularization and monitoring help maintain portability. Low‑volume categories should be grouped to avoid sparsity.](../../exploration/figures/cat_purpose_orig.png){#fig:eda-cat-purpose}
 
-Leakage demonstration and signal strength (why shown). We include two correlation panels and two PSI panels to (i) contrast origination‑only vs leaky features and (ii) quantify temporal drift (see @fig:eda-corr-orig, @fig:eda-corr-leaky, @fig:eda-psi-num, and @fig:eda-psi-cat).
+Two sets of correlation and PSI panels contrast origination‑only versus leaky features and quantify temporal drift (see @fig:eda-corr-orig, @fig:eda-corr-leaky, @fig:eda-psi-num, and @fig:eda-psi-cat).
 
 ![Top |corr| with target (origination‑only). Correlations computed on origination‑time numerics show strong anti‑correlation for FICO and positive associations for DTI/utilization. These relationships justify monotone cues and feature scaling choices; they also provide a leakage‑free sanity check for signal strength before modeling.](../../exploration/figures/top_corr_numeric_orig.png){#fig:eda-corr-orig}
 
@@ -292,130 +260,80 @@ Leakage demonstration and signal strength (why shown). We include two correlatio
 
 ![PSI — categorical (origination‑only). Purpose exhibits modest drift over time, while grade/term mixes vary with macro conditions and platform policy. For production, we recommend PSI‑based monitors on pricing/grade and key operational categoricals, with a recalibration playbook when thresholds are breached.](../../exploration/figures/psi_categorical_top_orig.png){#fig:eda-psi-cat}
 
-How EDA informs modeling. The figures @fig:eda-class-balance–@fig:eda-psi-cat collectively justify: (i) time‑based splits and fixed thresholds, (ii) leakage exclusion policies, (iii) winsorization and monotone priors for NNs on `int_rate` and `dti`, (iv) embeddings for ordinal categoricals (grade/sub_grade), and (v) drift monitoring (PSI) with recalibration or retraining.
+Taken together, Figures @fig:eda-class-balance–@fig:eda-psi-cat justify (i) time‑based splits and fixed thresholds, (ii) leakage exclusion policies, (iii) winsorization and monotone priors for NNs on `int_rate` and `dti`, (iv) embeddings for ordinal categoricals (grade/sub_grade), and (v) PSI-driven drift monitoring with recalibration or retraining.
 
 # Feature Regimes and Dataset Scales
 
-We evaluate four representative feature regimes and three dataset scales:
+We evaluate four representative feature regimes:
+1. Compact baseline (about 12 features): core demographic, capacity, and FICO-range signals.
+2. Compact + pricing/grade (about 16 features): adds `int_rate`, `grade`, `sub_grade`, and `installment`.
+3. Broad without pricing (about 39 features): adds depth/limits/utilization but excludes pricing/grade.
+4. Broad + pricing/grade (about 43 features): combines broad signals and pricing/grade.
 
-Feature regimes.
-1) Compact baseline (about 12 features): core demographic, capacity, and FICO-range signals.
-2) Compact + pricing/grade (about 16 features): adds `int_rate`, `grade`, `sub_grade`, and `installment`.
-3) Broad without pricing (about 39 features): adds depth/limits/utilization but excludes pricing/grade.
-4) Broad + pricing/grade (about 43 features): combines broad signals and pricing/grade.
-
-Dataset scales.
-1) 10k: medium-sample; sufficient to benefit from richer features.
-2) 100k: large-sample; strong signal and robust comparisons.
-3) full: full cohort; most realistic “production-like” benchmark.
+We run experiments at three dataset scales:
+1. 10k: medium-sample; sufficient to benefit from richer features.
+2. 100k: large-sample; strong signal and robust comparisons.
+3. Full: largest cohort, closest to a production benchmark.
 
 # Modeling Families and Why They Fit This Task
 
 We compare common tabular modeling families and analyze their suitability to the LendingClub task.
 
-Generalized Linear Models (GLM). Logistic regression provides a transparent baseline with calibrated probabilities under certain assumptions. It captures additive effects but struggles with high-order interactions unless engineered.
-
-Random Forests (DRF). Ensembles of de-correlated trees reduce variance and capture non-linearities. They can handle heterogeneous scales and some categorical encodings but may be outperformed by boosted trees on tabular tasks.
-
-Gradient-Boosted Trees (GBM) and XGBoost. Additive trees trained stage-wise excel on structured, tabular problems, capturing interactions with strong regularization and built-in handling of missingness. These models are typically top-performing for tabular credit risk.
-
-Deep Neural Networks (MLP). Fully-connected networks approximate complex functions given sufficient data and regularization. They require careful design for tabular data: robust preprocessing, categorical encodings (embeddings or one-hot), batch normalization, dropout, early stopping, and calibrated outputs. They can model interactions naturally but can lag boosting unless architecture and training are tuned to tabular idiosyncrasies. Recent studies demonstrate hybrid or carefully-regularized NNs achieving competitive performance on credit-like tasks [@li2022evaluation; @wang2024hybrid].
-
-Why NNs matter here. NNs offer a single, end-to-end model that can incorporate learned embeddings for categorical grades [@guo2016entity], side-channel text (e.g., loan descriptions), and additional modalities in future iterations. With calibration and monotonic priors [@platt1999probabilistic; @zadrozny2001obtaining; @guo2017calibration; @chen2016xgboost; @ke2017lightgbm], they can become competitive and more portable across providers.
+Generalized linear models (GLMs) provide a transparent baseline with calibrated probabilities under certain assumptions, capturing additive effects but struggling with higher-order interactions unless engineered. Random forests reduce variance through ensembles of decorrelated trees and handle heterogeneous feature scales, though boosted trees often outperform them on tabular tasks. Gradient-boosted models such as GBM and XGBoost excel on structured data by capturing interactions with strong regularization and built-in handling of missingness, which explains their dominance in many credit risk studies. Fully connected neural networks approximate complex functions given sufficient data and regularization; they require careful preprocessing, categorical encodings, batch normalization, dropout, early stopping, and calibration to match boosted-tree performance, yet hybrid and carefully regularized variants have proven competitive on credit-like tasks [@li2022evaluation; @wang2024hybrid]. Neural networks matter here because they offer an end-to-end model that can learn embeddings for categorical grades [@guo2016entity], incorporate side-channel text (e.g., loan descriptions), and accommodate additional modalities in future iterations. With calibration and monotonic priors [@platt1999probabilistic; @zadrozny2001obtaining; @guo2017calibration; @chen2016xgboost; @ke2017lightgbm], they become more portable across providers.
 
 ## Feature Selection Procedure
 
-Objective. Reduce variance and drift sensitivity while preserving predictive power, under the same time‑based protocol as training.
-
-Method (baseline). We use filter methods-mutual information (MI) and L1‑regularized logistic regression-as first‑pass selectors:
-- Evaluation protocol: time‑based split on `issue_d`; validation carved from the training period only; no lookahead to test; invariants match training (imputation, winsorization, encoding).
-- Ranking: MI for non‑linear dependency; L1 for sparse linear signal. We aggregate or compare to stabilize against idiosyncratic ties.
-- Stopping rules: cap by target feature count (e.g., 12/16/39/43 regimes) and/or MI elbow; confirm AUC/PR vs full set on validation.
-- Outputs: selected feature list, full ranking, and AUC/PR curves; these drive the compact regimes used in the experiments.
-
-Engineering toggles. Engineered features (e.g., `fico_avg`, `fico_spread`, `income_to_loan_ratio`) can be included/excluded explicitly to quantify their lift. Selection runs mirror training preprocessing so that downstream metrics remain comparable.
+Our feature-selection objective is to reduce variance and drift sensitivity while preserving predictive power under the same time‑based protocol used for training. The baseline workflow applies filter methods—mutual information (MI) and L1‑regularized logistic regression—as first-pass selectors. It follows a time-based split on `issue_d`, carves validation from the training period only, and mirrors training invariants such as imputation, winsorization, and encoding. MI captures non-linear dependency, whereas the L1 path favors sparse linear signal; comparing or aggregating them stabilizes rankings. We cap the shortlist by the target feature count (12/16/39/43 regimes) or an MI elbow, confirming AUCPR/ROC against the full set on validation. Outputs include the selected feature list, full ranking, and AUC/PR curves that drive the compact regimes in our experiments. Engineered features such as `fico_avg`, `fico_spread`, and `income_to_loan_ratio` can be toggled explicitly to quantify their lift, with selection runs mirroring training preprocessing so downstream metrics remain comparable.
 
 ## Feature Regimes: Provider‑Agnostic vs Provider‑Aware
 
-Provider‑agnostic (portable) regime. Excludes provider pricing/scoring features (e.g., `int_rate`, `grade`, `sub_grade`, `installment`). Rationale: portability across lenders/policies and reduced drift risk. EDA shows these fields are predictive but can encode policy and macro effects; omitting them improves generalization when policy changes.
-
-Provider‑aware (in‑provider accuracy) regime. Includes pricing/grade; improves AUCPR/ROC at 10k/100k/full by leveraging monotone and ordinal signals. Rationale: if deployment is tied to the same provider, these features capture underwriting decisions that correlate with risk. We monitor drift (PSI) and use calibration/threshold selection to maintain decision quality.
-
-Trade‑offs. Accuracy vs portability; monotonicity vs policy sensitivity; fairness considerations (avoid granular geography like ZIP). Our results show where each regime wins, and the NN roadmap targets closing the gap in the agnostic setting via representations and monotone priors.
+The provider‑agnostic (portable) regime excludes pricing and scoring features such as `int_rate`, `grade`, `sub_grade`, and `installment`. This choice favors portability across lenders and reduces exposure to policy-driven drift; EDA confirms that, although these variables are predictive, they readily encode macro and policy effects. The provider‑aware regime keeps pricing and grade information, improving AUCPR/ROC at 10k/100k/full by leveraging monotone and ordinal signals. When deployment stays with the same provider, these fields capture underwriting decisions that correlate with risk, so we monitor drift with PSI and rely on calibration plus validation-chosen thresholds to maintain decision quality. Across regimes we balance accuracy against portability, monotonicity against policy sensitivity, and manage fairness considerations by avoiding granular geography such as ZIP codes. Our neural roadmap aims to close the agnostic gap through richer representations and monotone priors without sacrificing portability.
 
 ## Primer on Algorithm Families
 
-Logistic Regression (GLM). A generalized linear model mapping a linear combination of inputs through a logistic link to produce probabilities. Pros: simplicity, interpretability, and fast training. Cons: limited to additive effects unless interactions are manually engineered; can underfit complex tabular structure.
+Logistic regression maps a linear combination of inputs through a logistic link to produce probabilities; it is simple, interpretable, and fast to train, but it remains limited to additive effects unless interactions are engineered manually. Decision trees partition the feature space into regions with homogeneous labels, providing intuitive splits and basic nonlinearity at the cost of high variance. Random forests mitigate that variance through bagging and feature subsampling, handling mixed feature types but sometimes lagging tuned boosting methods in AUCPR. Gradient-boosted trees iteratively add weak learners to correct residuals, delivering strong performance on structured tabular data through shrinkage, subsampling, and depth constraints, albeit with heavier tuning requirements and no built-in monotonicity unless specified. Neural networks stack linear layers with nonlinear activations (e.g., ReLU or GELU) and often include batch normalization, dropout, and optimizers such as Adam/AdamW. They are flexible function approximators that can absorb learned embeddings and auxiliary modalities but remain sensitive to preprocessing, initialization, regularization, and probability calibration.
 
-Decision Trees. Recursive partitioning of feature space into regions with homogeneous labels. Pros: intuitive splits and basic nonlinearity. Cons: high variance; shallow trees underfit; deep trees overfit; sensitive to small data perturbations.
-
-Random Forests (Bagging). An ensemble of trees trained on bootstrap samples with feature subsampling at splits. Pros: variance reduction; robust to noise; handles mixed feature types. Cons: weaker at capturing subtle additive improvements than boosting; may lag in AUCPR versus tuned boosting.
-
-Gradient-Boosted Trees (GBM/XGBoost). Iteratively add trees to correct residuals from prior trees. Pros: strong performance on structured tabular data; captures interactions; built-in regularization (shrinkage, subsampling, depth constraints). Cons: tuning required (learning rate, depth, min child weight, subsampling); feature monotonicity not guaranteed unless explicitly constrained.
-
-Neural Networks (MLP for Tabular). A stack of linear layers with nonlinear activations (e.g., ReLU/GELU), optionally batch normalization and dropout, trained with stochastic gradient descent variants (Adam, AdamW). Pros: flexible function approximators; easy to incorporate learned embeddings and auxiliary modalities. Cons: sensitive to preprocessing, initialization, and regularization; may be outperformed by boosting without careful design; probability calibration often requires post-hoc methods.
-
-Losses and Imbalance. Binary cross-entropy (BCE) is standard for probabilistic classification; focal loss reweights hard examples to improve minority-class recall at the cost of calibration. Class weights or balanced batches mitigate skew. Evaluation should prioritize PR curves (precision/recall) and AUCPR rather than accuracy.
-
-Calibration. For threshold-dependent decisions (e.g., approve/decline), well-calibrated probabilities matter. Platt scaling (logistic regression on logits), isotonic regression (non-parametric), or temperature scaling (for NNs) align predicted probabilities to empirical frequencies on validation.
+Binary cross-entropy is the default loss for probabilistic classification, while focal loss reweights hard examples to boost minority-class recall at the expense of calibration. Class weights or balanced batches help mitigate skew, so evaluation should prioritize precision–recall curves and AUCPR instead of accuracy. For threshold-dependent decisions such as approve/decline, calibrated probabilities are crucial; Platt scaling (logistic regression on logits), isotonic regression (non-parametric), and temperature scaling (for NNs) align predicted probabilities with empirical frequencies on validation.
 
 # Experimental Setup
 
-Data handling and leakage control. We exclude post-origination features (payments, recoveries, last_* dates, hardship/settlement) from all runs. This aligns with best practices and prior empirical audits on LendingClub.
+We enforce data handling and leakage control by excluding post-origination features (payments, recoveries, last_* dates, hardship or settlement indicators) from every run, consistent with best practices and prior empirical audits on LendingClub.
 
-Preprocessing. Numerical features use median imputation and standardization; categorical features use frequent-category imputation with one-hot encoding. Winsorization limits outliers for sensitive ratios (`dti`, `revol_util`, `income_to_loan_ratio`, etc.). Engineered features include `fico_avg`, `fico_spread`, and `income_to_loan_ratio` when enabled.
+Preprocessing applies median imputation and standardization to numeric features, frequent-category imputation with one-hot encoding to categoricals, and winsorization to ratios prone to outliers (`dti`, `revol_util`, `income_to_loan_ratio`, etc.). When enabled, the pipeline adds engineered fields such as `fico_avg`, `fico_spread`, and `income_to_loan_ratio`.
 
-Evaluation. We adhere to chronological train/test splits; select thresholds on validation (Youden J) within the training period; and report test metrics at the fixed threshold. We compute AUCPR and ROC AUC, plus confusion, precision, recall, and FPR at the operating point. Prior credit risk work emphasizes time-aware modeling and censoring considerations that motivate temporal evaluation in our setting [@Banasik1999; @Bellotti2013].
+Evaluation follows chronological train/test splits, selects thresholds on validation (Youden J) carved from the training period, and reports test metrics at that fixed operating point. We track AUCPR and ROC AUC alongside confusion counts, precision, recall, and FPR, following credit-risk guidance that stresses time-aware modeling and censoring controls [@Banasik1999; @Bellotti2013].
 
-Automated modeling backend. H2O AutoML orchestrates GBM, XGBoost, DRF, GLM, and Deep Learning (MLP) models, producing leaderboards and explainability artifacts (variable importance, partial dependence, SHAP-like insights). We use these for transparent comparisons and to guide NN engineering in future iterations. Neural-network-centric PyTorch runs are planned and discussed in the relevant section (Future Work).
+The automated modeling backend uses H2O AutoML to train GBM, XGBoost, DRF, GLM, and Deep Learning (MLP) models, yielding leaderboards and explainability artifacts (variable importance, partial dependence, SHAP-like insights). These outputs keep comparisons transparent and inform future NN engineering, while dedicated PyTorch runs are planned and described in Future Work.
 
-Reproducibility (high level, within this thesis). All comparisons share: the same dataset cohorts, origination-only features, chronological splits, validation-carved threshold selection, and consistent preprocessing. Each figure and table in this thesis references artifacts produced under these constraints, ensuring repeatability.
+All comparisons share the same dataset cohorts, origination-only features, chronological splits, validation-carved threshold selection, and consistent preprocessing. Each figure and table in this thesis references artifacts produced under these constraints, ensuring repeatability.
 
 ## H2O AutoML (How We Use It)
 
-We leverage H2O as an industrial-strength modeling platform to establish strong baselines, standardized comparisons, and rich explainability. This section summarizes the parts most relevant to our thesis and how they blend into the methodology.
+We leverage H2O as an industrial-strength modeling platform to establish strong baselines, standardized comparisons, and rich explainability. The toolkit ships first-class implementations across estimator families—GBM, XGBoost, DRF/XRT, GLM, and feed-forward neural networks—plus specialized algorithms such as survival/CoxPH, isolation forests, RuleFit, and target encoding. AutoML orchestrates these models under shared preprocessing and scoring policies, giving us an apples-to-apples environment for comparing neural networks with state-of-the-art tree baselines.
 
-- Estimator catalog. H2O ships first-class implementations across families-GBM, XGBoost, DRF/XRT (tree ensembles), GLM (linear), and Deep Learning (feed-forward NNs)-plus specialized algorithms (survival/CoxPH, isolation forests, RuleFit, target encoding). AutoML orchestrates these under shared pre-processing and scoring policies. This breadth lets us compare NNs to state-of-the-art tree baselines under one roof.
-- AutoML controls. Budgets can be expressed in time or model counts; leaderboard sorting can be set to AUCPR (our primary metric under class imbalance). Reproducibility is promoted via seeds, include/exclude algorithm lists, and CV artifact retention. In this thesis, we set leaderboard sorting to AUCPR and use a time budget that scales with dataset size.
-- Explainability & comparison. H2O provides leaderboards, ROC/PR curves, per-family and per-model variable importance, permutation varimp, partial dependence/ICE, and SHAP-like row explanations. In this thesis, we use leaderboards for AUCPR/ROC comparisons, per-family varimp heatmaps to interpret drivers, and model-correlation/Pareto analyses to reason about diversity and trade-offs.
+AutoML budgets can be expressed in time or model counts, leaderboards can be sorted by AUCPR (our primary metric under imbalance), and reproducibility is promoted through seeds, include/exclude lists, and cross-validation artifact retention. In this thesis we sort by AUCPR and scale the time budget with dataset size.
+
+Explainability and comparison tools come built in: leaderboards, ROC/PR curves, per-family and per-model variable importance, permutation importance, partial dependence/ICE, and SHAP-like row explanations. We rely on these outputs for AUCPR/ROC comparisons, for interpreting drivers via per-family heatmaps, and for model-correlation or Pareto analyses that surface diversity and trade-offs.
 <!-- Deployment artifacts detail removed to keep thesis self-contained -->
 
-Why H2O here. Using a single platform to produce multi-family baselines, curated leaderboards, and aligned explainability reduces variance in our comparisons and keeps the focus on scientific questions-e.g., when NNs compete, which features help them most, and how stable the conclusions are across time splits. The figures and tables throughout the Results sections are generated from H2O outputs so that every claim is grounded in consistent, reproducible artifacts.
+Using a single platform to produce multi-family baselines, curated leaderboards, and aligned explainability reduces variance in our comparisons and keeps the focus on the scientific questions—when neural networks compete, which features help them most, and how stable the conclusions remain across time splits. The figures and tables throughout the Results sections are generated from H2O outputs so that every claim is grounded in consistent, reproducible artifacts.
 
 ### Why We Chose H2O (Decision Rationale)
 
-We chose H2O as the comparative backend for four primary reasons that align with the thesis goals:
+We adopted H2O as the comparative backend for four reasons that align with the thesis goals. First, it trains GBM, XGBoost, DRF, GLM, and DeepLearning models with consistent preprocessing, scoring, and logging, eliminating hidden confounders when comparing neural networks to ensembles; leaderboards are sorted by AUCPR to reflect our imbalance-aware objective. Second, the platform supplies rich, standardized explainability—per-family variable-importance heatmaps, partial dependence and ICE plots, and model-correlation or Pareto views—so we can interpret drivers and diagnose model diversity without bespoke code. Third, time-budgeted AutoML scales to larger datasets (100k and full) while keeping seeds and knobs (nthreads, include/exclude lists) reproducible. Fourth, these baselines complement the PyTorch neural roadmap that accompanies this thesis: H2O’s DeepLearning provides a strong, regularized MLP benchmark, while tree ensembles remain a robust yardstick, freeing the PyTorch track to focus on embeddings, monotone regularization, calibration, and temporal CV.
 
-1) Apples‑to‑apples multi‑family baselines under one roof. H2O trains GBM, XGBoost, DRF, GLM, and DeepLearning with consistent pre‑processing, scoring, and logging. This eliminates hidden confounders when comparing NNs to ensembles and keeps our focus on the scientific question (feature regimes and NN viability), not on tool mismatches. We sort the leaderboard by AUCPR to match our imbalance‑aware objective.
-
-2) Rich, standardized explainability. Built‑in per‑family varimp heatmaps, partial dependence/ICE, and model‑correlation/Pareto plots allow us to interpret drivers and diagnose model diversity without bespoke code. This is crucial to a neural‑centric thesis: we can contrast NN attributions against GBM/XGB drivers to understand when and why NNs differ.
-
-3) Reproducible artifacts and scalable search. Time‑budgeted AutoML scales to larger datasets (100k, full) while keeping seeds and knobs (nthreads, include/exclude lists) reproducible.
-
-4) Complements a PyTorch NN track. H2O’s DeepLearning provides a strong, well‑regularized MLP baseline for tabular data; ensembles (GBM/XGB) serve as a robust yardstick. This frees the PyTorch track to focus on NN‑specific improvements (embeddings, monotone regularization, calibration, temporal CV) while we retain consistent, state‑of‑the‑art tree baselines for comparison.
-
-Limitations (acknowledged). H2O’s DeepLearning is not a replacement for modern tabular NN research (e.g., transformers with feature tokenization). We therefore treat it as a strong MLP baseline, and we outline a PyTorch plan (the relevant section) for neural‑first advances. H2O also requires Java; we mitigate this operational constraint with a documented pre‑flight and containerized environments.
+H2O’s DeepLearning is not a substitute for the latest tabular NN research (e.g., transformers with feature tokenization). We therefore treat it as a strong baseline and outline a PyTorch plan for neural-first advances, while acknowledging the Java dependency and mitigating it through pre-flight checks and containerized environments.
 
 ### DeepLearning (NN) Modeling Plan in H2O AutoML
 
-What H2O trains (exact regime). In H2O AutoML 3.46.x, the DeepLearning (feed‑forward NN) component consists of one small default model and three predefined hyperparameter grids. These are implemented in the AutoML Java sources (DeepLearningStepsProvider) and surface in leaderboards with IDs such as `DeepLearning_def_1_AutoML_...` and `DeepLearning_grid_{1,2,3}_AutoML_...` (we observe these in our run artifacts, e.g., `docs/experiments/run/h2o_full_dataset/results/h2o_leaderboard.csv`).
+In H2O AutoML 3.46.x, the DeepLearning (feed-forward NN) component consists of one small default model and three predefined hyperparameter grids. These steps live in the AutoML Java sources (`DeepLearningStepsProvider`) and appear in leaderboards with IDs such as `DeepLearning_def_1_AutoML_...` and `DeepLearning_grid_{1,2,3}_AutoML_...`, which we observe in our run artifacts (e.g., `docs/experiments/run/h2o_full_dataset/results/h2o_leaderboard.csv`).
 
-- Default model (`def_1`). Hidden layers: `[10, 10, 10]`. Other parameters use H2O defaults (Rectifier activation; no dropout grid). Purpose: lightweight baseline NN.
-- Grid steps (`grid_1`, `grid_2`, `grid_3`). Common base settings across all grids:
-  - Activation: `RectifierWithDropout`
-  - Adaptive rate: `true` (AdaDelta‑style) with search over `_rho in {0.9, 0.95, 0.99}` and `_epsilon in {1e-6, 1e-7, 1e-8, 1e-9}`
-  - Input dropout ratio search: `_input_dropout_ratio in {0.0, 0.05, 0.10, 0.15, 0.20}`
-  - Epochs: `_epochs = 10000` (effective training governed by early stopping on the AutoML‑configured metric)
-  - Hidden‑layer dropout ratios: uniform per layer, grid‑searched as below
-  - Early stopping and validation usage follow the AutoML run settings (our configs set `stopping_metric: AUC`, `sort_metric: AUCPR`, and provide a validation frame carved from train time).
-  - Architectural grids:
-    - `grid_1` (1 layer): `_hidden in { [20], [50], [100] }`; `_hidden_dropout_ratios in { [0.0], [0.1], [0.2], [0.3], [0.4], [0.5] }`
-    - `grid_2` (2 layers): `_hidden in { [20,20], [50,50], [100,100] }`; `_hidden_dropout_ratios in { [0.0,0.0], [0.1,0.1], ..., [0.5,0.5] }`
-    - `grid_3` (3 layers): `_hidden in { [20,20,20], [50,50,50], [100,100,100] }`; `_hidden_dropout_ratios in { [0.0,0.0,0.0], [0.1,0.1,0.1], ..., [0.5,0.5,0.5] }`
+- Default model (`def_1`). Hidden layers `[10, 10, 10]`; other parameters take H2O defaults (Rectifier activation, no dropout grid). Purpose: lightweight baseline NN.
+- Grid steps (`grid_1`, `grid_2`, `grid_3`). Common base settings across all grids include RectifierWithDropout activation, adaptive rate (`_rho ∈ {0.9, 0.95, 0.99}`, `_epsilon ∈ {1e-6, 1e-7, 1e-8, 1e-9}`), input dropout ratios `{0.0, 0.05, 0.10, 0.15, 0.20}`, epochs set to 10000 (with early stopping on the AutoML metric), and hidden-layer dropout ratios shared per layer. Early stopping and validation frames follow the AutoML configuration (`stopping_metric: AUC`, `sort_metric: AUCPR` in our runs). Architectural grids vary by depth: `grid_1` searches one-layer widths `{20, 50, 100}` with dropout `{0.0 … 0.5}`; `grid_2` repeats the pattern for two layers; `grid_3` extends it to three layers.
 
-Provenance (source and version). These grids are defined in H2O AutoML’s Java code for release 3.46 (the version we pin in `requirements.txt`): `h2o-automl/src/main/java/ai/h2o/automl/modeling/DeepLearningStepsProvider.java`. The code sets the base parameters and search spaces quoted above (activation, adaptive rate with rho/epsilon, input/hidden dropout grids, and hidden layer sizes). Our leaderboards show entries like `DeepLearning_grid_2_AutoML_...`, which correspond exactly to these steps. See also the H2O AutoML and Deep Learning manuals for defaults and behavior [@h2o2018automl; @h2o2018deeplearning].
+These grids are defined in H2O AutoML’s Java code for release 3.46 (the version pinned in `requirements.txt`): `h2o-automl/src/main/java/ai/h2o/automl/modeling/DeepLearningStepsProvider.java`. The source sets the activation, adaptive-rate parameters, dropout grids, and hidden-layer sizes quoted above. Leaderboards showing entries like `DeepLearning_grid_2_AutoML_...` map directly to these steps; see the H2O AutoML and Deep Learning manuals for defaults and behavior [@h2o2018automl; @h2o2018deeplearning].
 
-Implications for this thesis. H2O’s DL search explores shallow‑to‑moderate MLPs (1-3 layers) with modest widths (20/50/100) and systematic dropout/optimizer hyperparameters. It does not include embeddings, batch normalization, GELU/modern activations, or deeper/wider stacks. Consequently, we treat it as a strong, regularized baseline NN for tabular data and build our PyTorch roadmap (the relevant section) to extend beyond this regime (categorical embeddings, monotone regularization, calibration, and deeper architectures when justified by data scale).
+The search therefore explores shallow-to-moderate MLPs (1–3 layers) with modest widths (20/50/100) and systematic dropout or optimizer combinations. It omits embeddings, batch normalization, modern activations (e.g., GELU), and deeper stacks. We treat the results as a strong, regularized baseline for tabular data and build the PyTorch roadmap to extend beyond this regime with categorical embeddings, monotone regularization, calibration, and deeper architectures when justified by data scale.
 
 ## AutoML Settings (This Thesis)
 
@@ -429,7 +347,7 @@ Implications for this thesis. H2O’s DL search explores shallow‑to‑moderate
 : AutoML settings per dataset size, including training budgets, leaderboard sorting (PR vs ROC), and thresholding policy. Sorting by AUCPR emphasizes class‑imbalance‑aware ranking, while all models adopt a fixed operating threshold chosen on validation (Youden J) for test reporting. Settings are harmonized across sizes to support fair comparison.
 :::
 
-Notes. Budgets scale with dataset size (cf. suite run scripts); leaderboard sorting is AUCPR to reflect class imbalance; thresholds are always chosen on validation and fixed for test.
+Budgets scale with dataset size (cf. suite run scripts), leaderboards are sorted by AUCPR to respect class imbalance, and thresholds are always chosen on validation before being fixed for test reporting.
 
 # Results: Winners and Cross-Dataset Comparison
 
@@ -447,8 +365,7 @@ Notes. Budgets scale with dataset size (cf. suite run scripts); leaderboard sort
 
 See @tbl:winners for a compact overview; detailed curves and model explainability are analyzed next. We emphasize PR (precision–recall) as the primary metric due to class imbalance [@saito2015precision; @davis2006relationship]: it directly reflects precision at relevant recall levels for default detection. ROC AUC complements PR by showing overall ranking quality irrespective of threshold.
 
-Observations.
-- 10k/100k/full: The broad + pricing/grade (43 features) wins by a clear AUCPR margin. Pricing (`int_rate`) and grade information are consistently top drivers, improving ranking quality and precision at relevant recall levels.
+Across all three dataset sizes the broad + pricing/grade regime (43 features) wins by a clear AUCPR margin. Pricing (`int_rate`) and grade information consistently drive the lift, improving ranking quality and precision at the recall levels that matter for screening Charged Off loans.
 
 ## Ablation: Pricing/Grade Inclusion
 
@@ -465,7 +382,7 @@ We now analyze each dataset size (10k, 100k, full), include curves and explainab
 
 ## 10k subset (medium-sample regime)
 
-Winner and rationale. The winner uses 43 features (broad + pricing/grade). Average Precision is 0.4601; ROC AUC is 0.7591. At this scale, enriched pricing/grade features tend to lift PR in the high-recall region where false positives are costly.
+The broad + pricing/grade GBM leads the 10k benchmark with Average Precision 0.4601 and ROC AUC 0.7591. Figures \ref{fig:10k-pr} and \ref{fig:10k-roc} show the resulting PR and ROC envelopes: the validation-chosen operating point lies in a region where precision stays markedly higher than in the compact regimes for the same recall, while the ROC curve confirms stable ranking across thresholds.
 
 ![10k — Precision–Recall curve (winner). This panel shows the PR curve on the 10k subset for the winning GBM trained with the Broad+Pricing/Grade regime (43 features). The positive class is Charged Off; the horizontal baseline equals the test prevalence. The fixed operating threshold, selected on validation (Youden J), lies on the winner’s envelope where precision remains meaningfully higher at the same recall compared with compact regimes, implying fewer false approvals for a given catch rate.](reports/10k/figures/pr_curve.png){#fig:10k-pr}
 
@@ -475,19 +392,11 @@ Winner and rationale. The winner uses 43 features (broad + pricing/grade). Avera
 
 ![10k — Variable‑importance heatmap (winners). Relative importances are normalized per model (GBM/XGBoost by split gain; DeepLearning by sensitivity). Pricing (`int_rate`), term, and grade/sub_grade dominate, with DTI and credit depth adding lift. This pattern motivates using provider‑aware features when portability permits and suggests embedding‑based encodings for NNs to better exploit ordinal structure.](reports/10k/figures/h2o_varimp_heatmap_winners.png){#fig:10k-varimp}
 
-Method. GBM/XGB importance reflects cumulative gain across splits; NN importance is sensitivity‑based. Values are normalized per model and stacked for comparison (see Appendix A/C for exact tables).
-
-Curves (why shown). At 10k, enrichment improves both threshold‑sensitive performance (PR) and threshold‑free ranking (ROC), suggesting a genuine gain rather than a threshold artifact (see Figures \ref{fig:10k-pr} and \ref{fig:10k-roc}).
-
-Model comparison (why shown). Comparing PR across the top models makes the magnitude of improvement tangible (see Figure \ref{fig:10k-lbpr}); this is preferred over single‑number summaries because AUCPR integrates across all operating points.
-
-Explainability (why shown). `int_rate`, term, and grade carry much of the discriminative power at 10k-evidence to include these features at this scale while monitoring drift (see Figure \ref{fig:10k-varimp}).
-
-Interpretation and NN contrast. Adding pricing/grade yields a noticeable AUCPR lift relative to 12- or 39-feature baselines. `int_rate` emerges as a dominant driver, with term and grade bands providing additional stratification. Ensembles lead overall; NNs benefit from richer signals but remain slightly behind top GBM/XGBoost here. NN varimp (deeplearning) highlights `fico_spread`, term, and select purpose/state dummies-overlapping with GBM drivers but often spreading attribution across categorical partitions rather than ranking `int_rate` as sharply as GBM. This suggests NNs can leverage generalizable capacity/depth cues but may require explicit encoding/regularization to fully exploit pricing/grade at this scale.
+The PR leaderboard in Figure \ref{fig:10k-lbpr} makes the magnitude of improvement tangible: enriched features dominate the envelope rather than scoring a narrow win at one threshold. Variable-importance heatmaps (Figure \ref{fig:10k-varimp}) reinforce the story—`int_rate`, term, and grade/sub_grade account for most of the gain, with DTI and credit depth providing supporting signal. GBM/XGBoost importance reflects cumulative split gains, whereas the neural model’s sensitivity scores distribute mass across categorical partitions, hinting that embeddings or monotone regularization would help the NN exploit pricing/grade with the same sharpness as the tree ensembles.
 
 ## 100k subset (large-sample regime)
 
-Winner and rationale. The winner uses 43 features (broad + pricing/grade). Average Precision is 0.4524; ROC AUC is 0.7435. With more data, the model can exploit richer interactions embedded in pricing/grade without overfitting.
+The 100k benchmark is led by XGBoost on the same broad + pricing/grade feature set, achieving Average Precision 0.4524 and ROC AUC 0.7435. Figures \ref{fig:100k-pr} and \ref{fig:100k-roc} show that richer samples preserve the PR lift while keeping ranking strength high, indicating that the gains are not confined to a narrow operating point.
 
 ![100k — Precision–Recall curve (winner). The XGBoost winner (Broad+Pricing/Grade, 43 features) achieves a wider PR envelope on the 100k subset, maintaining higher precision at relevant recalls. With more data, the model leverages interactions among pricing/grade, term, and capacity signals without overfitting, improving screening for Charged Off at fixed review capacity.](reports/100k/figures/pr_curve.png){#fig:100k-pr}
 
@@ -497,19 +406,11 @@ Winner and rationale. The winner uses 43 features (broad + pricing/grade). Avera
 
 ![100k — Variable‑importance heatmap (winners). Importance concentrates further on pricing (`int_rate`), term, and grade/sub_grade at this scale, with DTI and credit limits contributing incremental lift. NN attributions appear more distributed across sub‑grades and states, consistent with learned embeddings capturing finer‑grained structure.](reports/100k/figures/h2o_varimp_heatmap_winners.png){#fig:100k-varimp}
 
-Method. Importance is normalized per model; compare ranks across winners for robustness.
-
-Curves (why shown). At 100k, enrichment sustains PR gains while maintaining high ROC AUC, indicating robustness rather than a narrow operating‑point win (see Figures \ref{fig:100k-pr} and \ref{fig:100k-roc}).
-
-Model comparison (why shown). ROC comparisons highlight where ensembles outperform alternatives (see Figure \ref{fig:100k-lbroc}), which is appropriate for ranking‑focused screening.
-
-Explainability (why shown). Pricing/grade dominate at scale, with `dti` and credit depth contributing incremental lift (see @fig:100k-varimp).
-
-Interpretation and NN contrast. With more data, pricing and grading fully dominate variable importance, with `dti`, credit depth, and loan size adding incremental signal. Tree ensembles (GBM/XGBoost) capitalize on these structured interactions and achieve top performance. NN varimp at 100k ranks grade/term, `int_rate`, and `fico_spread` among top drivers, but the attribution remains more distributed across sub-grades and home-ownership states compared to GBM’s sharper focus on `int_rate` and term. This is consistent with NNs learning broader categorical embeddings that capture latent structure.
+The ROC leaderboard in Figure \ref{fig:100k-lbroc} highlights how ensembles cluster near the top, reinforcing that AUCPR gains coincide with solid ranking power. Variable-importance patterns become even more concentrated on pricing, term, and grade (Figure \ref{fig:100k-varimp}), with DTI and credit limits contributing incremental lift. Neural attributions place similar emphasis on grade/term and `int_rate`, but they spread weight across subgrades and states, reflecting broader embeddings; trees retain sharper splits and therefore sustain a small performance edge.
 
 ## Full dataset (production-like benchmark)
 
-Winner and rationale. The winner uses 43 features (broad + pricing/grade). Average Precision is 0.3934; ROC AUC is 0.7093. Threshold (Youden J, selected on validation): 0.1765. Confusion (test): tp=36,227; tn=129,969; fp=68,284; fn=19,876 (Precision 0.347; Recall 0.646; FPR 0.344). We report PR and ROC because they serve complementary roles: PR guides action under imbalance; ROC validates stable ranking.
+On the full cohort, the GBM with broad + pricing/grade features achieves Average Precision 0.3934 and ROC AUC 0.7093. The validation-selected threshold is 0.1765, yielding test confusion counts tp=36,227, tn=129,969, fp=68,284, fn=19,876 (precision 0.347, recall 0.646, FPR 0.344). PR and ROC curves (Figures \ref{fig:full-pr} and \ref{fig:full-roc}) jointly document performance: PR remains the primary business lens under imbalance, while ROC confirms that the threshold transfers without undue sensitivity to minor prevalence shifts.
 
 ![Full — Precision–Recall curve (winner). On the full cohort, the GBM winner (Broad+Pricing/Grade) forms the widest PR envelope. The fixed operating threshold (from validation) lands on a region of the curve that balances catch rate and false approvals in a way consistent with deployment. Because prevalence and mix drift over the long time span, PR is the primary lens for business‑aligned performance.](reports/full/figures/pr_curve.png){#fig:full-pr}
 
@@ -521,21 +422,7 @@ Winner and rationale. The winner uses 43 features (broad + pricing/grade). Avera
 
 ![Full — Variable‑importance heatmap (winners). At production scale, pricing (`int_rate`) remains the dominant driver with term and grade/sub_grade close behind; DTI and credit depth contribute secondary lift. NN attribution highlights finer granularity within sub‑grades and selected states/purposes, consistent with embedding‑based representations. Since pricing/grade reflect provider policy, portability requires monitoring drift and recalibrating as needed.](reports/full/figures/h2o_varimp_heatmap_winners.png){#fig:full-varimp}
 
-Method. Importance summarizes contribution within each family; see Appendix A/C for top‑10 tables.
-
-Curves (why shown). On the full dataset, both PR and ROC document performance and anchor the fixed threshold to the PR shape (see Figures \ref{fig:full-pr} and \ref{fig:full-roc}).
-
-Model comparison (why shown). Comparing the strongest contenders in both PR and ROC spaces ensures the chosen winner is not an artifact of a single metric (see Figures \ref{fig:full-lbpr} and \ref{fig:full-lbroc}).
-
-Explainability (why shown). Pricing (`int_rate`), term, and grade dominate feature importance—evidence for including these variables in production‑scale models (see @fig:full-varimp).
-
-NN attributions vs GBM (full). For the full dataset, NN varimp (deeplearning) elevates `int_rate` and a hierarchy of sub-grades (A1-A4) alongside `addr_state_CA` and `purpose_debt_consolidation`, while GBM varimp emphasizes `int_rate`, term (36/60), grade bands, and DTI. The overlap on `int_rate` and grade is substantial, but the NN’s finer-grained focus on sub-grade categories suggests that learned embeddings capture within-grade nuances. GBM’s stronger ranking of term is consistent with tree splits exploiting the 36/60 dichotomy efficiently. This contrast supports using embeddings and monotonic cues in NNs so they can match the crispness of tree splits on known monotone drivers.
-
-Diversity and trade-offs (why shown). We assess model diversity and the AUCPR-ROC trade-off frontier to reason about stacking/ensembling potential and to select models that are Pareto-efficient rather than single-metric winners.
-
-Family summaries (why shown). We summarize performance by family and highlight the best per family-useful to understand whether NNs lag uniformly or only against certain ensembles.
-
-Interpretation. The enriched regime maintains the best AUCPR; pricing (`int_rate`) and term/grade signals dominate. This aligns with lender risk and pricing policy at origination: cost of credit correlates with default risk. Importantly, `installment` adds little beyond `loan_amnt`, `term`, and `int_rate`-consistent with deterministic relationships. These insights will guide architecture and feature choices for NNs.
+Leaderboards in Figures \ref{fig:full-lbpr} and \ref{fig:full-lbroc} show that ensembles dominate both PR and ROC spaces, underscoring the stability of tree-based ranking on long-horizon tabular credit data. Feature importance (Figure \ref{fig:full-varimp}) again spotlights pricing, term, and grade/sub_grade, with DTI and credit depth as secondary contributors. Neural attributions elevate the same signals but spread weight across finer-grained subgrade and geography indicators, reinforcing the need for embeddings and monotone cues if the NN is to match the crisp splits that trees learn on monotone drivers. Diversity analyses (not shown) confirm that top models lie on a Pareto frontier for AUCPR and ROC, supporting ensemble or stacking strategies when incremental lift is desired.
 
 # Why Ensembles Lead and How NNs Can Catch Up
 
@@ -545,109 +432,63 @@ Boosted trees thrive on structured, heterogeneous tabular features: they natural
 
 9.2 Challenges and Opportunities for NNs on LendingClub
 
-Neural networks must convert heterogeneously-scaled, partially ordinal, and often sparse inputs into representations that make learning efficient and stable. Critical factors:
-
-Categorical encodings. One-hot encoding for high-cardinality categories (e.g., `sub_grade`) can inflate dimensionality. Learned embeddings compress categories into dense vectors that capture similarity, improving sample efficiency. Embeddings for `grade`/`sub_grade`, `addr_state`, and `purpose` are natural targets.
-
-Monotonic and domain priors. Many tabular relationships are monotonic (e.g., higher `int_rate` implies higher default risk, all else equal). Injecting monotonic constraints or regularizing partial derivatives along key features stabilizes learning, reduces overfitting, and improves interpretability.
-
-Regularization and optimization. BatchNormalization, dropout schedules, weight decay, and careful learning-rate schedules (with early stopping on validation) are essential. Mixup/cutmix for tabular data and sharpness-aware minimization (SAM) are promising.
-
-Class imbalance. Positive class is Charged Off; imbalance requires calibrated loss functions or sampling strategies. Focal loss, class weighting, and balanced batches should be evaluated. Oversampling must remain within the training subset only.
-
-Calibration and thresholds. NNs require post-hoc calibration (Platt, Isotonic, temperature scaling) to align probabilities for thresholding. This is crucial for business decisions derived from precision-recall operating points.
-
-Temporal robustness. Forward-chaining (expanding-window) CV quantifies variance across vintages; NNs benefit significantly from validation regimes that reflect deployment and from drift-aware retraining policies.
+Neural networks must convert heterogeneously scaled, partially ordinal, and sometimes sparse inputs into stable representations. Learned embeddings replace wide one-hot encodings for high-cardinality fields (`sub_grade`, `addr_state`, `purpose`), preserving similarity structure and improving sample efficiency. Monotonic or domain-informed priors—such as constraining the effect of `int_rate` and `dti`—help stabilize training, reduce overfitting, and keep interpretations aligned with credit intuition. Robust regularization (BatchNorm, dropout schedules, weight decay) and careful optimization (learning-rate schedules with early stopping, mixup/cutmix, or sharpness-aware minimization) remain necessary complements. Because Charged Off is the positive class, calibrated losses or sampling strategies (focal loss, class weighting, balanced batches) are essential, with any oversampling confined to the training subset. Post-hoc calibration (Platt, Isotonic, temperature scaling) keeps probabilities trustworthy for precision–recall operating points, and forward-chaining temporal CV quantifies vintage-level variance so retraining and drift mitigation remain deployment-faithful.
 
 # Dataset Size Effects and Temporal Drift
 
-Observation. In several families, 10k outperforms 100k, and both can outperform the full dataset on AUCPR. This is counterintuitive given that more data typically helps.
+In several families the 10k subset even outperforms the 100k and full cohorts on AUCPR—counterintuitive until we account for temporal shift. As older vintages enter the training data, borrower mix, pricing policy, and macroeconomics drift away from the later test window. The fixed validation-chosen threshold then aligns less well with the test prevalence, so precision falls despite having more observations. Smaller samples drawn nearer to the test period maintain closer alignment and therefore produce higher AUCPR.
 
-Hypothesis. Temporal distribution shift dominates the signal as we add older vintages: borrower mix, underwriting policy (pricing/grade), and macro conditions change. The larger datasets include earlier periods whose relationships differ from the later test window, degrading out-of-time precision at the fixed validation-chosen threshold. Smaller samples (10k) drawn closer in time to the test window capture more current relationships and prevalence, yielding better AUCPR despite less data.
+Concept drift (`int_rate`, grade policy, eligibility changes), prevalence shift, covariate shift in capacity/depth features, and label maturity all contribute to this pattern. To counteract them we combine expanding-window temporal CV, recency weighting, and drift-aware calibration. Additional safeguards include adjusting thresholds for changing base rates, preferring features that remain stable across folds (via PSI or selection frequency), and adding coarse time indicators or monotone constraints so neural networks respect known directional cues.
 
-Contributing factors.
-- Concept drift: changes in `int_rate`, grade policy, or eligibility criteria alter target relationships across vintages.
-- Prevalence shift: default base rate varies over time; fixed-threshold decisions can be misaligned when prevalence differs.
-- Covariate shift: distributions of capacity/depth features (e.g., DTI, limits) shift, harming ranking near the operating region.
-- Label maturity/right-censoring: earlier cohorts have fully matured labels; later cohorts can be partially censored; mixing the two affects learned patterns.
-
-Mitigations (actionable).
-- Temporal CV with expanding windows: report means/variances across folds; select hyperparameters that are stable across time.
-- Recency weighting: up-weight recent vintages in the loss, or restrict the training window to recent periods when deployment requires it.
-- Drift-aware calibration and thresholds: calibrate on the validation slice adjacent to the test window; freeze and periodically re‑calibrate.
-- Prior/target shift correction: adjust decision thresholds for changing base rates; consider expected-utility thresholds instead of Youden J.
-- Feature stability selection: prefer features stable across folds (PSI/selection frequency) to reduce drift sensitivity.
-- Add time-aware signals: include coarse time indicators (e.g., vintage bins) or hierarchical time encodings for NNs; constrain monotone features explicitly (e.g., `int_rate`).
-
-Takeaway. Better AUCPR at 10k vs 100k/full is a strong indicator that drift dominates sample-size gains. Combining temporal CV, recency weighting, and drift-aware calibration can recover the benefits of more data without sacrificing out-of-time precision.
+The recurring result—better AUCPR at 10k than at 100k or full—signals that drift can overwhelm simple sample-size gains. Temporal CV, recency weighting, and drift-aware calibration therefore become mandatory if we want to leverage the larger datasets without sacrificing out-of-time precision.
 
 # Extended Analysis: Empirical Signals and Data Drift
 
-Correlation and MI at origination. Correlations show FICO averages as strong anti‑correlates (~−0.13), with DTI and utilization positively associated. Mutual information highlights `fico_spread`, `term`, `fico_avg`, `income_to_loan_ratio`, `loan_amnt`, and inquiry/depth features as high‑signal drivers. These patterns are visible in the origination‑only correlation panel (Figure \ref{fig:eda-corr-orig}).
+Correlations at origination show FICO averages as strong anti-correlates (~−0.13) with default, while DTI and utilization are positively associated. Mutual information highlights `fico_spread`, `term`, `fico_avg`, `income_to_loan_ratio`, `loan_amnt`, and inquiry/depth features as high-signal drivers; these patterns appear clearly in Figure \ref{fig:eda-corr-orig}.
 
-Leakage demonstration. Including post‑event features (e.g., `total_pymnt`, `recoveries`, `last_pymnt_d`) yields spuriously high correlations and mutual information with the target. This inflates apparent performance and breaks causal ordering; therefore, such fields are strictly excluded. Compare the leaky correlation panel (Figure \ref{fig:eda-corr-leaky}) against the origination‑only counterpart (Figure \ref{fig:eda-corr-orig}).
+When we include post-event features such as `total_pymnt`, `recoveries`, or `last_pymnt_d`, correlations and MI spike spuriously (Figure \ref{fig:eda-corr-leaky}). The effect illustrates why these fields must remain excluded—they break causal ordering and inflate apparent performance.
 
-Temporal drift (PSI). Credit‑depth and limit features shift across vintages, and categorical composition (e.g., `purpose`) drifts modestly. Pricing‑related variables require careful monitoring and, if used, periodic recalibration. See the numeric PSI snapshot (Figure \ref{fig:eda-psi-num}) and categorical PSI snapshot (Figure \ref{fig:eda-psi-cat}).
+Population-stability analysis (Figures \ref{fig:eda-psi-num} and \ref{fig:eda-psi-cat}) shows that credit depth and limit variables drift across vintages, while categorical mixes (e.g., `purpose`) shift more modestly. Pricing-related variables demand continuous monitoring and periodic recalibration.
 
-Implications. Adopt time‑based validation with a fixed, validation‑chosen threshold and schedule periodic retraining. Monitor PSI on top drivers and recalibrate probabilities and thresholds as distributions shift to preserve decision quality.
+Together these signals reinforce the need for time-based validation with a fixed, validation-chosen threshold, scheduled retraining, and PSI monitoring on top drivers so that probabilities and thresholds stay aligned as distributions move.
 
 # Limitations and Threats to Validity
 
-Right-censoring. Recent vintages may be partially observed; chronological splits mitigate but do not eliminate censoring artifacts. Survival/competing-risks modeling is future work.
+Right-censoring remains a threat to validity: recent vintages may be only partially observed, and although chronological splits reduce leakage they do not eliminate censoring artifacts. Survival or competing-risks modeling is reserved for future work.
 
-External generalization. Provider-aware features (pricing/grade) boost accuracy but can reduce portability across lenders or policy regimes. Provider-agnostic models trade a small amount of accuracy for robustness out of domain.
+Provider-aware features (pricing/grade) boost accuracy but can reduce portability across lenders or policy regimes. Provider-agnostic configurations sacrifice a small amount of AUCPR in exchange for better generalization out of domain.
 
-Data quality and measurement error. Stated income and several categoricals contain noise; robust preprocessing and winsorization reduce-but do not remove-bias and variance.
+Stated income and several categorical fields carry measurement noise; robust preprocessing and winsorization mitigate—but do not remove—the resulting bias and variance.
 
-Hyperparameter/budget sensitivity. Larger models and tabular transformers may yield further gains, but results here reflect bounded search budgets designed for reproducibility.
+Search budgets and hyperparameters are intentionally bounded for reproducibility. Larger models, alternative regularization schedules, or tabular transformers may deliver further gains once the infrastructure scales.
 
-Omitted modalities. Rejects data and free-text fields were not modeled in this iteration; both can affect selection bias and incremental lift estimates.
+The current iteration omits rejected applications and free-text fields. Both could influence selection bias estimates and incremental lift, so they appear in the future work roadmap.
 
-Threshold selection and business alignment. We select the operating point on validation using Youden J (maximizes TPR − FPR) and apply it unchanged to test. This is a robust, distribution-agnostic default that balances sensitivity to the positive class (Charged Off) with specificity, and is appropriate when we aim to prioritize default detection without explicit cost weights. However, if business utility places asymmetric value on precision or recall (or uses expected profit), Youden J may be suboptimal. Sensitivity checks versus F1, precision at fixed recalls, and simple cost/utility curves should be included alongside Youden J to demonstrate stability and to support policy choices.
+Threshold selection uses Youden J on validation and transfers the resulting threshold unchanged to test. The approach balances sensitivity (Charged Off) and specificity without needing explicit cost weights, yet business settings with asymmetric utilities may prefer alternative criteria. Sensitivity checks against F1, precision at fixed recall, or simple expected-profit curves should accompany Youden J to ensure policy alignment.
 
-Calibration gaps. We do not include calibration curves or reliability metrics (e.g., Brier score, Expected Calibration Error) for the reported models. Poor calibration can destabilize threshold transfer from validation to test and degrade decision quality under drift. Future iterations should add validation-fit calibration (Platt/Isotonic for trees; temperature scaling for NNs) and report post-calibration performance on test.
+Calibration curves and reliability metrics (e.g., Brier score, expected calibration error) are not yet reported. Without them, threshold transfer may deteriorate under drift. Subsequent iterations should fit calibration on the validation slice (Platt/Isotonic for trees, temperature scaling for NNs) and report post-calibration performance on test.
 
-NN variable-importance caveat. H2O DeepLearning varimp is sensitivity-based and can be noisier and less stable than tree-based importances. Interpret NN varimp qualitatively and corroborate with partial dependence/ICE where possible.
+Finally, H2O’s DeepLearning importance is sensitivity-based and noisier than tree-based measures. Interpret NN importances qualitatively and corroborate them with partial dependence or ICE plots wherever possible.
 
 # Conclusions
 
 This iteration benchmarked default prediction on LendingClub across dataset scales (10k, 100k, full), feature regimes (compact vs broad, with/without pricing and grade), and model families (neural networks vs strong tree ensembles) under time-aware evaluation with validation-chosen thresholds.
 
-What we compared.
-- Dataset scale: 10k vs 100k vs full cohorts.
-- Feature subsets: compact core signals; broad depth/limits; and provider-aware variants that add `int_rate`, `grade/sub_grade`, and `installment`.
-- Models: calibrated neural networks (MLPs) versus strong tree ensembles (AutoML baselines) on identical splits and thresholding protocol.
+Comparisons spanned three axes: dataset scale (10k, 100k, full cohorts), feature subset design (compact cores, broad depth/limit signals, and provider-aware variants with `int_rate`, `grade/sub_grade`, and `installment`), and model families (calibrated neural networks versus tree ensembles trained under identical splits and thresholding).
 
-What we learned.
-- Feature importance of pricing/grade. Adding `int_rate`, `grade/sub_grade`, and `installment` consistently improves discrimination, especially at 100k and full [@serrano2015determinants; @emekter2015evaluating; @jagtiani2019roles]. Ordinal structure in grade/sub_grade provides clean signal that NNs can exploit via embeddings [@guo2016entity].
-- Stable origination-time drivers. FICO averages anti-correlate with default; DTI/utilization correlate positively. These monotone relationships validate winsorization and monotone cues for NNs [@chen2016xgboost; @ke2017lightgbm].
-- Temporal drift matters. PSI indicates moderate drift in depth/limit features and modest drift in `purpose`; pricing variables should be monitored [@siddiqi2006credit]. Time-based splits with thresholds fixed on validation are necessary to avoid optimistic leakage [@bergmeir2018note].
-- Model family patterns. Tree ensembles lead on medium and large tabular datasets [@shwartz2022tabular; @grinsztajn2022why]. NNs are competitive on smaller samples and can close the gap with categorical embeddings, strong regularization, monotone guidance on key drivers, and post-hoc calibration [@guo2016entity; @platt1999probabilistic; @zadrozny2001obtaining; @guo2017calibration].
-- Thresholding and calibration. Choosing a single operating point on validation and applying it to test yields reproducible, deployment-aligned metrics; calibration improves reliability and threshold stability.
+Key findings include the consistent lift from pricing/grade features [@serrano2015determinants; @emekter2015evaluating; @jagtiani2019roles], the stability of origination-time drivers such as FICO and DTI (reinforcing winsorization and monotone cues) [@chen2016xgboost; @ke2017lightgbm], and the impact of temporal drift observed via PSI, which necessitates time-based validation with thresholds fixed on validation [@siddiqi2006credit; @bergmeir2018note]. Tree ensembles remain the strongest performers on medium and large tabular datasets [@shwartz2022tabular; @grinsztajn2022why], while neural networks stay competitive on smaller samples and can close the gap by adding embeddings, strong regularization, monotone guidance, and calibration [@guo2016entity; @platt1999probabilistic; @zadrozny2001obtaining; @guo2017calibration]. Selecting a single operating point on validation and transferring it to test, coupled with calibration, delivers deployment-aligned metrics with stable thresholds.
 
-Practical implications.
-- For production-like cohorts, start with broad + pricing/grade features and a strong boosted-tree baseline; monitor PSI and recalibrate thresholds over time.
-- To pursue neural-first models, combine embeddings for high-signal categoricals, monotone priors for `int_rate`/DTI, robust regularization, temporal CV, and calibration. This blueprint narrows the gap and prepares for multimodal extensions (e.g., text).
+In practice, production-like cohorts should start with the broad + pricing/grade regime and a boosted-tree baseline, continually monitor PSI, and recalibrate thresholds as drift appears. Teams pursuing neural-first approaches can narrow the remaining gap by pairing embeddings for high-signal categoricals with monotone priors on `int_rate`/DTI, robust regularization, temporal CV, and calibration—laying the groundwork for multimodal extensions such as text.
 
-Bottom line. The key levers for out-of-time precision are (i) disciplined time-aware evaluation and fixed thresholds [@bergmeir2018note; @youden1950index], (ii) inclusion of pricing/grade features when portability permits [@serrano2015determinants; @emekter2015evaluating; @jagtiani2019roles], and (iii) model choices that respect tabular structure and drift [@shwartz2022tabular; @grinsztajn2022why; @siddiqi2006credit]. With these, we obtain robust, interpretable gains and a clear roadmap to strengthen neural models further.
+Overall, out-of-time precision hinges on disciplined temporal evaluation with fixed thresholds [@bergmeir2018note; @youden1950index], judicious inclusion of pricing/grade features when portability allows [@serrano2015determinants; @emekter2015evaluating; @jagtiani2019roles], and model choices that respect tabular structure and drift [@shwartz2022tabular; @grinsztajn2022why; @siddiqi2006credit]. These levers yield robust, interpretable gains and a clear roadmap for strengthening neural models.
 
 # Future Work: High-Level Roadmap {#sec:future-work}
 
-Temporal CV and recency‑aware validation will quantify stability across vintages and guide hyperparameter selection under drift. An expanding‑window scheme with aggregated reporting (means and variances of AUCPR/ROC and thresholded metrics) helps ensure that conclusions hold out of time and that refits use information in a deployment‑faithful way.
+Near-term priorities include expanding-window temporal CV to quantify vintage-level stability, recency-aware validation for hyperparameter selection under drift, and post-hoc calibration (Platt/Isotonic for trees, temperature scaling for neural nets) accompanied by Brier/ECE reporting. These steps keep threshold transfer reliable as distributions shift. The PyTorch roadmap focuses on tabular-friendly neural upgrades—categorical embeddings for high-signal features, monotone regularization on `int_rate`/`dti`, strong regularization (BatchNorm, dropout, weight decay), and calibrated outputs—so that neural models remain interpretable while closing the gap with boosted trees.
 
-Post‑hoc calibration (Platt/Isotonic for trees, temperature scaling for neural networks) and reliability reporting (Brier score, ECE, and reliability diagrams) will stabilize threshold transfer from validation to test and improve decision quality as distributions shift. Calibration should be fit on the validation slice and evaluated on test alongside the fixed operating threshold.
+Additional improvements involve calibrated ensembling of GBM/XGBoost and neural models, richer threshold analyses (precision at fixed recall, top-k precision, expected-profit curves) tied to operational objectives, and lightweight incorporation of text fields via pretrained encoders. Neural feature-selection techniques such as stochastic gates or hard-concrete layers will help learn compact, stable subsets under the same time-aware protocol.
 
-Neural network upgrades in PyTorch focus on tabular‑appropriate modeling: categorical embeddings for high‑signal features (e.g., grade/sub_grade, term, purpose, addr_state), monotone regularization for key risk drivers such as `int_rate` and `dti`, strong regularization (BatchNorm, dropout, weight decay), and calibrated outputs. These adjustments aim to close the gap with boosted trees while preserving interpretability and robustness.
-
-Ensembling and blending of calibrated models under the identical time‑aware protocol can deliver incremental lift and stability. Simple stacks or weighted blends of GBM/XGBoost with calibrated neural models should be compared on AUCPR and thresholded metrics, with attention to drift sensitivity.
-
-Threshold analysis extensions will align model selection with operational objectives by reporting precision at fixed recall targets, top‑k precision for ranked review processes, and simple expected‑profit curves on validation using fixed cost/benefit assumptions. The chosen threshold should remain fixed when scoring the test set to preserve fair evaluation.
-2) Integrate text fields (loan descriptions) via lightweight encoders; assess incremental lift and calibration.
-3) Neural feature selection (stochastic gates, hard-concrete) to learn compact, stable subsets.
-
-Long term.
-1) Utility-optimized thresholds aligned with policy constraints; profit-aware metrics in parallel with AUCPR.
-2) Robustness under drift: PSI-triggered recalibration/retraining; uncertainty estimates for policy safeguards.
+Longer-term work explores policy-aligned, utility-optimized thresholds alongside AUCPR, drift-triggered recalibration/retraining pipelines driven by PSI, and uncertainty estimates that provide safeguards for regulatory or capital planning.
 
 
 
@@ -878,7 +719,7 @@ These tables show top features for H2O DeepLearning (NN) per dataset, normalized
 :::
 \endgroup
 
-Notes. When ambiguous, we prefer omission to avoid leakage and fairness concerns. In provider‑aware regimes, include pricing/grade with monotone priors and calibration to manage drift; in portable regimes, exclude them to improve generalization across lenders.
+When ambiguity remains, we prefer omission to avoid leakage and fairness concerns. In provider-aware regimes, pricing/grade can be included with monotone priors and calibration to manage drift; in portable regimes, excluding them improves generalization across lenders.
 
 # Appendix E - H2O DeepLearning Hyperparameter Grids (Reference)
 
@@ -901,7 +742,7 @@ Notes. When ambiguous, we prefer omission to avoid leakage and fairness concerns
 : H2O DeepLearning AutoML grid settings (3.46.x), outlining the search over widths, depths, activations, and regularization. Grid choices are constrained to remain comparable across dataset sizes; selected winners inform the NN entries in leaderboards and importance summaries.
 :::
 
-Notes. Grids and defaults are defined in H2O AutoML sources (`DeepLearningStepsProvider.java`, rel‑3.46; our runs pin `h2o==3.46.0.7`). AutoML applies early stopping using the configured metric (we sort by AUCPR and use AUC for stopping), so `_epochs=10000` acts as an upper bound.
+These grids and defaults originate in the H2O AutoML sources (`DeepLearningStepsProvider.java`, rel-3.46; our runs pin `h2o==3.46.0.7`). AutoML applies early stopping using the configured metric (leaderboards sorted by AUCPR, stopping on AUC), so `_epochs=10000` acts as an upper bound.
 
 # Appendix F - Reproducibility and Environment
 
